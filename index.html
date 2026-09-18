@@ -8,7 +8,7 @@
   :root{
     --bg:#05070a; --panel:#0a0e14; --line:#12202a;
     --green:#00ff6a; --green-dim:#0a8f3c; --green-glow:rgba(0,255,106,.35);
-    --red:#ff2a4a; --amber:#ffb020; --txt:#b8ffc8; --dim:#3a5c48;
+    --red:#ff2a4a; --white:#ffffff; --txt:#b8ffc8; --dim:#3a5c48;
     --pink:#ff6ec7; --pink-dim:#a0408a; --pink-glow:rgba(255,110,199,.35);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -23,20 +23,15 @@
       radial-gradient(circle at 50% 0%, rgba(0,255,106,.06), transparent 60%);
   }
 
-  /* ═══════════════════════════════════════════════
-     SPLASH SCREEN — boot animation
-     ═══════════════════════════════════════════════ */
   #splash{
     position:fixed; inset:0; z-index:9999;
     background:var(--bg);
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
-    padding:24px;
-    font-family:inherit;
+    padding:24px; font-family:inherit;
     transition:opacity .6s ease;
   }
   #splash.done{opacity:0; pointer-events:none}
-
   #splash::before{
     content:""; position:absolute; inset:0;
     background:
@@ -44,143 +39,61 @@
       radial-gradient(circle at 50% 50%, rgba(0,255,106,.08), transparent 70%);
     pointer-events:none;
   }
-
-  /* boot lines */
   .boot{
     position:absolute; top:24px; left:0; right:0;
-    padding:0 20px;
-    font-size:11px; line-height:1.7;
-    color:var(--green-dim); letter-spacing:1px;
-    text-align:left;
+    padding:0 20px; font-size:11px; line-height:1.7;
+    color:var(--green-dim); letter-spacing:1px; text-align:left;
   }
-  .boot .line{
-    opacity:0; transform:translateX(-6px);
-    animation:bootIn .25s ease forwards;
-  }
+  .boot .line{opacity:0; transform:translateX(-6px); animation:bootIn .25s ease forwards}
   .boot .line .ok{color:var(--green)}
-  .boot .line .dim{color:var(--dim)}
-  @keyframes bootIn{
-    to{opacity:1; transform:translateX(0)}
-  }
-
-  /* centre OSINT */
-  .centre{
-    text-align:center;
-    z-index:2;
-  }
+  @keyframes bootIn{to{opacity:1; transform:translateX(0)}}
+  .centre{text-align:center; z-index:2}
   .big-osint{
-    font-size:clamp(38px,12vw,64px);
-    letter-spacing:14px;
+    font-size:clamp(38px,12vw,64px); letter-spacing:14px;
     color:var(--green);
-    text-shadow:
-      0 0 6px var(--green-glow),
-      0 0 18px var(--green-glow),
-      0 0 40px rgba(0,255,106,.5);
-    margin:0;
-    opacity:0;
-    filter:blur(8px);
-    transform:scale(1.06);
+    text-shadow:0 0 6px var(--green-glow),0 0 18px var(--green-glow),0 0 40px rgba(0,255,106,.5);
+    margin:0; opacity:0; filter:blur(8px); transform:scale(1.06);
     transition:opacity .8s ease, filter .8s ease, transform .8s ease;
     position:relative;
   }
-  .big-osint.on{
-    opacity:1;
-    filter:blur(0);
-    transform:scale(1);
-    animation:flick 3.6s .8s infinite;
-  }
-  @keyframes flick{
-    0%,19%,21%,23%,25%,54%,56%,100%{opacity:1}
-    20%,22%,24%,55%{opacity:.65}
-  }
-
-  .tagline{
-    margin-top:12px;
-    font-size:11px;
-    letter-spacing:6px;
-    color:var(--green-dim);
-    opacity:0;
-    transition:opacity .8s ease .35s;
-  }
+  .big-osint.on{opacity:1; filter:blur(0); transform:scale(1); animation:flick 3.6s .8s infinite}
+  @keyframes flick{0%,19%,21%,23%,25%,54%,56%,100%{opacity:1}20%,22%,24%,55%{opacity:.65}}
+  .tagline{margin-top:12px; font-size:11px; letter-spacing:6px; color:var(--green-dim);
+    opacity:0; transition:opacity .8s ease .35s}
   .tagline.on{opacity:1}
-
-  .cursor-line{
-    margin-top:24px;
-    font-size:11px;
-    letter-spacing:2px;
-    color:var(--green);
-    opacity:0;
-    transition:opacity .6s ease .7s;
-  }
+  .cursor-line{margin-top:24px; font-size:11px; letter-spacing:2px; color:var(--green);
+    opacity:0; transition:opacity .6s ease .7s}
   .cursor-line.on{opacity:1}
-  .cursor-line::after{
-    content:"_";
-    display:inline-block;
-    margin-left:2px;
-    animation:blink 1s steps(1) infinite;
-  }
+  .cursor-line::after{content:"_"; display:inline-block; margin-left:2px;
+    animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
-
-  .scan{
-    position:absolute;
-    left:0; right:0;
-    height:2px;
+  .scan{position:absolute; left:0; right:0; height:2px;
     background:linear-gradient(90deg, transparent, var(--green), transparent);
     box-shadow:0 0 14px var(--green-glow);
-    animation:scanMove 2.4s ease-in-out infinite;
-    opacity:.5;
-  }
+    animation:scanMove 2.4s ease-in-out infinite; opacity:.5}
   @keyframes scanMove{
-    0%{top:20%; opacity:0}
-    10%{opacity:.6}
-    50%{top:80%; opacity:.6}
-    90%{opacity:.6}
+    0%{top:20%; opacity:0}10%{opacity:.6}
+    50%{top:80%; opacity:.6}90%{opacity:.6}
     100%{top:20%; opacity:0}
   }
-
-  /* progress bar */
-  .bar{
-    position:absolute; bottom:40px; left:24px; right:24px;
-    height:3px;
-    background:rgba(0,255,106,.08);
-    border-radius:2px;
-    overflow:hidden;
-  }
-  .bar span{
-    display:block; height:100%; width:0%;
+  .bar{position:absolute; bottom:40px; left:24px; right:24px; height:3px;
+    background:rgba(0,255,106,.08); border-radius:2px; overflow:hidden}
+  .bar span{display:block; height:100%; width:0%;
     background:linear-gradient(90deg, var(--green-dim), var(--green));
-    box-shadow:0 0 10px var(--green-glow);
-    transition:width .25s linear;
-  }
-  .bar-label{
-    position:absolute; bottom:52px; left:24px;
-    font-size:10px; letter-spacing:3px; color:var(--green-dim);
-    text-transform:uppercase;
-  }
+    box-shadow:0 0 10px var(--green-glow); transition:width .25s linear}
+  .bar-label{position:absolute; bottom:52px; left:24px;
+    font-size:10px; letter-spacing:3px; color:var(--green-dim); text-transform:uppercase}
 
-  /* ═══════════════════════════════════════════════
-     MAIN WRAP (hidden until splash done)
-     ═══════════════════════════════════════════════ */
-  .wrap{
-    position:relative; z-index:2;
-    max-width:720px; margin:0 auto;
-    padding:24px 16px 80px;
-    min-height:100vh; display:flex; flex-direction:column;
-    opacity:0;
-    transition:opacity .6s ease .2s;
-  }
+  .wrap{position:relative; z-index:2; max-width:720px; margin:0 auto;
+    padding:24px 16px 80px; min-height:100vh; display:flex; flex-direction:column;
+    opacity:0; transition:opacity .6s ease .2s}
   .wrap.on{opacity:1}
 
-  .tabs{
-    display:flex;gap:6px;margin-bottom:24px;
-    border-bottom:1px solid var(--line);padding-bottom:0;
-  }
-  .tab{
-    flex:1;background:transparent;border:0;border-bottom:2px solid transparent;
+  .tabs{display:flex;gap:6px;margin-bottom:24px;
+    border-bottom:1px solid var(--line);padding-bottom:0}
+  .tab{flex:1;background:transparent;border:0;border-bottom:2px solid transparent;
     color:var(--dim);font:inherit;font-size:12px;letter-spacing:2px;
-    padding:10px 4px;cursor:pointer;transition:.15s;
-    text-transform:uppercase;
-  }
+    padding:10px 4px;cursor:pointer;transition:.15s;text-transform:uppercase}
   .tab.active{color:var(--green);border-bottom-color:var(--green);
     text-shadow:0 0 8px var(--green-glow)}
   .tab[data-tab="yuki"].active{color:var(--pink);border-bottom-color:var(--pink);
@@ -190,34 +103,26 @@
   .page.active{display:block;animation:reveal .28s ease both}
   @keyframes reveal{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-  .title{
-    text-align:center;font-size:clamp(24px,7vw,36px);letter-spacing:8px;
+  .title{text-align:center;font-size:clamp(24px,7vw,36px);letter-spacing:8px;
     color:var(--green);text-shadow:0 0 8px var(--green-glow),0 0 22px var(--green-glow);
-    margin:0 0 6px;
-  }
+    margin:0 0 6px}
   .title.pink{color:var(--pink);text-shadow:0 0 8px var(--pink-glow),0 0 22px var(--pink-glow)}
   .sub{text-align:center;color:var(--dim);font-size:11px;letter-spacing:3px;margin-bottom:24px}
   .sub b{color:var(--green-dim);font-weight:400}
   .sub.pink b{color:var(--pink-dim)}
 
-  form, .row-form{
-    display:flex;gap:8px;border:1px solid var(--green-dim);background:var(--panel);
+  form, .row-form{display:flex;gap:8px;border:1px solid var(--green-dim);background:var(--panel);
     border-radius:4px;padding:6px;flex-shrink:0;
-    box-shadow:0 0 0 1px rgba(0,255,106,.08),0 0 24px rgba(0,255,106,.08) inset;
-  }
+    box-shadow:0 0 0 1px rgba(0,255,106,.08),0 0 24px rgba(0,255,106,.08) inset}
   form:focus-within{border-color:var(--green);
     box-shadow:0 0 0 1px rgba(0,255,106,.25),0 0 30px rgba(0,255,106,.15) inset}
   .pink form:focus-within{border-color:var(--pink)}
-  input,select{
-    flex:1;min-width:0;background:transparent;border:0;outline:0;
-    color:var(--green);font:inherit;font-size:15px;padding:12px 14px;letter-spacing:1px
-  }
+  input,select{flex:1;min-width:0;background:transparent;border:0;outline:0;
+    color:var(--green);font:inherit;font-size:15px;padding:12px 14px;letter-spacing:1px}
   input::placeholder{color:var(--dim);letter-spacing:2px}
-  button{
-    background:var(--green);color:#00160a;border:0;border-radius:3px;
+  button{background:var(--green);color:#00160a;border:0;border-radius:3px;
     font:inherit;font-weight:700;font-size:13px;letter-spacing:2px;
-    padding:0 22px;cursor:pointer;transition:.15s;flex-shrink:0;
-  }
+    padding:0 22px;cursor:pointer;transition:.15s;flex-shrink:0}
   button:active{transform:translateY(1px)}
   button:disabled{opacity:.4;cursor:wait}
   .pink button{background:var(--pink);color:#2a001a}
@@ -244,19 +149,17 @@
   .row .k{color:var(--red);min-width:82px;flex-shrink:0;text-transform:lowercase;
     letter-spacing:1px}
   .row .v{color:var(--green);word-break:break-word}
-  .row .v.hi{color:var(--amber)}
+  .row .v.hi{color:var(--white)}
   .kv-card{padding:12px}
   .kv-card h3{margin:0 0 10px;font-size:13px;letter-spacing:2px;color:var(--green)}
   pre.raw{background:#020406;border:1px solid var(--line);border-radius:4px;
     padding:12px;font-size:11.5px;line-height:1.5;color:var(--green-dim);
     overflow-x:auto;max-height:340px;white-space:pre-wrap;word-break:break-word}
 
-  .chat{
-    flex:1;min-height:60vh;border:1px solid var(--line);border-radius:4px;
+  .chat{flex:1;min-height:60vh;border:1px solid var(--line);border-radius:4px;
     background:linear-gradient(180deg,var(--panel),#060a0f);
     padding:14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;
-    overflow-y:auto;max-height:60vh;
-  }
+    overflow-y:auto;max-height:60vh}
   .msg{max-width:85%;padding:8px 12px;border-radius:6px;
     font-size:13px;line-height:1.5;word-break:break-word}
   .msg.me{align-self:flex-end;background:rgba(0,255,106,.10);
@@ -270,26 +173,17 @@
   .row-inline{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   .row-inline input, .row-inline select{
     border:1px solid var(--line);background:var(--panel);border-radius:3px;
-    padding:10px;font-size:13px;flex:1;min-width:80px;
-  }
+    padding:10px;font-size:13px;flex:1;min-width:80px}
 
-  .footer{
-    text-align:center;font-size:10px;color:var(--dim);letter-spacing:1px;
+  .footer{text-align:center;font-size:10px;color:var(--dim);letter-spacing:1px;
     margin-top:30px;flex-shrink:0;line-height:1.8;
-    border-top:1px solid var(--line);padding-top:16px;
-  }
-  .footer .disc{
-    font-size:9.5px;color:var(--dim);line-height:1.6;
-    max-width:520px;margin:0 auto 12px;letter-spacing:.3px;
-    text-transform:none;
-  }
-  .footer .tg{
-    display:inline-block;margin-top:8px;
+    border-top:1px solid var(--line);padding-top:16px}
+  .footer .disc{font-size:9.5px;color:var(--dim);line-height:1.6;
+    max-width:520px;margin:0 auto 12px;letter-spacing:.3px;text-transform:none}
+  .footer .tg{display:inline-block;margin-top:8px;
     color:var(--green);text-decoration:none;
     border:1px solid var(--green-dim);border-radius:3px;
-    padding:6px 14px;font-size:11px;letter-spacing:1.5px;
-    transition:.15s;
-  }
+    padding:6px 14px;font-size:11px;letter-spacing:1.5px;transition:.15s}
   .footer .tg:hover{background:rgba(0,255,106,.08);border-color:var(--green)}
 
   .loader{display:inline-block;width:10px;height:10px;
@@ -302,27 +196,18 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════
-     SPLASH SCREEN
-     ═══════════════════════════════════════════════ -->
 <div id="splash">
   <div class="scan"></div>
-
   <div class="boot" id="bootLog"></div>
-
   <div class="centre">
     <h1 class="big-osint" id="bigOsint">OSINT</h1>
     <div class="tagline" id="tagline">[ number intelligence ]</div>
     <div class="cursor-line" id="cursorLine">initializing</div>
   </div>
-
   <div class="bar-label" id="barLabel">loading</div>
   <div class="bar"><span id="barFill"></span></div>
 </div>
 
-<!-- ═══════════════════════════════════════════════
-     MAIN WRAP
-     ═══════════════════════════════════════════════ -->
 <div class="wrap" id="wrap">
 
   <div class="tabs">
@@ -388,9 +273,6 @@
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════
-   SPLASH BOOT ANIMATION
-   ═══════════════════════════════════════════════ */
 const BOOT_LINES = [
   { text: "> initializing kernel...", delay: 120 },
   { text: "> mounting secure channel...", delay: 200 },
@@ -425,14 +307,12 @@ async function runSplash(){
   const splash = document.getElementById("splash");
   const wrap = document.getElementById("wrap");
 
-  // boot lines
   let progress = 0;
   for (let i = 0; i < BOOT_LINES.length; i++){
     const item = BOOT_LINES[i];
     const div = document.createElement("div");
     div.className = "line";
     bootLog.appendChild(div);
-
     await new Promise(res => {
       typeChar(div, item.text, 12, () => {
         if (item.ok){
@@ -444,40 +324,26 @@ async function runSplash(){
         setTimeout(res, 60);
       });
     });
-
     progress = Math.round(((i + 1) / BOOT_LINES.length) * 100);
     barFill.style.width = progress + "%";
     barLabel.textContent = "loading " + progress + "%";
   }
 
-  // small pause
   await new Promise(r => setTimeout(r, 250));
-
-  // hide boot log
   bootLog.style.transition = "opacity .3s ease";
   bootLog.style.opacity = "0";
-
-  // reveal OSINT
   bigOsint.classList.add("on");
   await new Promise(r => setTimeout(r, 500));
-
   tagline.classList.add("on");
   await new Promise(r => setTimeout(r, 400));
-
   cursorLine.classList.add("on");
   await new Promise(r => setTimeout(r, 800));
-
-  // fade splash, show wrap
   splash.classList.add("done");
   wrap.classList.add("on");
-
-  setTimeout(() => {
-    splash.style.display = "none";
-  }, 700);
+  setTimeout(() => { splash.style.display = "none"; }, 700);
 }
 
 window.addEventListener("load", runSplash);
-/* ═══════════════════════════════════════════════ */
 
 const API_OSINT = "/api/osint";
 const API_SMSB  = "/api/smsb";
@@ -704,7 +570,6 @@ formYuki.addEventListener("submit", async e => {
     statusYuki.textContent = "error: " + e.message;
   }finally{
     $("#form-yuki button").disabled = false;
-    qYuki.focus();
   }
 });
 </script>
