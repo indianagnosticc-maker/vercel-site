@@ -23,78 +23,8 @@
       radial-gradient(circle at 50% 0%, rgba(0,255,106,.06), transparent 60%);
   }
 
-  #splash{position:fixed; inset:0; z-index:9999; background:var(--bg);
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:24px; font-family:inherit; transition:opacity .6s ease}
-  #splash.done{opacity:0; pointer-events:none}
-  #splash::before{content:""; position:absolute; inset:0;
-    background:
-      repeating-linear-gradient(0deg, rgba(0,255,106,.04) 0 1px, transparent 1px 3px),
-      radial-gradient(circle at 50% 50%, rgba(0,255,106,.08), transparent 70%);
-    pointer-events:none}
-  .boot{position:absolute; top:24px; left:0; right:0; padding:0 20px;
-    font-size:11px; line-height:1.7; color:var(--green-dim);
-    letter-spacing:1px; text-align:left}
-  .boot .line{opacity:0; transform:translateX(-6px); animation:bootIn .25s ease forwards}
-  .boot .line .ok{color:var(--green)}
-  @keyframes bootIn{to{opacity:1; transform:translateX(0)}}
-  .centre{text-align:center; z-index:2}
-  .big-osint{font-size:clamp(38px,12vw,64px); letter-spacing:14px;
-    color:var(--green);
-    text-shadow:0 0 6px var(--green-glow),0 0 18px var(--green-glow),0 0 40px rgba(0,255,106,.5);
-    margin:0; opacity:0; filter:blur(8px); transform:scale(1.06);
-    transition:opacity .8s ease, filter .8s ease, transform .8s ease;
-    position:relative}
-  .big-osint.on{opacity:1; filter:blur(0); transform:scale(1); animation:flick 3.6s .8s infinite}
-  @keyframes flick{0%,19%,21%,23%,25%,54%,56%,100%{opacity:1}20%,22%,24%,55%{opacity:.65}}
-  .tagline{margin-top:12px; font-size:11px; letter-spacing:6px; color:var(--green-dim);
-    opacity:0; transition:opacity .8s ease .35s}
-  .tagline.on{opacity:1}
-  .cursor-line{margin-top:24px; font-size:11px; letter-spacing:2px; color:var(--green);
-    opacity:0; transition:opacity .6s ease .7s}
-  .cursor-line.on{opacity:1}
-  .cursor-line::after{content:"_"; display:inline-block; margin-left:2px;
-    animation:blink 1s steps(1) infinite}
-  @keyframes blink{50%{opacity:0}}
-  .scan{position:absolute; left:0; right:0; height:2px;
-    background:linear-gradient(90deg, transparent, var(--green), transparent);
-    box-shadow:0 0 14px var(--green-glow);
-    animation:scanMove 2.4s ease-in-out infinite; opacity:.5}
-  @keyframes scanMove{0%{top:20%; opacity:0}10%{opacity:.6}
-    50%{top:80%; opacity:.6}90%{opacity:.6}100%{top:20%; opacity:0}}
-  .bottom-loader{position:absolute; bottom:56px; left:0; right:0;
-    display:flex; flex-direction:column; align-items:center;
-    padding:0 32px; z-index:2}
-  .bottom-loader .dots{display:flex; justify-content:space-between;
-    width:100%; max-width:340px; gap:5px}
-  .bottom-loader .dots span{width:9px; height:9px; border-radius:50%;
-    background:#0a3b1e; animation:wave 1.8s ease-in-out infinite}
-  .bottom-loader .dots span:nth-child(1){animation-delay:0.00s}
-  .bottom-loader .dots span:nth-child(2){animation-delay:0.09s}
-  .bottom-loader .dots span:nth-child(3){animation-delay:0.18s}
-  .bottom-loader .dots span:nth-child(4){animation-delay:0.27s}
-  .bottom-loader .dots span:nth-child(5){animation-delay:0.36s}
-  .bottom-loader .dots span:nth-child(6){animation-delay:0.45s}
-  .bottom-loader .dots span:nth-child(7){animation-delay:0.54s}
-  .bottom-loader .dots span:nth-child(8){animation-delay:0.63s}
-  .bottom-loader .dots span:nth-child(9){animation-delay:0.72s}
-  .bottom-loader .dots span:nth-child(10){animation-delay:0.81s}
-  .bottom-loader .dots span:nth-child(11){animation-delay:0.90s}
-  .bottom-loader .dots span:nth-child(12){animation-delay:0.99s}
-  .bottom-loader .dots span:nth-child(13){animation-delay:1.08s}
-  .bottom-loader .dots span:nth-child(14){animation-delay:1.17s}
-  .bottom-loader .dots span:nth-child(15){animation-delay:1.26s}
-  @keyframes wave{
-    0%, 60%, 100%{background:#0a3b1e; box-shadow:none; transform:scale(1)}
-    30%{background:#00ff6a;
-      box-shadow:0 0 6px rgba(0,255,106,.9),0 0 14px rgba(0,255,106,.7),0 0 24px rgba(0,255,106,.45);
-      transform:scale(1.25)}
-  }
-
   .wrap{position:relative; z-index:2; max-width:720px; margin:0 auto;
-    padding:24px 16px 80px; min-height:100vh; display:flex; flex-direction:column;
-    opacity:0; transition:opacity .6s ease .2s}
-  .wrap.on{opacity:1}
+    padding:24px 16px 80px; min-height:100vh; display:flex; flex-direction:column}
 
   .tabs{display:flex;gap:4px;margin-bottom:24px;
     border-bottom:1px solid var(--line);padding-bottom:0}
@@ -157,6 +87,7 @@
     vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
   .status .cursor.pink{background:var(--pink)}
   .status .cursor.cyan{background:var(--cyan)}
+  @keyframes blink{50%{opacity:0}}
 
   .out{margin-top:22px;flex:1}
   .card{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel),#060a0f);
@@ -175,7 +106,6 @@
   .card .head .idx{color:var(--red)}
   .card .body{padding:14px 16px}
 
-  /* OSINT row — two column grid */
   .row{display:grid; grid-template-columns:110px 1fr; gap:14px;
     font-size:12.5px; line-height:1.55; padding:6px 0;
     border-bottom:1px dashed rgba(0,255,106,.06); align-items:start}
@@ -186,9 +116,7 @@
   .row .v.hi{color:var(--white)}
   .row .v.na{color:var(--dim); font-style:italic}
 
-  /* ══════════════════════════════════════════════
-     V-OSINT row — dotted connector style
-     ══════════════════════════════════════════════ */
+  /* V-OSINT dotted connector row */
   .vrow{
     display:flex;
     align-items:baseline;
@@ -270,25 +198,7 @@
 </style>
 </head>
 <body>
-
-<div id="splash">
-  <div class="scan"></div>
-  <div class="boot" id="bootLog"></div>
-  <div class="centre">
-    <h1 class="big-osint" id="bigOsint">OSINT</h1>
-    <div class="tagline" id="tagline">[ number intelligence ]</div>
-    <div class="cursor-line" id="cursorLine">initializing</div>
-  </div>
-  <div class="bottom-loader">
-    <div class="dots">
-      <span></span><span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span><span></span>
-    </div>
-  </div>
-</div>
-
-<div class="wrap" id="wrap">
+<div class="wrap">
 
   <div class="tabs">
     <button class="tab active" data-tab="osint">OSINT</button>
@@ -369,59 +279,6 @@
 </div>
 
 <script>
-/* SPLASH */
-const BOOT_LINES = [
-  { text: "> initializing kernel...", delay: 120 },
-  { text: "> mounting secure channel...", delay: 180 },
-  { text: "> loading modules...", delay: 180, ok: true },
-  { text: "> connecting to api endpoint...", delay: 200 },
-  { text: "> bypassing c-rules...", delay: 180, ok: true },
-  { text: "> loading osint index...", delay: 180 },
-  { text: "> loading vosint core...", delay: 180 },
-  { text: "> loading sms core...", delay: 160 },
-  { text: "> loading yuki ai...", delay: 180 },
-  { text: "> all systems ready", delay: 220, ok: true },
-];
-function typeChar(el, text, speed, done){
-  let i = 0;
-  const timer = setInterval(() => {
-    el.textContent = text.slice(0, i + 1); i++;
-    if (i >= text.length){ clearInterval(timer); if (done) done(); }
-  }, speed);
-}
-async function runSplash(){
-  const bootLog = document.getElementById("bootLog");
-  const bigOsint = document.getElementById("bigOsint");
-  const tagline = document.getElementById("tagline");
-  const cursorLine = document.getElementById("cursorLine");
-  const splash = document.getElementById("splash");
-  const wrap = document.getElementById("wrap");
-  for (let i = 0; i < BOOT_LINES.length; i++){
-    const item = BOOT_LINES[i];
-    const div = document.createElement("div");
-    div.className = "line"; bootLog.appendChild(div);
-    await new Promise(res => {
-      typeChar(div, item.text, 12, () => {
-        if (item.ok){
-          const ok = document.createElement("span");
-          ok.className = "ok"; ok.textContent = "  [ok]";
-          div.appendChild(ok);
-        }
-        setTimeout(res, 50);
-      });
-    });
-  }
-  bigOsint.classList.add("on");
-  await new Promise(r => setTimeout(r, 500));
-  tagline.classList.add("on");
-  await new Promise(r => setTimeout(r, 400));
-  cursorLine.classList.add("on");
-  await new Promise(r => setTimeout(r, 2200));
-  splash.classList.add("done"); wrap.classList.add("on");
-  setTimeout(() => { splash.style.display = "none"; }, 700);
-}
-window.addEventListener("load", runSplash);
-
 const API_OSINT  = "/api/osint";
 const API_VOSINT = "/api/vosint";
 const API_SMSB   = "/api/smsb";
@@ -442,7 +299,7 @@ $$(".tab").forEach(t => t.addEventListener("click", () => {
   $("#page-" + t.dataset.tab).classList.add("active");
 }));
 
-/* ══════════════ OSINT ══════════════ */
+/* OSINT */
 const formOsint = $("#form-osint"), qOsint = $("#q-osint");
 const outOsint = $("#out-osint"), statusOsint = $("#status-osint");
 
@@ -556,7 +413,7 @@ formOsint.addEventListener("submit", async e => {
   }
 });
 
-/* ══════════════ V-OSINT ══════════════ */
+/* V-OSINT */
 const formVosint = $("#form-vosint"), qVosint = $("#q-vosint");
 const outVosint = $("#out-vosint"), statusVosint = $("#status-vosint");
 
@@ -663,7 +520,7 @@ formVosint.addEventListener("submit", async e => {
   }
 });
 
-/* ══════════════ SMS-B ══════════════ */
+/* SMS-B */
 const formSmsb = $("#form-smsb"), qSmsb = $("#q-smsb");
 const outSmsb = $("#out-smsb"), statusSmsb = $("#status-smsb");
 const countSmsb = $("#count-smsb"), delaySmsb = $("#delay-smsb");
@@ -718,7 +575,7 @@ stopSmsb.addEventListener("click", () => {
   setStatusSmsb("stopping after current request...", "err");
 });
 
-/* ══════════════ YUKI ══════════════ */
+/* YUKI */
 const formYuki = $("#form-yuki"), qYuki = $("#q-yuki");
 const chatYuki = $("#chat-yuki"), statusYuki = $("#status-yuki");
 let yukiHistory = [];
