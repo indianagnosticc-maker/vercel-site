@@ -23,77 +23,152 @@
       radial-gradient(circle at 50% 0%, rgba(0,255,106,.06), transparent 60%);
   }
 
+  /* ═══════════════════════════════════════════════
+     SPLASH — scanner loading bar
+     ═══════════════════════════════════════════════ */
   #splash{
     position:fixed; inset:0; z-index:9999;
-    background:var(--bg);
+    background:#000;
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
     padding:24px; font-family:inherit;
     transition:opacity .6s ease;
   }
   #splash.done{opacity:0; pointer-events:none}
-  #splash::before{
-    content:""; position:absolute; inset:0;
-    background:
-      repeating-linear-gradient(0deg, rgba(0,255,106,.04) 0 1px, transparent 1px 3px),
-      radial-gradient(circle at 50% 50%, rgba(0,255,106,.08), transparent 70%);
-    pointer-events:none;
-  }
-  .boot{
-    position:absolute; top:24px; left:0; right:0;
-    padding:0 20px; font-size:11px; line-height:1.7;
-    color:var(--green-dim); letter-spacing:1px; text-align:left;
-  }
-  .boot .line{opacity:0; transform:translateX(-6px); animation:bootIn .25s ease forwards}
-  .boot .line .ok{color:var(--green)}
-  @keyframes bootIn{to{opacity:1; transform:translateX(0)}}
-  .centre{text-align:center; z-index:2}
-  .big-osint{
-    font-size:clamp(38px,12vw,64px); letter-spacing:14px;
-    color:var(--green);
-    text-shadow:0 0 6px var(--green-glow),0 0 18px var(--green-glow),0 0 40px rgba(0,255,106,.5);
-    margin:0; opacity:0; filter:blur(8px); transform:scale(1.06);
-    transition:opacity .8s ease, filter .8s ease, transform .8s ease;
-    position:relative;
-  }
-  .big-osint.on{opacity:1; filter:blur(0); transform:scale(1); animation:flick 3.6s .8s infinite}
-  @keyframes flick{0%,19%,21%,23%,25%,54%,56%,100%{opacity:1}20%,22%,24%,55%{opacity:.65}}
-  .tagline{margin-top:12px; font-size:11px; letter-spacing:6px; color:var(--green-dim);
-    opacity:0; transition:opacity .8s ease .35s}
-  .tagline.on{opacity:1}
-  .cursor-line{margin-top:24px; font-size:11px; letter-spacing:2px; color:var(--green);
-    opacity:0; transition:opacity .6s ease .7s}
-  .cursor-line.on{opacity:1}
-  .cursor-line::after{content:"_"; display:inline-block; margin-left:2px;
-    animation:blink 1s steps(1) infinite}
-  @keyframes blink{50%{opacity:0}}
-  .scan{position:absolute; left:0; right:0; height:2px;
-    background:linear-gradient(90deg, transparent, var(--green), transparent);
-    box-shadow:0 0 14px var(--green-glow);
-    animation:scanMove 2.4s ease-in-out infinite; opacity:.5}
-  @keyframes scanMove{
-    0%{top:20%; opacity:0}10%{opacity:.6}
-    50%{top:80%; opacity:.6}90%{opacity:.6}
-    100%{top:20%; opacity:0}
-  }
-  .bar{position:absolute; bottom:40px; left:24px; right:24px; height:3px;
-    background:rgba(0,255,106,.08); border-radius:2px; overflow:hidden}
-  .bar span{display:block; height:100%; width:0%;
-    background:linear-gradient(90deg, var(--green-dim), var(--green));
-    box-shadow:0 0 10px var(--green-glow); transition:width .25s linear}
-  .bar-label{position:absolute; bottom:52px; left:24px;
-    font-size:10px; letter-spacing:3px; color:var(--green-dim); text-transform:uppercase}
 
-  .wrap{position:relative; z-index:2; max-width:720px; margin:0 auto;
-    padding:24px 16px 80px; min-height:100vh; display:flex; flex-direction:column;
-    opacity:0; transition:opacity .6s ease .2s}
+  .loadbox{
+    width:min(520px, 88vw);
+    display:flex; flex-direction:column;
+    align-items:center;
+    gap:14px;
+    z-index:2;
+  }
+
+  /* LOADING label */
+  .load-label{
+    font-size:16px;
+    letter-spacing:12px;
+    color:#00ff6a;
+    text-transform:uppercase;
+    font-weight:700;
+    text-shadow:
+      0 0 6px rgba(0,255,106,.9),
+      0 0 14px rgba(0,255,106,.55);
+    padding-left:12px;
+    margin-bottom:6px;
+  }
+
+  /* full bar row (corner brackets + bar) */
+  .bar-row{
+    position:relative;
+    width:100%;
+    height:14px;
+    display:flex;
+    align-items:center;
+  }
+
+  /* corner brackets */
+  .bar-row::before,
+  .bar-row::after{
+    content:"";
+    position:absolute;
+    top:0; bottom:0;
+    width:14px;
+    border:2px solid #00ff6a;
+    box-shadow:
+      0 0 6px rgba(0,255,106,.7),
+      0 0 12px rgba(0,255,106,.35);
+  }
+  .bar-row::before{
+    left:0;
+    border-right:0;
+  }
+  .bar-row::after{
+    right:0;
+    border-left:0;
+  }
+
+  /* bar container */
+  .bar-track{
+    position:absolute;
+    left:20px; right:20px;
+    top:50%;
+    transform:translateY(-50%);
+    height:4px;
+    background:rgba(0,255,106,.10);
+    overflow:hidden;
+  }
+  .bar-fill{
+    display:block;
+    height:100%;
+    width:0%;
+    background:#00ff6a;
+    box-shadow:
+      0 0 8px rgba(0,255,106,.9),
+      0 0 16px rgba(0,255,106,.6),
+      0 0 28px rgba(0,255,106,.35);
+    transition:width .12s linear;
+  }
+
+  /* percentage on right side of label row */
+  .load-meta{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    font-size:10px;
+    letter-spacing:3px;
+    color:#0a8f3c;
+    text-transform:uppercase;
+    margin-top:2px;
+    padding:0 2px;
+  }
+  .load-meta .perc{
+    color:#00ff6a;
+    text-shadow:0 0 6px rgba(0,255,106,.6);
+  }
+
+  /* hex dump / scrambled line */
+  .hexline{
+    width:100%;
+    font-size:9px;
+    letter-spacing:1.5px;
+    color:#0a8f3c;
+    opacity:.65;
+    white-space:nowrap;
+    overflow:hidden;
+    text-align:center;
+    text-overflow:clip;
+    line-height:1.4;
+    font-variant-numeric:tabular-nums;
+  }
+  .hexline b{
+    color:#00ff6a;
+    font-weight:400;
+  }
+
+  /* ═══════════════════════════════════════════════
+     MAIN WRAP
+     ═══════════════════════════════════════════════ */
+  .wrap{
+    position:relative; z-index:2;
+    max-width:720px; margin:0 auto;
+    padding:24px 16px 80px;
+    min-height:100vh; display:flex; flex-direction:column;
+    opacity:0;
+    transition:opacity .6s ease .2s;
+  }
   .wrap.on{opacity:1}
 
-  .tabs{display:flex;gap:6px;margin-bottom:24px;
-    border-bottom:1px solid var(--line);padding-bottom:0}
-  .tab{flex:1;background:transparent;border:0;border-bottom:2px solid transparent;
+  .tabs{
+    display:flex;gap:6px;margin-bottom:24px;
+    border-bottom:1px solid var(--line);padding-bottom:0;
+  }
+  .tab{
+    flex:1;background:transparent;border:0;border-bottom:2px solid transparent;
     color:var(--dim);font:inherit;font-size:12px;letter-spacing:2px;
-    padding:10px 4px;cursor:pointer;transition:.15s;text-transform:uppercase}
+    padding:10px 4px;cursor:pointer;transition:.15s;
+    text-transform:uppercase;
+  }
   .tab.active{color:var(--green);border-bottom-color:var(--green);
     text-shadow:0 0 8px var(--green-glow)}
   .tab[data-tab="yuki"].active{color:var(--pink);border-bottom-color:var(--pink);
@@ -103,26 +178,34 @@
   .page.active{display:block;animation:reveal .28s ease both}
   @keyframes reveal{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
-  .title{text-align:center;font-size:clamp(24px,7vw,36px);letter-spacing:8px;
+  .title{
+    text-align:center;font-size:clamp(24px,7vw,36px);letter-spacing:8px;
     color:var(--green);text-shadow:0 0 8px var(--green-glow),0 0 22px var(--green-glow);
-    margin:0 0 6px}
+    margin:0 0 6px;
+  }
   .title.pink{color:var(--pink);text-shadow:0 0 8px var(--pink-glow),0 0 22px var(--pink-glow)}
   .sub{text-align:center;color:var(--dim);font-size:11px;letter-spacing:3px;margin-bottom:24px}
   .sub b{color:var(--green-dim);font-weight:400}
   .sub.pink b{color:var(--pink-dim)}
 
-  form, .row-form{display:flex;gap:8px;border:1px solid var(--green-dim);background:var(--panel);
+  form, .row-form{
+    display:flex;gap:8px;border:1px solid var(--green-dim);background:var(--panel);
     border-radius:4px;padding:6px;flex-shrink:0;
-    box-shadow:0 0 0 1px rgba(0,255,106,.08),0 0 24px rgba(0,255,106,.08) inset}
+    box-shadow:0 0 0 1px rgba(0,255,106,.08),0 0 24px rgba(0,255,106,.08) inset;
+  }
   form:focus-within{border-color:var(--green);
     box-shadow:0 0 0 1px rgba(0,255,106,.25),0 0 30px rgba(0,255,106,.15) inset}
   .pink form:focus-within{border-color:var(--pink)}
-  input,select{flex:1;min-width:0;background:transparent;border:0;outline:0;
-    color:var(--green);font:inherit;font-size:15px;padding:12px 14px;letter-spacing:1px}
+  input,select{
+    flex:1;min-width:0;background:transparent;border:0;outline:0;
+    color:var(--green);font:inherit;font-size:15px;padding:12px 14px;letter-spacing:1px
+  }
   input::placeholder{color:var(--dim);letter-spacing:2px}
-  button{background:var(--green);color:#00160a;border:0;border-radius:3px;
+  button{
+    background:var(--green);color:#00160a;border:0;border-radius:3px;
     font:inherit;font-weight:700;font-size:13px;letter-spacing:2px;
-    padding:0 22px;cursor:pointer;transition:.15s;flex-shrink:0}
+    padding:0 22px;cursor:pointer;transition:.15s;flex-shrink:0;
+  }
   button:active{transform:translateY(1px)}
   button:disabled{opacity:.4;cursor:wait}
   .pink button{background:var(--pink);color:#2a001a}
@@ -133,6 +216,7 @@
   .status .cursor{display:inline-block;width:8px;height:12px;background:var(--green);
     vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
   .status .cursor.pink{background:var(--pink)}
+  @keyframes blink{50%{opacity:0}}
 
   .out{margin-top:22px;flex:1}
   .card{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel),#060a0f);
@@ -156,10 +240,12 @@
     padding:12px;font-size:11.5px;line-height:1.5;color:var(--green-dim);
     overflow-x:auto;max-height:340px;white-space:pre-wrap;word-break:break-word}
 
-  .chat{flex:1;min-height:60vh;border:1px solid var(--line);border-radius:4px;
+  .chat{
+    flex:1;min-height:60vh;border:1px solid var(--line);border-radius:4px;
     background:linear-gradient(180deg,var(--panel),#060a0f);
     padding:14px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;
-    overflow-y:auto;max-height:60vh}
+    overflow-y:auto;max-height:60vh;
+  }
   .msg{max-width:85%;padding:8px 12px;border-radius:6px;
     font-size:13px;line-height:1.5;word-break:break-word}
   .msg.me{align-self:flex-end;background:rgba(0,255,106,.10);
@@ -173,17 +259,26 @@
   .row-inline{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
   .row-inline input, .row-inline select{
     border:1px solid var(--line);background:var(--panel);border-radius:3px;
-    padding:10px;font-size:13px;flex:1;min-width:80px}
+    padding:10px;font-size:13px;flex:1;min-width:80px;
+  }
 
-  .footer{text-align:center;font-size:10px;color:var(--dim);letter-spacing:1px;
+  .footer{
+    text-align:center;font-size:10px;color:var(--dim);letter-spacing:1px;
     margin-top:30px;flex-shrink:0;line-height:1.8;
-    border-top:1px solid var(--line);padding-top:16px}
-  .footer .disc{font-size:9.5px;color:var(--dim);line-height:1.6;
-    max-width:520px;margin:0 auto 12px;letter-spacing:.3px;text-transform:none}
-  .footer .tg{display:inline-block;margin-top:8px;
+    border-top:1px solid var(--line);padding-top:16px;
+  }
+  .footer .disc{
+    font-size:9.5px;color:var(--dim);line-height:1.6;
+    max-width:520px;margin:0 auto 12px;letter-spacing:.3px;
+    text-transform:none;
+  }
+  .footer .tg{
+    display:inline-block;margin-top:8px;
     color:var(--green);text-decoration:none;
     border:1px solid var(--green-dim);border-radius:3px;
-    padding:6px 14px;font-size:11px;letter-spacing:1.5px;transition:.15s}
+    padding:6px 14px;font-size:11px;letter-spacing:1.5px;
+    transition:.15s;
+  }
   .footer .tg:hover{background:rgba(0,255,106,.08);border-color:var(--green)}
 
   .loader{display:inline-block;width:10px;height:10px;
@@ -196,18 +291,33 @@
 </head>
 <body>
 
+<!-- ═══════════════════════════════════════════════
+     SPLASH — scanner bar
+     ═══════════════════════════════════════════════ -->
 <div id="splash">
-  <div class="scan"></div>
-  <div class="boot" id="bootLog"></div>
-  <div class="centre">
-    <h1 class="big-osint" id="bigOsint">OSINT</h1>
-    <div class="tagline" id="tagline">[ number intelligence ]</div>
-    <div class="cursor-line" id="cursorLine">initializing</div>
+  <div class="loadbox">
+    <div class="load-label">LOADING</div>
+
+    <div class="bar-row">
+      <div class="bar-track">
+        <span class="bar-fill" id="barFill"></span>
+      </div>
+    </div>
+
+    <div class="load-meta">
+      <span>osint core</span>
+      <span class="perc" id="perc">0%</span>
+    </div>
+
+    <div class="hexline" id="hexline">
+      48454C4C4F574F524C44 <b>·</b> 4F53494E54 <b>·</b> 4E554D424552 <b>·</b> 4C4F4144494E47
+    </div>
   </div>
-  <div class="bar-label" id="barLabel">loading</div>
-  <div class="bar"><span id="barFill"></span></div>
 </div>
 
+<!-- ═══════════════════════════════════════════════
+     MAIN
+     ═══════════════════════════════════════════════ -->
 <div class="wrap" id="wrap">
 
   <div class="tabs">
@@ -220,7 +330,7 @@
     <h1 class="title">OSINT</h1>
     <div class="sub">[ <b>number intelligence</b> ]</div>
     <form id="form-osint" autocomplete="off">
-      <input id="q-osint" inputmode="numeric" maxlength="14" placeholder="enter number">
+      <input id="q-osint" inputmode="numeric" maxlength="14" placeholder="enter 10 digit number">
       <button type="submit">SCAN</button>
     </form>
     <div class="status" id="status-osint"></div>
@@ -273,78 +383,56 @@
 </div>
 
 <script>
-const BOOT_LINES = [
-  { text: "> initializing kernel...", delay: 120 },
-  { text: "> mounting secure channel...", delay: 200 },
-  { text: "> loading modules...", delay: 220, ok: true },
-  { text: "> connecting to api endpoint...", delay: 260 },
-  { text: "> bypassing c-rules...", delay: 240, ok: true },
-  { text: "> loading osint index...", delay: 240 },
-  { text: "> loading sms core...", delay: 200 },
-  { text: "> loading yuki ai...", delay: 260 },
-  { text: "> all systems ready", delay: 300, ok: true },
-];
-
-function typeChar(el, text, speed, done){
-  let i = 0;
-  const timer = setInterval(() => {
-    el.textContent = text.slice(0, i + 1);
-    i++;
-    if (i >= text.length){
-      clearInterval(timer);
-      if (done) done();
-    }
-  }, speed);
+/* ═══════════════════════════════════════════════
+   SPLASH — scanner loading bar
+   ═══════════════════════════════════════════════ */
+const HEX_CHARS = "0123456789ABCDEF";
+function randomHex(len){
+  let s = "";
+  for (let i = 0; i < len; i++) s += HEX_CHARS[Math.floor(Math.random()*16)];
+  return s;
 }
 
-async function runSplash(){
-  const bootLog = document.getElementById("bootLog");
+function runSplash(){
+  const splash  = document.getElementById("splash");
+  const wrap    = document.getElementById("wrap");
   const barFill = document.getElementById("barFill");
-  const barLabel = document.getElementById("barLabel");
-  const bigOsint = document.getElementById("bigOsint");
-  const tagline = document.getElementById("tagline");
-  const cursorLine = document.getElementById("cursorLine");
-  const splash = document.getElementById("splash");
-  const wrap = document.getElementById("wrap");
+  const percEl  = document.getElementById("perc");
+  const hexEl   = document.getElementById("hexline");
 
-  let progress = 0;
-  for (let i = 0; i < BOOT_LINES.length; i++){
-    const item = BOOT_LINES[i];
-    const div = document.createElement("div");
-    div.className = "line";
-    bootLog.appendChild(div);
-    await new Promise(res => {
-      typeChar(div, item.text, 12, () => {
-        if (item.ok){
-          const ok = document.createElement("span");
-          ok.className = "ok";
-          ok.textContent = "  [ok]";
-          div.appendChild(ok);
-        }
-        setTimeout(res, 60);
-      });
-    });
-    progress = Math.round(((i + 1) / BOOT_LINES.length) * 100);
-    barFill.style.width = progress + "%";
-    barLabel.textContent = "loading " + progress + "%";
-  }
+  const DURATION = 3200;
+  const start    = Date.now();
 
-  await new Promise(r => setTimeout(r, 250));
-  bootLog.style.transition = "opacity .3s ease";
-  bootLog.style.opacity = "0";
-  bigOsint.classList.add("on");
-  await new Promise(r => setTimeout(r, 500));
-  tagline.classList.add("on");
-  await new Promise(r => setTimeout(r, 400));
-  cursorLine.classList.add("on");
-  await new Promise(r => setTimeout(r, 800));
-  splash.classList.add("done");
-  wrap.classList.add("on");
-  setTimeout(() => { splash.style.display = "none"; }, 700);
+  // bar + percent
+  const tick = setInterval(() => {
+    const elapsed = Date.now() - start;
+    const pct = Math.min(100, Math.round((elapsed / DURATION) * 100));
+    barFill.style.width = pct + "%";
+    percEl.textContent = pct + "%";
+    if (pct >= 100) clearInterval(tick);
+  }, 50);
+
+  // scrambled hex line
+  const hexTimer = setInterval(() => {
+    const a = randomHex(14);
+    const b = randomHex(8);
+    const c = randomHex(8);
+    const d = randomHex(10);
+    hexEl.innerHTML = `${a} <b>·</b> ${b} <b>·</b> ${c} <b>·</b> ${d}`;
+  }, 90);
+
+  setTimeout(() => {
+    clearInterval(hexTimer);
+    splash.classList.add("done");
+    wrap.classList.add("on");
+    setTimeout(() => { splash.style.display = "none"; }, 700);
+  }, DURATION);
 }
-
 window.addEventListener("load", runSplash);
 
+/* ═══════════════════════════════════════════════
+   API + UI
+   ═══════════════════════════════════════════════ */
 const API_OSINT = "/api/osint";
 const API_SMSB  = "/api/smsb";
 const API_YUKI  = "/api/yuki";
@@ -450,7 +538,10 @@ function renderPayload(data){
 formOsint.addEventListener("submit", async e => {
   e.preventDefault();
   const digits = qOsint.value.replace(/\D/g,"");
-  if (digits.length < 6){ setStatusOsint("enter a valid number", "err"); return; }
+  if (digits.length !== 10){
+    setStatusOsint("enter 10 digit number (without +91)", "err");
+    return;
+  }
   outOsint.innerHTML = "";
   loadingOsint(digits);
   $("#form-osint button").disabled = true;
