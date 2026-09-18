@@ -24,7 +24,7 @@
   }
 
   /* ═══════════════════════════════════════════════
-     SPLASH — scanner loading bar
+     SPLASH SCREEN — dot loader style
      ═══════════════════════════════════════════════ */
   #splash{
     position:fixed; inset:0; z-index:9999;
@@ -36,115 +36,94 @@
   }
   #splash.done{opacity:0; pointer-events:none}
 
-  .loadbox{
-    width:min(520px, 88vw);
+  .loader-wrap{
+    width:min(340px, 80vw);
     display:flex; flex-direction:column;
-    align-items:center;
-    gap:14px;
+    align-items:center; gap:22px;
     z-index:2;
   }
 
-  /* LOADING label */
-  .load-label{
-    font-size:16px;
-    letter-spacing:12px;
+  .loading-label{
+    font-size:13px;
+    letter-spacing:11px;
     color:#00ff6a;
     text-transform:uppercase;
-    font-weight:700;
-    text-shadow:
-      0 0 6px rgba(0,255,106,.9),
-      0 0 14px rgba(0,255,106,.55);
-    padding-left:12px;
-    margin-bottom:6px;
+    text-shadow:0 0 10px rgba(0,255,106,.45);
+    padding-left:11px; /* optical centering because of letter-spacing */
+    animation:fadeUp .5s ease both;
   }
 
-  /* full bar row (corner brackets + bar) */
-  .bar-row{
-    position:relative;
-    width:100%;
-    height:14px;
-    display:flex;
-    align-items:center;
-  }
-
-  /* corner brackets */
-  .bar-row::before,
-  .bar-row::after{
-    content:"";
-    position:absolute;
-    top:0; bottom:0;
-    width:14px;
-    border:2px solid #00ff6a;
-    box-shadow:
-      0 0 6px rgba(0,255,106,.7),
-      0 0 12px rgba(0,255,106,.35);
-  }
-  .bar-row::before{
-    left:0;
-    border-right:0;
-  }
-  .bar-row::after{
-    right:0;
-    border-left:0;
-  }
-
-  /* bar container */
-  .bar-track{
-    position:absolute;
-    left:20px; right:20px;
-    top:50%;
-    transform:translateY(-50%);
-    height:4px;
-    background:rgba(0,255,106,.10);
-    overflow:hidden;
-  }
-  .bar-fill{
-    display:block;
-    height:100%;
-    width:0%;
-    background:#00ff6a;
-    box-shadow:
-      0 0 8px rgba(0,255,106,.9),
-      0 0 16px rgba(0,255,106,.6),
-      0 0 28px rgba(0,255,106,.35);
-    transition:width .12s linear;
-  }
-
-  /* percentage on right side of label row */
-  .load-meta{
-    width:100%;
+  .dots{
     display:flex;
     justify-content:space-between;
+    width:100%;
+    gap:6px;
+  }
+  .dots span{
+    width:9px; height:9px;
+    border-radius:50%;
+    background:#0a3b1e;
+    box-shadow:none;
+    transition:none;
+    animation:wave 1.8s ease-in-out infinite;
+  }
+  /* two halves glow sequence — center bright, edges dim, sweeping */
+  .dots span:nth-child(1)  {animation-delay:0.00s}
+  .dots span:nth-child(2)  {animation-delay:0.09s}
+  .dots span:nth-child(3)  {animation-delay:0.18s}
+  .dots span:nth-child(4)  {animation-delay:0.27s}
+  .dots span:nth-child(5)  {animation-delay:0.36s}
+  .dots span:nth-child(6)  {animation-delay:0.45s}
+  .dots span:nth-child(7)  {animation-delay:0.54s}
+  .dots span:nth-child(8)  {animation-delay:0.63s}
+  .dots span:nth-child(9)  {animation-delay:0.72s}
+  .dots span:nth-child(10) {animation-delay:0.81s}
+  .dots span:nth-child(11) {animation-delay:0.90s}
+  .dots span:nth-child(12) {animation-delay:0.99s}
+  .dots span:nth-child(13) {animation-delay:1.08s}
+  .dots span:nth-child(14) {animation-delay:1.17s}
+  .dots span:nth-child(15) {animation-delay:1.26s}
+
+  @keyframes wave{
+    0%, 60%, 100%{
+      background:#0a3b1e;
+      box-shadow:none;
+      transform:scale(1);
+    }
+    30%{
+      background:#00ff6a;
+      box-shadow:
+        0 0 6px rgba(0,255,106,.9),
+        0 0 14px rgba(0,255,106,.7),
+        0 0 24px rgba(0,255,106,.45);
+      transform:scale(1.25);
+    }
+  }
+
+  /* bottom small status (optional) */
+  .status-mini{
+    position:absolute;
+    bottom:36px; left:0; right:0;
+    text-align:center;
     font-size:10px;
     letter-spacing:3px;
     color:#0a8f3c;
     text-transform:uppercase;
-    margin-top:2px;
-    padding:0 2px;
   }
-  .load-meta .perc{
+  .status-mini .perc{
     color:#00ff6a;
-    text-shadow:0 0 6px rgba(0,255,106,.6);
+    text-shadow:0 0 6px rgba(0,255,106,.5);
   }
 
-  /* hex dump / scrambled line */
-  .hexline{
-    width:100%;
-    font-size:9px;
-    letter-spacing:1.5px;
-    color:#0a8f3c;
-    opacity:.65;
-    white-space:nowrap;
-    overflow:hidden;
-    text-align:center;
-    text-overflow:clip;
-    line-height:1.4;
-    font-variant-numeric:tabular-nums;
+  /* tiny cursor after loading text */
+  .loading-label .blink{
+    display:inline-block;
+    width:6px;
+    margin-left:2px;
+    animation:blink 1s steps(1) infinite;
   }
-  .hexline b{
-    color:#00ff6a;
-    font-weight:400;
-  }
+  .loading-label .blink::after{content:"_"}
+  @keyframes blink{50%{opacity:0}}
 
   /* ═══════════════════════════════════════════════
      MAIN WRAP
@@ -216,7 +195,6 @@
   .status .cursor{display:inline-block;width:8px;height:12px;background:var(--green);
     vertical-align:-2px;margin-left:2px;animation:blink 1s steps(1) infinite}
   .status .cursor.pink{background:var(--pink)}
-  @keyframes blink{50%{opacity:0}}
 
   .out{margin-top:22px;flex:1}
   .card{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel),#060a0f);
@@ -292,26 +270,22 @@
 <body>
 
 <!-- ═══════════════════════════════════════════════
-     SPLASH — scanner bar
+     SPLASH — dot loader
      ═══════════════════════════════════════════════ -->
 <div id="splash">
-  <div class="loadbox">
-    <div class="load-label">LOADING</div>
-
-    <div class="bar-row">
-      <div class="bar-track">
-        <span class="bar-fill" id="barFill"></span>
-      </div>
+  <div class="loader-wrap">
+    <div class="loading-label">
+      10 DIGIT NUMBER<span class="blink"></span>
     </div>
-
-    <div class="load-meta">
-      <span>osint core</span>
-      <span class="perc" id="perc">0%</span>
+    <div class="dots">
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span><span></span>
     </div>
+  </div>
 
-    <div class="hexline" id="hexline">
-      48454C4C4F574F524C44 <b>·</b> 4F53494E54 <b>·</b> 4E554D424552 <b>·</b> 4C4F4144494E47
-    </div>
+  <div class="status-mini">
+    loading <span class="perc" id="perc">0%</span>
   </div>
 </div>
 
@@ -384,45 +358,24 @@
 
 <script>
 /* ═══════════════════════════════════════════════
-   SPLASH — scanner loading bar
+   SPLASH — dot loader, ~3.5 seconds
    ═══════════════════════════════════════════════ */
-const HEX_CHARS = "0123456789ABCDEF";
-function randomHex(len){
-  let s = "";
-  for (let i = 0; i < len; i++) s += HEX_CHARS[Math.floor(Math.random()*16)];
-  return s;
-}
-
 function runSplash(){
-  const splash  = document.getElementById("splash");
-  const wrap    = document.getElementById("wrap");
-  const barFill = document.getElementById("barFill");
-  const percEl  = document.getElementById("perc");
-  const hexEl   = document.getElementById("hexline");
+  const splash = document.getElementById("splash");
+  const wrap = document.getElementById("wrap");
+  const percEl = document.getElementById("perc");
 
-  const DURATION = 3200;
-  const start    = Date.now();
+  const DURATION = 3200;   // total splash time
+  const start = Date.now();
 
-  // bar + percent
   const tick = setInterval(() => {
     const elapsed = Date.now() - start;
     const pct = Math.min(100, Math.round((elapsed / DURATION) * 100));
-    barFill.style.width = pct + "%";
     percEl.textContent = pct + "%";
     if (pct >= 100) clearInterval(tick);
-  }, 50);
-
-  // scrambled hex line
-  const hexTimer = setInterval(() => {
-    const a = randomHex(14);
-    const b = randomHex(8);
-    const c = randomHex(8);
-    const d = randomHex(10);
-    hexEl.innerHTML = `${a} <b>·</b> ${b} <b>·</b> ${c} <b>·</b> ${d}`;
-  }, 90);
+  }, 60);
 
   setTimeout(() => {
-    clearInterval(hexTimer);
     splash.classList.add("done");
     wrap.classList.add("on");
     setTimeout(() => { splash.style.display = "none"; }, 700);
