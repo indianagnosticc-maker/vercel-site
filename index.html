@@ -24,106 +24,128 @@
   }
 
   /* ═══════════════════════════════════════════════
-     SPLASH SCREEN — dot loader style
+     SPLASH SCREEN
      ═══════════════════════════════════════════════ */
   #splash{
     position:fixed; inset:0; z-index:9999;
-    background:#000;
+    background:var(--bg);
     display:flex; flex-direction:column;
     align-items:center; justify-content:center;
     padding:24px; font-family:inherit;
     transition:opacity .6s ease;
   }
   #splash.done{opacity:0; pointer-events:none}
-
-  .loader-wrap{
-    width:min(340px, 80vw);
-    display:flex; flex-direction:column;
-    align-items:center; gap:22px;
-    z-index:2;
+  #splash::before{
+    content:""; position:absolute; inset:0;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,255,106,.04) 0 1px, transparent 1px 3px),
+      radial-gradient(circle at 50% 50%, rgba(0,255,106,.08), transparent 70%);
+    pointer-events:none;
   }
 
-  .loading-label{
-    font-size:13px;
-    letter-spacing:11px;
-    color:#00ff6a;
-    text-transform:uppercase;
-    text-shadow:0 0 10px rgba(0,255,106,.45);
-    padding-left:11px; /* optical centering because of letter-spacing */
-    animation:fadeUp .5s ease both;
+  /* boot log top */
+  .boot{
+    position:absolute; top:24px; left:0; right:0;
+    padding:0 20px; font-size:11px; line-height:1.7;
+    color:var(--green-dim); letter-spacing:1px; text-align:left;
   }
+  .boot .line{opacity:0; transform:translateX(-6px); animation:bootIn .25s ease forwards}
+  .boot .line .ok{color:var(--green)}
+  @keyframes bootIn{to{opacity:1; transform:translateX(0)}}
 
-  .dots{
-    display:flex;
-    justify-content:space-between;
-    width:100%;
-    gap:6px;
+  /* centre OSINT */
+  .centre{text-align:center; z-index:2}
+  .big-osint{
+    font-size:clamp(38px,12vw,64px); letter-spacing:14px;
+    color:var(--green);
+    text-shadow:0 0 6px var(--green-glow),0 0 18px var(--green-glow),0 0 40px rgba(0,255,106,.5);
+    margin:0; opacity:0; filter:blur(8px); transform:scale(1.06);
+    transition:opacity .8s ease, filter .8s ease, transform .8s ease;
+    position:relative;
   }
-  .dots span{
-    width:9px; height:9px;
-    border-radius:50%;
-    background:#0a3b1e;
-    box-shadow:none;
-    transition:none;
-    animation:wave 1.8s ease-in-out infinite;
-  }
-  /* two halves glow sequence — center bright, edges dim, sweeping */
-  .dots span:nth-child(1)  {animation-delay:0.00s}
-  .dots span:nth-child(2)  {animation-delay:0.09s}
-  .dots span:nth-child(3)  {animation-delay:0.18s}
-  .dots span:nth-child(4)  {animation-delay:0.27s}
-  .dots span:nth-child(5)  {animation-delay:0.36s}
-  .dots span:nth-child(6)  {animation-delay:0.45s}
-  .dots span:nth-child(7)  {animation-delay:0.54s}
-  .dots span:nth-child(8)  {animation-delay:0.63s}
-  .dots span:nth-child(9)  {animation-delay:0.72s}
-  .dots span:nth-child(10) {animation-delay:0.81s}
-  .dots span:nth-child(11) {animation-delay:0.90s}
-  .dots span:nth-child(12) {animation-delay:0.99s}
-  .dots span:nth-child(13) {animation-delay:1.08s}
-  .dots span:nth-child(14) {animation-delay:1.17s}
-  .dots span:nth-child(15) {animation-delay:1.26s}
-
-  @keyframes wave{
-    0%, 60%, 100%{
-      background:#0a3b1e;
-      box-shadow:none;
-      transform:scale(1);
-    }
-    30%{
-      background:#00ff6a;
-      box-shadow:
-        0 0 6px rgba(0,255,106,.9),
-        0 0 14px rgba(0,255,106,.7),
-        0 0 24px rgba(0,255,106,.45);
-      transform:scale(1.25);
-    }
-  }
-
-  /* bottom small status (optional) */
-  .status-mini{
-    position:absolute;
-    bottom:36px; left:0; right:0;
-    text-align:center;
-    font-size:10px;
-    letter-spacing:3px;
-    color:#0a8f3c;
-    text-transform:uppercase;
-  }
-  .status-mini .perc{
-    color:#00ff6a;
-    text-shadow:0 0 6px rgba(0,255,106,.5);
-  }
-
-  /* tiny cursor after loading text */
-  .loading-label .blink{
-    display:inline-block;
-    width:6px;
-    margin-left:2px;
-    animation:blink 1s steps(1) infinite;
-  }
-  .loading-label .blink::after{content:"_"}
+  .big-osint.on{opacity:1; filter:blur(0); transform:scale(1); animation:flick 3.6s .8s infinite}
+  @keyframes flick{0%,19%,21%,23%,25%,54%,56%,100%{opacity:1}20%,22%,24%,55%{opacity:.65}}
+  .tagline{margin-top:12px; font-size:11px; letter-spacing:6px; color:var(--green-dim);
+    opacity:0; transition:opacity .8s ease .35s}
+  .tagline.on{opacity:1}
+  .cursor-line{margin-top:24px; font-size:11px; letter-spacing:2px; color:var(--green);
+    opacity:0; transition:opacity .6s ease .7s}
+  .cursor-line.on{opacity:1}
+  .cursor-line::after{content:"_"; display:inline-block; margin-left:2px;
+    animation:blink 1s steps(1) infinite}
   @keyframes blink{50%{opacity:0}}
+
+  /* scan line */
+  .scan{position:absolute; left:0; right:0; height:2px;
+    background:linear-gradient(90deg, transparent, var(--green), transparent);
+    box-shadow:0 0 14px var(--green-glow);
+    animation:scanMove 2.4s ease-in-out infinite; opacity:.5}
+  @keyframes scanMove{
+    0%{top:20%; opacity:0}10%{opacity:.6}
+    50%{top:80%; opacity:.6}90%{opacity:.6}
+    100%{top:20%; opacity:0}
+  }
+
+  /* ═══════════════════════════════════════════════
+     BOTTOM LOADER — scanner bar
+     ═══════════════════════════════════════════════ */
+  .loader-bottom{
+    position:absolute; bottom:38px; left:0; right:0;
+    display:flex; flex-direction:column; align-items:center;
+    padding:0 28px; z-index:2;
+  }
+  .loader-bottom .label{
+    font-size:10px; letter-spacing:6px; color:#00ff6a;
+    text-transform:uppercase; margin-bottom:10px;
+    text-shadow:0 0 6px rgba(0,255,106,.8),0 0 14px rgba(0,255,106,.4);
+    padding-left:6px;
+  }
+  .loader-bottom .bar-row{
+    position:relative;
+    width:100%; max-width:420px;
+    height:12px;
+    display:flex; align-items:center;
+  }
+  .loader-bottom .bar-row::before,
+  .loader-bottom .bar-row::after{
+    content:""; position:absolute; top:0; bottom:0; width:10px;
+    border:2px solid #00ff6a;
+    box-shadow:0 0 5px rgba(0,255,106,.8),0 0 10px rgba(0,255,106,.4);
+  }
+  .loader-bottom .bar-row::before{left:0; border-right:0}
+  .loader-bottom .bar-row::after{right:0; border-left:0}
+  .loader-bottom .bar-track{
+    position:absolute; left:14px; right:14px; top:50%;
+    transform:translateY(-50%); height:3px;
+    background:rgba(0,255,106,.10);
+    overflow:hidden;
+  }
+  .loader-bottom .bar-fill{
+    display:block; height:100%; width:0%;
+    background:#00ff6a;
+    box-shadow:
+      0 0 6px rgba(0,255,106,.9),
+      0 0 14px rgba(0,255,106,.55);
+    transition:width .12s linear;
+  }
+  .loader-bottom .meta{
+    width:100%; max-width:420px;
+    display:flex; justify-content:space-between;
+    font-size:9px; letter-spacing:3px;
+    color:#0a8f3c; text-transform:uppercase;
+    margin-top:6px;
+  }
+  .loader-bottom .meta .perc{
+    color:#00ff6a;
+    text-shadow:0 0 5px rgba(0,255,106,.6);
+  }
+  .loader-bottom .hexline{
+    width:100%; max-width:420px;
+    font-size:8.5px; letter-spacing:1.4px; color:#0a8f3c;
+    opacity:.6; white-space:nowrap; overflow:hidden;
+    text-align:center; margin-top:6px;
+  }
+  .loader-bottom .hexline b{color:#00ff6a; font-weight:400}
 
   /* ═══════════════════════════════════════════════
      MAIN WRAP
@@ -270,22 +292,32 @@
 <body>
 
 <!-- ═══════════════════════════════════════════════
-     SPLASH — dot loader
+     SPLASH
      ═══════════════════════════════════════════════ -->
 <div id="splash">
-  <div class="loader-wrap">
-    <div class="loading-label">
-      10 DIGIT NUMBER<span class="blink"></span>
-    </div>
-    <div class="dots">
-      <span></span><span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span><span></span>
-      <span></span><span></span><span></span><span></span><span></span>
-    </div>
+  <div class="scan"></div>
+
+  <div class="boot" id="bootLog"></div>
+
+  <div class="centre">
+    <h1 class="big-osint" id="bigOsint">OSINT</h1>
+    <div class="tagline" id="tagline">[ number intelligence ]</div>
+    <div class="cursor-line" id="cursorLine">initializing</div>
   </div>
 
-  <div class="status-mini">
-    loading <span class="perc" id="perc">0%</span>
+  <!-- bottom scanner loader -->
+  <div class="loader-bottom">
+    <div class="label">LOADING</div>
+    <div class="bar-row">
+      <div class="bar-track">
+        <span class="bar-fill" id="barFill"></span>
+      </div>
+    </div>
+    <div class="meta">
+      <span>osint core</span>
+      <span class="perc" id="perc">0%</span>
+    </div>
+    <div class="hexline" id="hexline"></div>
   </div>
 </div>
 
@@ -358,29 +390,104 @@
 
 <script>
 /* ═══════════════════════════════════════════════
-   SPLASH — dot loader, ~3.5 seconds
+   SPLASH
    ═══════════════════════════════════════════════ */
-function runSplash(){
-  const splash = document.getElementById("splash");
-  const wrap = document.getElementById("wrap");
-  const percEl = document.getElementById("perc");
+const BOOT_LINES = [
+  { text: "> initializing kernel...", delay: 120 },
+  { text: "> mounting secure channel...", delay: 180 },
+  { text: "> loading modules...", delay: 180, ok: true },
+  { text: "> connecting to api endpoint...", delay: 200 },
+  { text: "> bypassing c-rules...", delay: 180, ok: true },
+  { text: "> loading osint index...", delay: 180 },
+  { text: "> loading sms core...", delay: 160 },
+  { text: "> loading yuki ai...", delay: 180 },
+  { text: "> all systems ready", delay: 220, ok: true },
+];
 
-  const DURATION = 3200;   // total splash time
+const HEX_CHARS = "0123456789ABCDEF";
+function randomHex(len){
+  let s = "";
+  for (let i = 0; i < len; i++) s += HEX_CHARS[Math.floor(Math.random()*16)];
+  return s;
+}
+
+function typeChar(el, text, speed, done){
+  let i = 0;
+  const timer = setInterval(() => {
+    el.textContent = text.slice(0, i + 1);
+    i++;
+    if (i >= text.length){
+      clearInterval(timer);
+      if (done) done();
+    }
+  }, speed);
+}
+
+async function runSplash(){
+  const bootLog  = document.getElementById("bootLog");
+  const barFill  = document.getElementById("barFill");
+  const percEl   = document.getElementById("perc");
+  const hexEl    = document.getElementById("hexline");
+  const bigOsint = document.getElementById("bigOsint");
+  const tagline  = document.getElementById("tagline");
+  const cursorLine = document.getElementById("cursorLine");
+  const splash   = document.getElementById("splash");
+  const wrap     = document.getElementById("wrap");
+
+  // boot log typing
+  for (let i = 0; i < BOOT_LINES.length; i++){
+    const item = BOOT_LINES[i];
+    const div = document.createElement("div");
+    div.className = "line";
+    bootLog.appendChild(div);
+    await new Promise(res => {
+      typeChar(div, item.text, 12, () => {
+        if (item.ok){
+          const ok = document.createElement("span");
+          ok.className = "ok";
+          ok.textContent = "  [ok]";
+          div.appendChild(ok);
+        }
+        setTimeout(res, 50);
+      });
+    });
+  }
+
+  // hex scramble
+  const hexTimer = setInterval(() => {
+    hexEl.innerHTML = `${randomHex(12)} <b>·</b> ${randomHex(8)} <b>·</b> ${randomHex(8)} <b>·</b> ${randomHex(10)}`;
+  }, 90);
+
+  // bar progress over fixed duration
+  const DURATION = 2400;
   const start = Date.now();
-
   const tick = setInterval(() => {
     const elapsed = Date.now() - start;
     const pct = Math.min(100, Math.round((elapsed / DURATION) * 100));
+    barFill.style.width = pct + "%";
     percEl.textContent = pct + "%";
     if (pct >= 100) clearInterval(tick);
-  }, 60);
+  }, 40);
 
-  setTimeout(() => {
-    splash.classList.add("done");
-    wrap.classList.add("on");
-    setTimeout(() => { splash.style.display = "none"; }, 700);
-  }, DURATION);
+  // reveal OSINT after boot typing done
+  bigOsint.classList.add("on");
+  await new Promise(r => setTimeout(r, 400));
+  tagline.classList.add("on");
+  await new Promise(r => setTimeout(r, 350));
+  cursorLine.classList.add("on");
+
+  // wait for the loader to complete
+  await new Promise(r => setTimeout(r, DURATION));
+  clearInterval(hexTimer);
+
+  // small pause then fade out
+  await new Promise(r => setTimeout(r, 250));
+
+  splash.classList.add("done");
+  wrap.classList.add("on");
+  setTimeout(() => { splash.style.display = "none"; }, 700);
 }
+
 window.addEventListener("load", runSplash);
 
 /* ═══════════════════════════════════════════════
