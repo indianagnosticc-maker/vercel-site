@@ -170,7 +170,6 @@
     display:block; font-size:24px; color:var(--green-dim); margin-bottom:10px;
     letter-spacing:4px;
   }
-  /* ABSOLUTE MINIMAL flight dot — tiny, no glow, flat green */
   .flight-dot{
     fill: #00ff88;
     fill-opacity: 1;
@@ -180,12 +179,8 @@
     transition: fill .1s ease;
     cursor:pointer;
   }
-  .flight-dot:hover{
-    fill: #ffffff;
-  }
-  .flight-dot.selected{
-    fill: #ffffff;
-  }
+  .flight-dot:hover{ fill: #ffffff; }
+  .flight-dot.selected{ fill: #ffffff; }
 </style>
 </head>
 <body>
@@ -246,7 +241,6 @@
 const D3_URL    = "https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js";
 const TOPO_URL  = "https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js";
 const WORLD_GEO = "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json";
-const API_FLIGHTS = "/api/flights";
 const REFRESH_MS = 15000;
 
 const $ = s => document.querySelector(s);
@@ -322,22 +316,80 @@ async function boot(){
   setInterval(loadFlights, REFRESH_MS);
 }
 
+/* ────────────────────────────────────────────
+   Direct browser calls to adsb.lol — 45 global regions
+   (no server — server was blocked)
+   ──────────────────────────────────────────── */
+const REGIONS = [
+  { lat: 40, lon: -74, r: 250 }, { lat: 34, lon: -118, r: 250 },
+  { lat: 41, lon: -88, r: 250 }, { lat: 32, lon: -97, r: 250 },
+  { lat: 47, lon: -122, r: 250 }, { lat: 25, lon: -80, r: 250 },
+  { lat: 49, lon: -123, r: 250 }, { lat: 19, lon: -99, r: 250 },
+  { lat: -23, lon: -46, r: 250 }, { lat: -34, lon: -58, r: 250 },
+  { lat: 4, lon: -74, r: 250 }, { lat: -12, lon: -77, r: 250 },
+  { lat: -33, lon: -70, r: 250 },
+  { lat: 51, lon: 0, r: 250 }, { lat: 48, lon: 2, r: 250 },
+  { lat: 52, lon: 13, r: 250 }, { lat: 41, lon: 12, r: 250 },
+  { lat: 40, lon: -3, r: 250 }, { lat: 55, lon: 37, r: 250 },
+  { lat: 59, lon: 18, r: 250 }, { lat: 52, lon: 21, r: 250 },
+  { lat: 25, lon: 55, r: 250 }, { lat: 24, lon: 46, r: 250 },
+  { lat: 30, lon: 31, r: 250 }, { lat: 6, lon: 3, r: 250 },
+  { lat: -1, lon: 36, r: 250 }, { lat: -26, lon: 28, r: 250 },
+  { lat: 22, lon: 78, r: 250 }, { lat: 19, lon: 72, r: 250 },
+  { lat: 13, lon: 80, r: 250 }, { lat: 1, lon: 103, r: 250 },
+  { lat: 13, lon: 100, r: 250 }, { lat: 35, lon: 139, r: 250 },
+  { lat: 37, lon: 127, r: 250 }, { lat: 39, lon: 116, r: 250 },
+  { lat: 31, lon: 121, r: 250 }, { lat: 22, lon: 114, r: 250 },
+  { lat: -33, lon: 151, r: 250 }, { lat: -37, lon: 145, r: 250 },
+  { lat: -36, lon: 174, r: 250 },
+  { lat: 20, lon: -30, r: 250 }, { lat: -20, lon: 80, r: 250 },
+  { lat: 0, lon: -150, r: 250 }, { lat: 40, lon: -40, r: 250 },
+  { lat: -40, lon: 100, r: 250 },
+];
+
 async function loadFlights(){
   try{
-    const r = await fetch(API_FLIGHTS + "?t=" + Date.now());
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    const data = await r.json();
-    if (!data.flights || !data.flights.length) return;
-    flightsData = data.flights;
+    const results = await Promise.all(
+      REGIONS.map(r =>
+        fetch(`https://api.adsb.lol/v2/point/${r.lat}/${r.lon}/${r.r}`, {
+          headers: { "Accept": "application/json" }
+        })
+          .then(x => x.ok ? x.json() : { ac: [] })
+          .catch(() => ({ ac: [] }))
+      )
+    );
+
+    const seen = new Set();
+    const flights = [];
+    for (const data of results){
+      const list = Array.isArray(data.ac) ? data.ac : [];
+      for (const a of list){
+        if (!a || seen.has(a.hex)) continue;
+        if (typeof a.lat !== "number" || typeof a.lon !== "number") continue;
+        seen.add(a.hex);
+        flights.push({
+          icao: a.hex || "",
+          callsign: (a.flight || a.r || "").trim() || "UNKNOWN",
+          country: a.cou || "",
+          lon: a.lon,
+          lat: a.lat,
+          alt: (a.alt_baro === "ground" ? 0 : (a.alt_baro || a.alt_geom || 0)) * 0.3048,
+          vel: (a.gs || 0) * 0.514444,
+          track: a.track || 0,
+          vrate: (a.baro_rate || a.geom_rate || 0) * 0.00508,
+          squawk: a.squawk || "",
+        });
+      }
+    }
+
+    if (!flights.length) return;
+    flightsData = flights;
     $("#flights-count").textContent = flightsData.length;
     renderFlights();
   }catch(e){ console.warn("flights load failed:", e); }
 }
 
 function renderFlights(){
-  // append-only: don't remove, don't replace. Just draw new ones and let
-  // a light cleanup remove dots that fell off the world (never happens on
-  // equirect projection, so effectively no removal).
   const existing = new Set();
   gFlights.selectAll("circle.flight-dot").each(function(d){
     if (d && d.icao) existing.add(d.icao);
@@ -345,7 +397,6 @@ function renderFlights(){
 
   const newFlights = flightsData.filter(f => !existing.has(f.icao));
 
-  // add new dots
   gFlights.selectAll("circle.flight-dot.new")
     .data(newFlights, d => d.icao)
     .enter().append("circle")
@@ -355,13 +406,11 @@ function renderFlights(){
     .attr("cy", d => projection([d.lon, d.lat])[1])
     .on("click", (ev, d) => { ev.stopPropagation(); selectFlight(d); });
 
-  // update positions of ALL existing dots to their new lat/lon
   gFlights.selectAll("circle.flight-dot")
     .data(flightsData, d => d.icao)
     .attr("cx", d => projection([d.lon, d.lat])[0])
     .attr("cy", d => projection([d.lon, d.lat])[1]);
 
-  // reduce memory: keep only latest ~4000 dots
   const all = gFlights.selectAll("circle.flight-dot");
   const total = all.size();
   if (total > 4500){
