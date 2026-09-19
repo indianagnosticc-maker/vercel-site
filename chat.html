@@ -910,5 +910,487 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 </script>
+<script type="module">
+/* ═══════════════════════════════════════════════════════════
+   YUKI CHAT — Part 3: Messages, Search, Typing, Seen, Reply
+   ═══════════════════════════════════════════════════════════ */
+
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection,
+  query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const { auth, db, esc, $, $$, show, hide, showChat, showList } = window.__yuki;
+
+/* ─── state ─── */
+let currentChat = null;   // { chatId, otherUid, otherProfile }
+let unsubMessages = null;
+let unsubOtherTyping = null;
+let unsubMyChats = null;
+let typingTimer = null;
+let replyTo = null;
+let allChats = [];
+let lastTypingSent = 0;
+
+/* ─── helpers ─── */
+function timeAgo(ts){
+  if (!ts) return "";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const s = Math.floor((Date.now() - d.getTime())/1000);
+  if (s < 60) return "now";
+  if (s < 3600) return Math.floor(s/60) + "m";
+  if (s < 86400) return Math.floor(s/3600) + "h";
+  if (s < 604800) return Math.floor(s/86400) + "d";
+  return d.toLocaleDateString();
+}
+function clockTime(ts){
+  if (!ts) return "";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toTimeString().substr(0,5);
+}
+function chatIdFor(a, b){
+  return [a, b].sort().join("__");
+}
+function otherUidFrom(chatId, meUid){
+  const [a, b] = chatId.split("__");
+  return a === meUid ? b : a;
+}
+
+/* ─── search ─── */
+$("#btn-search").addEventListener("click", doSearch);
+$("#search-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") doSearch();
+});
+$("#sr-close").addEventListener("click", () => {
+  $("#search-result").classList.remove("on");
+});
+
+async function doSearch(){
+  const q = $("#search-input").value.trim().toLowerCase();
+  const me = window.__yuki.currentUser;
+  if (!q || !me) return;
+  if (!/^[a-z0-9_]{3,16}$/.test(q)){
+    alert("invalid id (3-16 chars, a-z 0-9 _)");
+    return;
+  }
+  if (q === window.__yuki.currentProfile.username.toLowerCase()){
+    alert("that's your own id");
+    return;
+  }
+
+  const srBody = $("#sr-body");
+  srBody.innerHTML = '<div class="sr-title">searching...</div>';
+  $("#search-result").classList.add("on");
+
+  try{
+    const uDoc = await getDoc(doc(db, "usernames", q));
+    if (!uDoc.exists()){
+      srBody.innerHTML = '<div style="padding:14px;color:var(--dim);font-size:11.5px;text-align:center;letter-spacing:1px">user not found</div>';
+      return;
+    }
+    const otherUid = uDoc.data().uid;
+    const pDoc = await getDoc(doc(db, "users", otherUid));
+    if (!pDoc.exists()){
+      srBody.innerHTML = '<div style="padding:14px;color:var(--dim);font-size:11.5px;text-align:center">user profile missing</div>';
+      return;
+    }
+    const prof = pDoc.data();
+    const initial = (prof.display || prof.username || "?").charAt(0).toUpperCase();
+    srBody.innerHTML = `
+      <div class="sr-user">
+        <div class="sr-avatar">${esc(initial)}</div>
+        <div class="sr-body">
+          <div class="sr-name">${esc(prof.display || prof.username)}</div>
+          <div class="sr-uid">@${esc(prof.username)}</div>
+        </div>
+        <button class="sr-start" data-uid="${esc(otherUid)}" data-name="${esc(prof.display || prof.username)}" data-user="${esc(prof.username)}">chat</button>
+      </div>
+    `;
+    srBody.querySelector(".sr-start").addEventListener("click", (ev) => {
+      const btn = ev.currentTarget;
+      openChatWith(btn.dataset.uid, {
+        display: btn.dataset.name,
+        username: btn.dataset.user
+      });
+      $("#search-result").classList.remove("on");
+    });
+  }catch(e){
+    console.error(e);
+    srBody.innerHTML = '<div style="padding:14px;color:var(--red);font-size:11.5px;text-align:center">search failed</div>';
+  }
+}
+
+/* ─── open chat with someone ─── */
+async function openChatWith(otherUid, otherProfile){
+  const me = window.__yuki.currentUser;
+  if (!me || !otherUid) return;
+
+  const chatId = chatIdFor(me.uid, otherUid);
+
+  currentChat = { chatId, otherUid, otherProfile };
+  replyTo = null;
+  $("#reply-preview").classList.remove("on");
+  $("#msg-input").value = "";
+
+  // header
+  const initial = (otherProfile.display || otherProfile.username || "?").charAt(0).toUpperCase();
+  $("#ch-avatar").textContent = initial;
+  $("#ch-name").textContent = otherProfile.display || otherProfile.username;
+  $("#ch-status").textContent = "@" + otherProfile.username;
+  $("#ch-status").className = "ch-status";
+
+  // make sure chat doc exists
+  const chatRef = doc(db, "chats", chatId);
+  const chatSnap = await getDoc(chatRef);
+  if (!chatSnap.exists()){
+    await setDoc(chatRef, {
+      users: [me.uid, otherUid],
+      createdAt: serverTimestamp(),
+      lastMsg: "",
+      lastMsgAt: serverTimestamp(),
+      lastMsgBy: me.uid,
+      unread: {
+        [me.uid]: 0,
+        [otherUid]: 0
+      }
+    });
+  }
+
+  $("#messages").innerHTML = "";
+  showChat();
+  setTimeout(() => $("#msg-input").focus(), 250);
+
+  subscribeMessages(chatId);
+  subscribeTyping(chatId, otherUid);
+  markRead(chatId, me.uid);
+}
+
+/* ─── messages subscription ─── */
+function subscribeMessages(chatId){
+  if (unsubMessages) unsubMessages();
+  const me = window.__yuki.currentUser;
+  const msgsRef = collection(db, "chats", chatId, "messages");
+  const q = query(msgsRef, orderBy("at", "asc"), limit(300));
+
+  unsubMessages = onSnapshot(q, (snap) => {
+    const box = $("#messages");
+    const atBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+
+    box.innerHTML = "";
+    if (snap.empty){
+      box.innerHTML = '<div style="text-align:center;color:var(--dim);font-size:11px;letter-spacing:1.5px;padding:30px 0;text-transform:uppercase">say hi 👋</div>';
+      return;
+    }
+
+    snap.forEach(docu => {
+      const m = docu.data();
+      const mine = m.by === me.uid;
+      const bubble = document.createElement("div");
+      bubble.className = "msg-bubble " + (mine ? "me" : "them");
+      bubble.dataset.msgId = docu.id;
+
+      let replyHtml = "";
+      if (m.replyTo){
+        replyHtml = `<div class="reply-quote"><b>${esc(m.replyTo.name || "")}</b>${esc((m.replyTo.text || "").slice(0,80))}</div>`;
+      }
+
+      let seenHtml = "";
+      if (mine){
+        const seen = m.seen === true;
+        seenHtml = `<span class="seen-tick ${seen ? "" : "unseen"}">${seen ? "✓✓" : "✓"}</span>`;
+      }
+
+      bubble.innerHTML = `
+        <span class="swipe-reply-hint">↩</span>
+        ${replyHtml}
+        <div class="msg-text">${esc(m.text || "")}</div>
+        <div class="meta">
+          <span>${clockTime(m.at)}</span>
+          ${seenHtml}
+        </div>
+      `;
+
+      // tap reply-quote to scroll to original
+      if (m.replyTo && m.replyTo.id){
+        bubble.querySelector(".reply-quote")?.addEventListener("click", () => {
+          const t = box.querySelector(`[data-msg-id="${m.replyTo.id}"]`);
+          if (t){
+            t.scrollIntoView({behavior:"smooth", block:"center"});
+            t.style.transition = "background .4s";
+            t.style.background = "rgba(255,91,181,.28)";
+            setTimeout(() => t.style.background = "", 900);
+          }
+        });
+      }
+
+      // swipe-to-reply (touch)
+      let touchStartX = 0;
+      bubble.addEventListener("touchstart", (ev) => {
+        touchStartX = ev.touches[0].clientX;
+        bubble.classList.remove("swiping");
+      }, {passive:true});
+      bubble.addEventListener("touchmove", (ev) => {
+        const dx = ev.touches[0].clientX - touchStartX;
+        if (dx > 30) bubble.classList.add("swiping");
+        else bubble.classList.remove("swiping");
+      }, {passive:true});
+      bubble.addEventListener("touchend", (ev) => {
+        const dx = (ev.changedTouches[0].clientX - touchStartX);
+        if (dx > 40){
+          setReply(m, docu.id, mine);
+        }
+        bubble.classList.remove("swiping");
+      });
+
+      // double-tap to reply for desktop
+      bubble.addEventListener("dblclick", () => setReply(m, docu.id, mine));
+
+      box.appendChild(bubble);
+    });
+
+    if (atBottom) box.scrollTop = box.scrollHeight;
+
+    // mark read on receipt
+    markRead(chatId, me.uid);
+    // update last seen in chat doc if the last message is from other
+    updateChatPreview(chatId);
+  });
+}
+
+function setReply(m, msgId, mine){
+  replyTo = {
+    id: msgId,
+    text: m.text || "",
+    name: mine ? "you" : (currentChat?.otherProfile?.display || "them")
+  };
+  $("#rp-name").textContent = replyTo.name;
+  $("#rp-text").textContent = replyTo.text.slice(0,120);
+  $("#reply-preview").classList.add("on");
+  $("#msg-input").focus();
+}
+
+$("#rp-close").addEventListener("click", () => {
+  replyTo = null;
+  $("#reply-preview").classList.remove("on");
+});
+
+/* ─── send message ─── */
+async function sendMessage(){
+  const text = $("#msg-input").value.trim();
+  if (!text) return;
+  const me = window.__yuki.currentUser;
+  if (!me || !currentChat) return;
+
+  const { chatId, otherUid } = currentChat;
+  $("#msg-input").value = "";
+  autoGrow($("#msg-input"));
+
+  const payload = {
+    text,
+    by: me.uid,
+    at: serverTimestamp(),
+    seen: false,
+    replyTo: replyTo || null
+  };
+
+  replyTo = null;
+  $("#reply-preview").classList.remove("on");
+
+  try{
+    await addDoc(collection(db, "chats", chatId, "messages"), payload);
+
+    // update chat doc
+    await updateDoc(doc(db, "chats", chatId), {
+      lastMsg: text.slice(0,80),
+      lastMsgAt: serverTimestamp(),
+      lastMsgBy: me.uid
+    });
+
+    // reset typing
+    await updateDoc(doc(db, "chats", chatId), {
+      ["typing." + me.uid]: false
+    });
+  }catch(e){
+    console.error(e);
+    alert("send failed: " + e.message);
+  }
+}
+
+$("#btn-send").addEventListener("click", sendMessage);
+$("#msg-input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey){
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+/* auto-grow textarea */
+function autoGrow(el){
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 100) + "px";
+}
+$("#msg-input").addEventListener("input", () => {
+  autoGrow($("#msg-input"));
+  sendTyping();
+});
+
+/* ─── typing indicator ─── */
+async function sendTyping(){
+  const me = window.__yuki.currentUser;
+  if (!me || !currentChat) return;
+  const now = Date.now();
+  if (now - lastTypingSent < 2000) return;
+  lastTypingSent = now;
+
+  try{
+    await updateDoc(doc(db, "chats", currentChat.chatId), {
+      ["typing." + me.uid]: true
+    });
+    if (typingTimer) clearTimeout(typingTimer);
+    typingTimer = setTimeout(async () => {
+      try{
+        await updateDoc(doc(db, "chats", currentChat.chatId), {
+          ["typing." + me.uid]: false
+        });
+      }catch(e){}
+    }, 2500);
+  }catch(e){}
+}
+
+function subscribeTyping(chatId, otherUid){
+  if (unsubOtherTyping) unsubOtherTyping();
+  const unsub = onSnapshot(doc(db, "chats", chatId), (snap) => {
+    if (!snap.exists()) return;
+    const d = snap.data();
+    const typingMap = d.typing || {};
+    const isTyping = typingMap[otherUid] === true;
+    const statusEl = $("#ch-status");
+    if (isTyping){
+      statusEl.textContent = "typing...";
+      statusEl.className = "ch-status typing";
+    } else {
+      statusEl.textContent = "@" + (currentChat?.otherProfile?.username || "");
+      statusEl.className = "ch-status";
+    }
+    // last seen
+    const seenMap = d.seen || {};
+    if (!isTyping && seenMap[otherUid]){
+      const ts = seenMap[otherUid];
+      statusEl.textContent = "last seen " + timeAgo(ts);
+    }
+  });
+  unsubOtherTyping = unsub;
+}
+
+/* ─── mark read ─── */
+async function markRead(chatId, meUid){
+  try{
+    await updateDoc(doc(db, "chats", chatId), {
+      ["seen." + meUid]: serverTimestamp(),
+      ["unread." + meUid]: 0
+    });
+    // mark all my unread incoming messages as seen
+    const msgsRef = collection(db, "chats", chatId, "messages");
+    const q = query(msgsRef, where("by", "!=", meUid));
+    const snap = await getDocs(q);
+    snap.forEach(async (d) => {
+      if (d.data().seen !== true){
+        try{ await updateDoc(d.ref, { seen: true }); }catch(e){}
+      }
+    });
+  }catch(e){}
+}
+
+/* ─── update chat doc preview after new message ─── */
+async function updateChatPreview(chatId){
+  // nothing extra — preview set on send
+}
+
+/* ─── chat list ─── */
+function subscribeChatList(){
+  if (unsubMyChats) unsubMyChats();
+  const me = window.__yuki.currentUser;
+  const chatsRef = collection(db, "chats");
+  const q = query(chatsRef, where("users", "array-contains", me.uid));
+
+  unsubMyChats = onSnapshot(q, async (snap) => {
+    const rows = [];
+    for (const d of snap.docs){
+      const data = d.data();
+      const otherUid = data.users.find(u => u !== me.uid);
+      rows.push({ chatId: d.id, data, otherUid });
+    }
+
+    // fetch profiles for others
+    const enriched = await Promise.all(rows.map(async r => {
+      try{
+        const p = await getDoc(doc(db, "users", r.otherUid));
+        r.profile = p.exists() ? p.data() : { username: "unknown", display: "unknown" };
+      }catch(e){
+        r.profile = { username: "unknown", display: "unknown" };
+      }
+      return r;
+    }));
+
+    enriched.sort((a,b) => {
+      const ta = a.data.lastMsgAt?.toMillis?.() || 0;
+      const tb = b.data.lastMsgAt?.toMillis?.() || 0;
+      return tb - ta;
+    });
+
+    allChats = enriched;
+    renderChatList();
+  });
+}
+
+function renderChatList(){
+  const box = $("#chat-list");
+  if (!allChats.length){
+    box.innerHTML = `<div class="empty-list"><span class="big">◇</span>no chats yet<br>search an id above to start</div>`;
+    return;
+  }
+  box.innerHTML = "";
+  const me = window.__yuki.currentUser;
+
+  for (const c of allChats){
+    const initial = (c.profile.display || c.profile.username || "?").charAt(0).toUpperCase();
+    const unread = (c.data.unread && c.data.unread[me.uid]) || 0;
+    const item = document.createElement("div");
+    item.className = "chat-item";
+    item.innerHTML = `
+      <div class="ci-avatar">${esc(initial)}</div>
+      <div class="ci-body">
+        <div class="ci-name">${esc(c.profile.display || c.profile.username)}</div>
+        <div class="ci-uid">@${esc(c.profile.username)}</div>
+        <div class="ci-preview">${esc(c.data.lastMsg || "")}</div>
+      </div>
+      <div class="ci-meta">
+        <div class="ci-time">${timeAgo(c.data.lastMsgAt)}</div>
+        ${unread > 0 ? `<div class="ci-badge">${unread}</div>` : ""}
+      </div>
+    `;
+    item.addEventListener("click", () => {
+      openChatWith(c.otherUid, c.profile);
+    });
+    box.appendChild(item);
+  }
+}
+
+/* ─── back button ─── */
+$("#btn-back").addEventListener("click", () => {
+  if (unsubMessages){ unsubMessages(); unsubMessages = null; }
+  if (unsubOtherTyping){ unsubOtherTyping(); unsubOtherTyping = null; }
+  currentChat = null;
+  showList();
+});
+
+/* ─── boot: when user ready, subscribe chat list ─── */
+window.addEventListener("yuki:user-ready", () => {
+  subscribeChatList();
+});
+if (window.__yuki.currentUser){
+  subscribeChatList();
+}
+</script>
 </body>
 </html>
