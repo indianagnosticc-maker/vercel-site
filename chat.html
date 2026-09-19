@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport"/>
 <title>YUKI // CIPHER_DEV</title>
 <!-- Google Fonts for developer terminal feel -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&amp;display=swap" rel="stylesheet"/>
 <style>
   :root {
     --bg: #030712;
@@ -42,7 +41,22 @@
     --radius-lg: 14px;
   }
 
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  /* Anti-copy & Anti-theft Global CSS Restriction */
+  *, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -moz-user-select: none !important;
+    -ms-user-select: none !important;
+  }
+
+  input, textarea {
+    user-select: text !important;
+    -webkit-user-select: text !important;
+    -moz-user-select: text !important;
+    -ms-user-select: text !important;
+  }
   
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100%;
@@ -715,208 +729,275 @@
     background: transparent; border: 0; color: var(--text-muted);
     font-size: 15px; cursor: pointer;
   }
+
+  /* CYBER SECURITY RESTRICTION TOAST */
+  .cipher-toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(50px);
+    background: rgba(8, 15, 32, 0.94);
+    border: 1px solid var(--accent-cyan);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(56, 189, 248, 0.3);
+    color: #e0f2fe;
+    font-size: 11.5px; letter-spacing: 0.5px;
+    padding: 10px 18px; border-radius: var(--radius-sm);
+    z-index: 9999; pointer-events: none; opacity: 0;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex; align-items: center; gap: 8px;
+    backdrop-filter: blur(12px);
+    max-width: 90vw; text-align: center;
+  }
+  .cipher-toast.visible {
+    opacity: 1; transform: translateX(-50%) translateY(0);
+  }
 </style>
 </head>
 <body>
-
 <div class="app-viewport">
-  <div class="desktop-frame">
-
-    <!-- ═══════════════ 1. LOGIN / AUTH SCREEN ═══════════════ -->
-    <div class="screen" id="login-screen">
-      <div class="login-terminal">
-        <div class="terminal-topbar">
-          <div class="window-dots">
-            <span class="dot dot-red"></span>
-            <span class="dot dot-yellow"></span>
-            <span class="dot dot-green"></span>
+<div class="desktop-frame">
+<!-- ═══════════════ 1. LOGIN / AUTH SCREEN ═══════════════ -->
+<div class="screen" id="login-screen">
+<div class="login-terminal">
+<div class="terminal-topbar">
+<div class="window-dots">
+<span class="dot dot-red"></span>
+<span class="dot dot-yellow"></span>
+<span class="dot dot-green"></span>
+</div>
+<div class="terminal-title">
+<span>&gt;_</span> YUKI // CIPHER_AUTH.sh
           </div>
-          <div class="terminal-title">
-            <span>&gt;_</span> YUKI // CIPHER_AUTH.sh
-          </div>
-          <div style="font-size:10px;color:var(--text-dim)">v2.6_PRO</div>
-        </div>
-
-        <div class="terminal-body">
-          <div class="brand-banner">
-            <h1 class="brand-logo-text">YUKI</h1>
-            <div class="brand-tagline">secure developer messaging protocol</div>
-          </div>
-
-          <div class="terminal-notice">
-            <b>SECURITY PROTOCOL:</b> End-to-end user authenticated sessions.
+<div style="font-size:10px;color:var(--text-dim)">v2.6_PRO</div>
+</div>
+<div class="terminal-body">
+<div class="brand-banner">
+<h1 class="brand-logo-text">YUKI</h1>
+<div class="brand-tagline">secure developer messaging protocol</div>
+</div>
+<div class="terminal-notice">
+<b>SECURITY PROTOCOL:</b> End-to-end user authenticated sessions.
             Illegal, malicious, or abusive activities are solely the responsibility
             of individual users.
           </div>
-
-          <!-- CREATE ACCOUNT FORM -->
-          <div id="signup-form">
-            <div class="form-group">
-              <label class="form-label">
-                <span>handle_id</span>
-                <span class="prefix">3-16 chars [a-z0-9_]</span>
-              </label>
-              <input class="terminal-input" id="su-username" type="text" maxlength="16" placeholder="e.g. dev_cipher" autocomplete="off" spellcheck="false">
-            </div>
-            <div class="form-group">
-              <label class="form-label">
-                <span>display_name</span>
-                <span class="prefix">developer alias</span>
-              </label>
-              <input class="terminal-input" id="su-display" type="text" maxlength="24" placeholder="e.g. Alex Rivera" autocomplete="off">
-            </div>
-            <button class="btn-primary" id="btn-signup">
-              <span>Initialize Identity &gt;&gt;</span>
-            </button>
-            <div class="auth-switch">
+<!-- CREATE ACCOUNT FORM -->
+<div id="signup-form">
+<div class="form-group">
+<label class="form-label">
+<span>handle_id</span>
+<span class="prefix">3-16 chars [a-z0-9_]</span>
+</label>
+<input autocomplete="off" class="terminal-input" id="su-username" maxlength="16" placeholder="e.g. dev_cipher" spellcheck="false" type="text"/>
+</div>
+<div class="form-group">
+<label class="form-label">
+<span>display_name</span>
+<span class="prefix">developer alias</span>
+</label>
+<input autocomplete="off" class="terminal-input" id="su-display" maxlength="24" placeholder="e.g. Alex Rivera" type="text"/>
+</div>
+<button class="btn-primary" id="btn-signup">
+<span>Initialize Identity &gt;&gt;</span>
+</button>
+<div class="auth-switch">
               Already registered? <a id="show-login">Login to workspace</a>
-            </div>
-          </div>
-
-          <!-- LOGIN FORM -->
-          <div id="login-form" class="hidden">
-            <div class="form-group">
-              <label class="form-label">
-                <span>handle_id</span>
-                <span class="prefix">registered username</span>
-              </label>
-              <input class="terminal-input" id="li-username" type="text" maxlength="16" placeholder="e.g. dev_cipher" autocomplete="off" spellcheck="false">
-            </div>
-            <div class="form-group">
-              <label class="form-label">
-                <span>auth_key</span>
-                <span class="prefix">access token</span>
-              </label>
-              <input class="terminal-input" id="li-password" type="password" placeholder="••••••••••••" autocomplete="off">
-            </div>
-            <button class="btn-primary" id="btn-login">
-              <span>Authenticate Session &gt;&gt;</span>
-            </button>
-            <button class="btn-secondary" id="btn-guest">
-              <span>Spin Up Guest Terminal</span>
-            </button>
-            <div class="auth-switch">
+</div>
+</div>
+<!-- LOGIN FORM -->
+<div class="hidden" id="login-form">
+<div class="form-group">
+<label class="form-label">
+<span>handle_id</span>
+<span class="prefix">registered username</span>
+</label>
+<input autocomplete="off" class="terminal-input" id="li-username" maxlength="16" placeholder="e.g. dev_cipher" spellcheck="false" type="text"/>
+</div>
+<div class="form-group">
+<label class="form-label">
+<span>auth_key</span>
+<span class="prefix">access token</span>
+</label>
+<input autocomplete="off" class="terminal-input" id="li-password" placeholder="••••••••••••" type="password"/>
+</div>
+<button class="btn-primary" id="btn-login">
+<span>Authenticate Session &gt;&gt;</span>
+</button>
+<button class="btn-secondary" id="btn-guest">
+<span>Spin Up Guest Terminal</span>
+</button>
+<div class="auth-switch">
               Need a key? <a id="show-signup">Create developer account</a>
-            </div>
-          </div>
-
-          <div class="feedback-line err" id="auth-error"></div>
-          <div class="feedback-line info" id="auth-info"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ═══════════════ 2. AUTHENTICATED WORKSPACE ═══════════════ -->
-    <div class="screen hidden" id="workspace-screen">
-      <div class="workspace-layout" id="workspace-layout">
-
-        <!-- SIDEBAR: CHAT ROSTER & ACTIVE PROFILE -->
-        <aside class="sidebar-pane" id="sidebar-pane">
-          <!-- User Profile Bar -->
-          <div class="user-badge-header">
-            <div class="user-badge-left">
-              <div class="user-avatar-wrap">
-                <div class="user-avatar" id="me-avatar">?</div>
-                <div class="online-indicator"></div>
-              </div>
-              <div class="user-meta">
-                <div class="user-display-name" id="me-display">Developer</div>
-                <div class="user-handle">
-                  <span id="me-uid">@handle</span>
-                  <span class="status-badge">ONLINE</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="header-actions">
-              <button class="action-btn" id="btn-copy-uid" title="Copy User ID">📋</button>
-              <button class="action-btn" id="btn-logout" title="Terminate Session">⏻</button>
-            </div>
-          </div>
-
-          <!-- Search & Discovery Bar -->
-          <div class="search-box-row">
-            <div class="search-input-wrap">
-              <span>$</span>
-              <input id="search-input" placeholder="find handle (e.g. dev_009)" autocomplete="off" spellcheck="false">
-            </div>
-            <button class="search-btn" id="btn-search">Query</button>
-          </div>
-
-          <!-- Conversations List -->
-          <div class="chat-items-list" id="chat-list">
-            <div class="empty-state">
-              <span class="empty-state-symbol">◇</span>
-              No active channels<br>
+</div>
+</div>
+<div class="feedback-line err" id="auth-error"></div>
+<div class="feedback-line info" id="auth-info"></div>
+</div>
+</div>
+</div>
+<!-- ═══════════════ 2. AUTHENTICATED WORKSPACE ═══════════════ -->
+<div class="screen hidden" id="workspace-screen">
+<div class="workspace-layout" id="workspace-layout">
+<!-- SIDEBAR: CHAT ROSTER & ACTIVE PROFILE -->
+<aside class="sidebar-pane" id="sidebar-pane">
+<!-- User Profile Bar -->
+<div class="user-badge-header">
+<div class="user-badge-left">
+<div class="user-avatar-wrap">
+<div class="user-avatar" id="me-avatar">?</div>
+<div class="online-indicator"></div>
+</div>
+<div class="user-meta">
+<div class="user-display-name" id="me-display">Developer</div>
+<div class="user-handle">
+<span id="me-uid">@handle</span>
+<span class="status-badge">ONLINE</span>
+</div>
+</div>
+</div>
+<div class="header-actions">
+<button class="action-btn" id="btn-copy-uid" title="Copy User ID">📋</button>
+<button class="action-btn" id="btn-logout" title="Terminate Session">⏻</button>
+</div>
+</div>
+<!-- Search & Discovery Bar -->
+<div class="search-box-row">
+<div class="search-input-wrap">
+<span>$</span>
+<input autocomplete="off" id="search-input" placeholder="find handle (e.g. dev_009)" spellcheck="false"/>
+</div>
+<button class="search-btn" id="btn-search">Query</button>
+</div>
+<!-- Conversations List -->
+<div class="chat-items-list" id="chat-list">
+<div class="empty-state">
+<span class="empty-state-symbol">◇</span>
+              No active channels<br/>
               Query a handle above to establish link
             </div>
-          </div>
-        </aside>
-
-        <!-- MAIN CONVERSATION PANE -->
-        <main class="chat-view-pane" id="chat-view-pane">
-          <!-- Terminal Header -->
-          <div class="chat-top-header">
-            <button class="btn-nav-back" id="btn-back" title="Return to channels">‹</button>
-            <div class="chat-partner-avatar" id="ch-avatar">?</div>
-            <div class="chat-partner-info">
-              <div class="chat-partner-name">
-                <span id="ch-name">Select Channel</span>
-                <span class="cipher-indicator">AES-256</span>
-              </div>
-              <div class="chat-partner-status" id="ch-status">Select a developer conversation</div>
-            </div>
-          </div>
-
-          <!-- Live Chat Stream -->
-          <div class="messages-container" id="messages">
-            <div class="empty-state">
-              <span class="empty-state-symbol">⌬</span>
+</div>
+</aside>
+<!-- MAIN CONVERSATION PANE -->
+<main class="chat-view-pane" id="chat-view-pane">
+<!-- Terminal Header -->
+<div class="chat-top-header">
+<button class="btn-nav-back" id="btn-back" title="Return to channels">‹</button>
+<div class="chat-partner-avatar" id="ch-avatar">?</div>
+<div class="chat-partner-info">
+<div class="chat-partner-name">
+<span id="ch-name">Select Channel</span>
+<span class="cipher-indicator">AES-256</span>
+</div>
+<div class="chat-partner-status" id="ch-status">Select a developer conversation</div>
+</div>
+</div>
+<!-- Live Chat Stream -->
+<div class="messages-container" id="messages">
+<div class="empty-state">
+<span class="empty-state-symbol">⌬</span>
               Select or query a peer to open conversation buffer
             </div>
-          </div>
-
-          <!-- Input Composer with character limit (max 700 chars) -->
-          <div class="chat-composer-area">
-            <!-- Quoted reply banner -->
-            <div class="reply-banner" id="reply-preview">
-              <div class="reply-banner-content">
-                <div class="reply-banner-title" id="rp-name">REPLYING</div>
-                <div class="reply-banner-snippet" id="rp-text">Snippet text...</div>
-              </div>
-              <button class="reply-banner-close" id="rp-close">✕</button>
-            </div>
-
-            <div class="composer-row">
-              <div class="composer-input-wrapper">
-                <textarea class="composer-textarea" id="msg-input" rows="1" placeholder="Write message to channel (max 700 chars)..." maxlength="700"></textarea>
-                <div class="composer-controls">
-                  <span class="terminal-tag">PROMPT_READY</span>
-                  <span class="char-counter" id="char-counter">0 / 700</span>
-                </div>
-              </div>
-              <button class="send-btn-circle" id="btn-send" title="Transmit message">
+</div>
+<!-- Input Composer with character limit (max 700 chars) -->
+<div class="chat-composer-area">
+<!-- Quoted reply banner -->
+<div class="reply-banner" id="reply-preview">
+<div class="reply-banner-content">
+<div class="reply-banner-title" id="rp-name">REPLYING</div>
+<div class="reply-banner-snippet" id="rp-text">Snippet text...</div>
+</div>
+<button class="reply-banner-close" id="rp-close">✕</button>
+</div>
+<div class="composer-row">
+<div class="composer-input-wrapper">
+<textarea class="composer-textarea" id="msg-input" maxlength="700" placeholder="Write message to channel (max 700 chars)..." rows="1"></textarea>
+<div class="composer-controls">
+<span class="terminal-tag">PROMPT_READY</span>
+<span class="char-counter" id="char-counter">0 / 700</span>
+</div>
+</div>
+<button class="send-btn-circle" id="btn-send" title="Transmit message">
                 ➤
               </button>
-            </div>
-          </div>
-        </main>
-
-      </div>
-    </div>
-
-    <!-- Search query modal -->
-    <div class="search-modal" id="search-result">
-      <div class="search-modal-header">
-        <span>Query Results</span>
-        <button class="close-btn" id="sr-close">✕</button>
-      </div>
-      <div id="sr-body"></div>
-    </div>
-
-  </div>
 </div>
+</div>
+</main>
+</div>
+</div>
+<!-- Search query modal -->
+<div class="search-modal" id="search-result">
+<div class="search-modal-header">
+<span>Query Results</span>
+<button class="close-btn" id="sr-close">✕</button>
+</div>
+<div id="sr-body"></div>
+</div>
+<!-- Cyber Security Toast Notification -->
+<div class="cipher-toast" id="cipher-toast">
+      🔒 YUKI PROTOCOL: Content copying and session extraction are disabled for security
+    </div>
+</div>
+</div>
+<!-- ═══════════════ ANTI-COPY & ANTI-THEFT PROTECTION (PROBLEM 3) ═══════════════ -->
+<script>
+(function() {
+  let toastTimer = null;
+  function showCyberToast(msg) {
+    const toast = document.getElementById("cipher-toast");
+    if (!toast) return;
+    if (msg) toast.innerHTML = "🔒 " + msg;
+    toast.classList.add("visible");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove("visible");
+    }, 2400);
+  }
+  window.showCyberToast = showCyberToast;
 
+  // Disable Right-Click Context Menu
+  document.addEventListener("contextmenu", e => {
+    e.preventDefault();
+    showCyberToast("SYSTEM: Clipboard copy & inspect are restricted by cipher protocol.");
+  });
+
+  // Block copy, cut, and dragstart globally
+  document.addEventListener("copy", e => {
+    e.preventDefault();
+    showCyberToast("YUKI PROTOCOL: Content copying is disabled for session protection.");
+  });
+  document.addEventListener("cut", e => {
+    e.preventDefault();
+    showCyberToast("YUKI PROTOCOL: Cut operations are restricted.");
+  });
+  document.addEventListener("dragstart", e => {
+    e.preventDefault();
+  });
+
+  // Block developer tools & copy/save shortcuts
+  document.addEventListener("keydown", e => {
+    const key = e.key.toLowerCase();
+    const ctrlOrMeta = e.ctrlKey || e.metaKey;
+    const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA';
+
+    // F12 or DevTools inspection shortcuts
+    if (
+      e.key === "F12" ||
+      (ctrlOrMeta && e.shiftKey && (key === "i" || key === "j" || key === "c")) ||
+      (ctrlOrMeta && key === "u") ||
+      (ctrlOrMeta && key === "s") ||
+      (ctrlOrMeta && key === "p")
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      showCyberToast("SYSTEM: Terminal inspection and source export are locked.");
+      return false;
+    }
+
+    // Ctrl+C outside text input elements
+    if (ctrlOrMeta && key === "c" && !isInput) {
+      e.preventDefault();
+      showCyberToast("YUKI PROTOCOL: Content extraction blocked.");
+      return false;
+    }
+  });
+})();
+</script>
 <!-- ═══════════════ FIREBASE SDK & CORE LOGIC ═══════════════ -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
@@ -944,7 +1025,8 @@ import {
   limit,
   onSnapshot,
   serverTimestamp,
-  getDocs
+  getDocs,
+  increment
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 /* Firebase config matching previous backend */
@@ -1214,12 +1296,34 @@ $("#btn-logout")?.addEventListener("click", async () => {
 /* Copy Handle */
 $("#btn-copy-uid")?.addEventListener("click", () => {
   if (!currentProfile) return;
+  // Controlled copy button specifically for sharing one's own developer handle
+  const original = $("#btn-copy-uid").innerHTML;
   navigator.clipboard.writeText(currentProfile.username).then(() => {
-    const btn = $("#btn-copy-uid");
-    btn.textContent = "✓";
-    setTimeout(() => { btn.textContent = "📋"; }, 1400);
+    $("#btn-copy-uid").textContent = "✓";
+    setTimeout(() => { $("#btn-copy-uid").innerHTML = original; }, 1400);
+  }).catch(() => {
+    prompt("Your Handle ID:", currentProfile.username);
   });
 });
+
+/* Local Storage helper for persistent searched contacts (Problem 1) */
+function getRecentChats(uid) {
+  if (!uid) return [];
+  try {
+    return JSON.parse(localStorage.getItem(`yuki_recent_chats_${uid}`) || "[]");
+  } catch(e) {
+    return [];
+  }
+}
+
+function saveRecentChat(uid, item) {
+  if (!uid || !item || !item.otherUid) return;
+  try {
+    const list = getRecentChats(uid).filter(x => x.otherUid !== item.otherUid);
+    list.unshift(item);
+    localStorage.setItem(`yuki_recent_chats_${uid}`, JSON.stringify(list.slice(0, 50)));
+  } catch(e){}
+}
 
 /* Auth Observer & Persistent Session */
 onAuthStateChanged(auth, async (user) => {
@@ -1329,13 +1433,21 @@ async function performSearch(){
   }
 }
 
-/* ═══════════════ CONVERSATION ROUTER ═══════════════ */
+/* ═══════════════ CONVERSATION ROUTER (PROBLEM 1 FIXED) ═══════════════ */
 async function openChatWith(otherUid, otherProfile){
   if (!currentUser || !otherUid) return;
 
   const chatId = chatIdFor(currentUser.uid, otherUid);
   currentChat = { chatId, otherUid, otherProfile };
   sessionStorage.setItem("yuki_active_chat_uid", otherUid);
+
+  // Problem 1: Persist in local storage so this peer NEVER disappears from sidebar
+  saveRecentChat(currentUser.uid, {
+    chatId,
+    otherUid,
+    profile: otherProfile,
+    initiatedAt: Date.now()
+  });
 
   replyTo = null;
   $("#reply-preview")?.classList.remove("active");
@@ -1349,31 +1461,47 @@ async function openChatWith(otherUid, otherProfile){
   $("#ch-status").textContent = `@${otherProfile.username}`;
   $("#ch-status").className = "chat-partner-status";
 
-  // Ensure persistent chat channel document exists
+  // Problem 1: Immediately ensure or merge the conversation doc with full participant lists
+  // so BOTH users have it in their Firestore array query `users: [me, other]`
   const chatRef = doc(db, "chats", chatId);
-  const chatSnap = await getDoc(chatRef);
-  if (!chatSnap.exists()){
-    await setDoc(chatRef, {
-      users: [currentUser.uid, otherUid],
-      createdAt: serverTimestamp(),
-      lastMsg: "Channel created",
-      lastMsgAt: serverTimestamp(),
-      lastMsgBy: currentUser.uid,
-      unread: {
-        [currentUser.uid]: 0,
-        [otherUid]: 0
-      },
-      deliveredTo: {
-        [currentUser.uid]: true,
-        [otherUid]: false
-      }
-    });
-  } else {
-    // Flag as delivered to me since I've opened the app/channel
-    await updateDoc(chatRef, {
-      [`deliveredTo.${currentUser.uid}`]: true
-    }).catch(()=>{});
+  try {
+    const chatSnap = await getDoc(chatRef);
+    if (!chatSnap.exists()){
+      await setDoc(chatRef, {
+        users: [currentUser.uid, otherUid],
+        participants: {
+          [currentUser.uid]: true,
+          [otherUid]: true
+        },
+        createdAt: serverTimestamp(),
+        lastMsg: "Session initiated",
+        lastMsgAt: serverTimestamp(),
+        lastMsgBy: currentUser.uid,
+        touchAt: serverTimestamp(),
+        unread: {
+          [currentUser.uid]: 0,
+          [otherUid]: 0
+        },
+        deliveredTo: {
+          [currentUser.uid]: true,
+          [otherUid]: false
+        }
+      });
+    } else {
+      // Ensure current user is registered in users array & delivered
+      await updateDoc(chatRef, {
+        users: [currentUser.uid, otherUid],
+        [`participants.${currentUser.uid}`]: true,
+        [`participants.${otherUid}`]: true,
+        [`deliveredTo.${currentUser.uid}`]: true
+      }).catch(()=>{});
+    }
+  } catch(err) {
+    console.warn("Init chat doc error:", err);
   }
+
+  // Refresh and re-render sidebar cards so searched user shows up instantly
+  renderChatCards();
 
   // Highlight active card in roster
   $$(".chat-card").forEach(el => {
@@ -1388,16 +1516,17 @@ async function openChatWith(otherUid, otherProfile){
   setTimeout(() => $("#msg-input")?.focus(), 200);
 }
 
-/* ═══════════════ MESSAGE SUBSCRIPTIONS & RENDERING ═══════════════ */
+/* ═══════════════ MESSAGE SUBSCRIPTIONS & RENDERING (PROBLEM 2 FIXED) ═══════════════ */
 function subscribeMessages(chatId){
   if (unsubMessages) unsubMessages();
   const msgsRef = collection(db, "chats", chatId, "messages");
-  const q = query(msgsRef, orderBy("at", "asc"), limit(250));
+  // Client-side tolerant listener
+  const q = query(msgsRef, orderBy("at", "asc"), limit(300));
 
   unsubMessages = onSnapshot(q, (snap) => {
     const box = $("#messages");
     if (!box) return;
-    const isAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 140;
+    const isAtBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 160;
 
     box.innerHTML = "";
     if (snap.empty){
@@ -1483,7 +1612,10 @@ function subscribeMessages(chatId){
       box.scrollTop = box.scrollHeight;
     }
 
+    // Problem 2: When receiver has chat open, immediately mark incoming messages as read & seen
     markChannelRead(chatId, currentUser.uid);
+  }, err => {
+    console.warn("Message listener fallback query:", err);
   });
 }
 
@@ -1537,7 +1669,7 @@ function subscribePeerStatus(chatId, otherUid){
   unsubOtherTypingAndStatus = unsubChat;
 }
 
-/* ═══════════════ MARK READ RECEIPTS ═══════════════ */
+/* ═══════════════ MARK READ RECEIPTS (PROBLEM 2 FIXED) ═══════════════ */
 async function markChannelRead(chatId, meUid){
   if (!chatId || !meUid) return;
   try {
@@ -1562,7 +1694,7 @@ async function markChannelRead(chatId, meUid){
   } catch(e){}
 }
 
-/* ═══════════════ SEND MESSAGE ACTION ═══════════════ */
+/* ═══════════════ SEND MESSAGE ACTION (PROBLEM 2 FIXED) ═══════════════ */
 async function transmitMessage(){
   const input = $("#msg-input");
   const rawText = input.value.trim();
@@ -1591,15 +1723,37 @@ async function transmitMessage(){
   $("#reply-preview")?.classList.remove("active");
 
   try {
+    // 1. Add message doc
     await addDoc(collection(db, "chats", chatId, "messages"), payload);
 
-    // Update parent conversation record for the sidebar preview
-    await updateDoc(doc(db, "chats", chatId), {
-      lastMsg: rawText.slice(0, 90),
+    // 2. Problem 2: Update parent conversation with robust array and unread increment
+    // Users array explicitly set to guarantee receiver's real-time queries match!
+    await setDoc(doc(db, "chats", chatId), {
+      users: [currentUser.uid, otherUid],
+      participants: {
+        [currentUser.uid]: true,
+        [otherUid]: true
+      },
+      lastMsg: rawText.slice(0, 80),
       lastMsgAt: serverTimestamp(),
       lastMsgBy: currentUser.uid,
-      [`unread.${otherUid}`]: 1,
-      [`typing.${currentUser.uid}`]: false
+      touchAt: serverTimestamp(),
+      unread: {
+        [otherUid]: increment(1),
+        [currentUser.uid]: 0
+      },
+      typing: {
+        [currentUser.uid]: false
+      }
+    }, { merge: true });
+
+    // Also update local cache so card always stays at the top
+    saveRecentChat(currentUser.uid, {
+      chatId,
+      otherUid,
+      profile: currentChat.otherProfile,
+      lastMsg: rawText.slice(0, 80),
+      lastMsgAt: Date.now()
     });
   } catch(e) {
     console.error("Transmission failure", e);
@@ -1660,44 +1814,74 @@ async function sendTypingBeacon(){
   } catch(e){}
 }
 
-/* ═══════════════ CHAT LIST ROSTER SUBSCRIPTION ═══════════════ */
+/* ═══════════════ CHAT LIST ROSTER SUBSCRIPTION (PROBLEMS 1 & 2 FIXED) ═══════════════ */
 function subscribeChatList(){
   if (unsubMyChats) unsubMyChats();
   if (!currentUser) return;
 
   const chatsRef = collection(db, "chats");
+  // Listen without composite index requirements to avoid index failures
   const q = query(chatsRef, where("users", "array-contains", currentUser.uid));
 
   unsubMyChats = onSnapshot(q, async (snap) => {
-    const rawList = [];
+    const firestoreMap = new Map();
+
     for (const d of snap.docs){
       const data = d.data();
       const otherUid = data.users?.find(u => u !== currentUser.uid);
       if (otherUid) {
-        rawList.push({ chatId: d.id, data, otherUid });
+        firestoreMap.set(otherUid, { chatId: d.id, data, otherUid });
       }
     }
 
-    // Hydrate peer profiles
+    // Problem 1: Integrate locally remembered searched chats so they NEVER disappear
+    const recents = getRecentChats(currentUser.uid);
+    for (const rec of recents){
+      if (!firestoreMap.has(rec.otherUid)){
+        firestoreMap.set(rec.otherUid, {
+          chatId: rec.chatId || chatIdFor(currentUser.uid, rec.otherUid),
+          data: {
+            lastMsg: rec.lastMsg || "Session initiated",
+            lastMsgAt: rec.lastMsgAt || rec.initiatedAt || null,
+            unread: { [currentUser.uid]: 0 }
+          },
+          otherUid: rec.otherUid,
+          profile: rec.profile
+        });
+      }
+    }
+
+    const rawList = Array.from(firestoreMap.values());
+
+    // Hydrate peer profiles if missing
     const hydrated = await Promise.all(rawList.map(async item => {
-      try {
-        const uSnap = await getDoc(doc(db, "users", item.otherUid));
-        item.profile = uSnap.exists() ? uSnap.data() : { username: "dev", display: "Peer" };
-      } catch(e) {
-        item.profile = { username: "dev", display: "Peer" };
+      if (!item.profile) {
+        try {
+          const uSnap = await getDoc(doc(db, "users", item.otherUid));
+          item.profile = uSnap.exists() ? uSnap.data() : { username: "dev", display: "Peer" };
+        } catch(e) {
+          item.profile = { username: "dev", display: "Peer" };
+        }
       }
       return item;
     }));
 
-    // Sort by recent activity
+    // Problem 2: Sort by recent activity with safe milliseconds fallback so local writes & incoming chats sort reliably
     hydrated.sort((a, b) => {
-      const ta = a.data.lastMsgAt?.toMillis?.() || 0;
-      const tb = b.data.lastMsgAt?.toMillis?.() || 0;
-      return tb - ta;
+      const getMs = (item) => {
+        const at = item.data.lastMsgAt;
+        if (at?.toMillis) return at.toMillis();
+        if (typeof at === 'number') return at;
+        if (item.data.createdAt?.toMillis) return item.data.createdAt.toMillis();
+        return 0;
+      };
+      return getMs(b) - getMs(a);
     });
 
     allChats = hydrated;
     renderChatCards();
+  }, (err) => {
+    console.error("subscribeChatList snapshot error:", err);
   });
 }
 
@@ -1718,8 +1902,8 @@ function renderChatCards(){
 
   container.innerHTML = "";
   for (const c of allChats){
-    const initial = (c.profile.display || c.profile.username || "?").charAt(0).toUpperCase();
-    const unread = (c.data.unread && c.data.unread[currentUser.uid]) || 0;
+    const initial = (c.profile?.display || c.profile?.username || "?").charAt(0).toUpperCase();
+    const unread = (c.data?.unread && c.data.unread[currentUser.uid]) || 0;
     const isActive = currentChat?.chatId === c.chatId;
 
     const card = document.createElement("div");
@@ -1730,11 +1914,11 @@ function renderChatCards(){
       <div class="card-avatar">${esc(initial)}</div>
       <div class="card-content">
         <div class="card-title-row">
-          <div class="card-name">${esc(c.profile.display || c.profile.username)}</div>
-          <div class="card-time">${timeAgo(c.data.lastMsgAt)}</div>
+          <div class="card-name">${esc(c.profile?.display || c.profile?.username || "Developer")}</div>
+          <div class="card-time">${timeAgo(c.data?.lastMsgAt)}</div>
         </div>
         <div class="card-preview-row">
-          <div class="card-preview-text">${esc(c.data.lastMsg || "Empty channel")}</div>
+          <div class="card-preview-text">${esc(c.data?.lastMsg || "Session initiated")}</div>
           ${unread > 0 ? `<div class="card-unread-badge">${unread}</div>` : ""}
         </div>
       </div>
@@ -1754,6 +1938,4 @@ $("#btn-back")?.addEventListener("click", () => {
   sessionStorage.removeItem("yuki_active_chat_uid");
 });
 </script>
-
-</body>
-</html>
+</body></html>
