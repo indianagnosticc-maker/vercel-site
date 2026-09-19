@@ -1,68 +1,71 @@
-// flights.js — proxy + cache for OpenSky Network
-// OpenSky free tier: ~10s per request, anonymous.
-// We cache for 15s at edge to be safe.
+// flights.js — proxy for airplanes.live
+// free, public, no auth, robust
 
-const OPENSKY_URL = "https://opensky-network.org/api/states/all";
+const API = "https://api.airplanes.live/v2/point";
 
-// very light bbox: whole world but capped
-const CACHE_SECONDS = 15;
+// world bbox: lat -90..90, lon -180..180
+// airplanes.live endpoint: /v2/point/{lat}/{lon}/{radius_nm}
+// radius max 250 nm. We'll query multiple big points to cover world.
+// Simpler: use /v2/mil for military or /v2/all (not available).
+// Actually airplanes.live has /v2/point — so we do 4 big regions:
+// We'll grab a broad set from major hubs.
+
+const REGIONS = [
+  { lat: 40,  lon: -100, r: 250 }, // north america east
+  { lat: 34,  lon: -118, r: 250 }, // north america west
+  { lat: 51,  lon: 0,    r: 250 }, // europe
+  { lat: 25,  lon: 55,   r: 250 }, // middle east
+  { lat: 22,  lon: 78,   r: 250 }, // india
+  { lat: 35,  lon: 139,  r: 250 }, // japan
+  { lat: -33, lon: 151,  r: 250 }, // australia
+  { lat: -23, lon: -46,  r: 250 }, // south america
+  { lat: 1,   lon: 103,  r: 250 }, // southeast asia
+  { lat: 30,  lon: 31,   r: 250 }, // north africa
+];
 
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Cache-Control", `public, s-maxage=${CACHE_SECONDS}, stale-while-revalidate=30`);
+  res.setHeader("Cache-Control", "public, s-maxage=10, stale-while-revalidate=20");
 
   try {
-    const r = await fetch(OPENSKY_URL, {
-      headers: {
-        "User-Agent": "LiveIntel/1.0",
-        "Accept": "application/json"
-      }
-    });
+    const results = await Promise.all(
+      REGIONS.map(r =>
+        fetch(`${API}/${r.lat}/${r.lon}/${r.r}`, {
+          headers: { "User-Agent": "LiveIntel/1.0", "Accept": "application/json" }
+        })
+          .then(x => x.ok ? x.json() : { ac: [] })
+          .catch(() => ({ ac: [] }))
+      )
+    );
 
-    if (!r.ok) {
-      return res.status(r.status).json({ error: "opensky upstream " + r.status });
-    }
-
-    const data = await r.json();
-
-    // slim down payload — we only need what we render
-    // states[i] = [icao24, callsign, origin_country, time_position, last_contact,
-    //              longitude, latitude, baro_altitude, on_ground, velocity,
-    //              true_track, vertical_rate, sensors, geo_altitude, squawk,
-    //              spi, position_source]
-    const states = Array.isArray(data.states) ? data.states : [];
-
+    const seen = new Set();
     const flights = [];
-    for (const s of states) {
-      if (!s) continue;
-      const lon = s[5];
-      const lat = s[6];
-      if (lon === null || lat === null) continue;
-      if (s[8] === true) continue; // on_ground
-
-      flights.push({
-        icao: s[0],
-        callsign: (s[1] || "").trim() || "UNKNOWN",
-        country: s[2] || "",
-        lon,
-        lat,
-        alt: s[7] || s[13] || 0,           // baro or geo altitude (m)
-        vel: s[9] || 0,                     // m/s
-        track: s[10] || 0,                  // heading deg
-        vrate: s[11] || 0,                  // m/s vertical rate
-        squawk: s[14] || "",
-      });
+    for (const data of results) {
+      const list = Array.isArray(data.ac) ? data.ac : [];
+      for (const a of list) {
+        if (!a || seen.has(a.hex)) continue;
+        if (typeof a.lat !== "number" || typeof a.lon !== "number") continue;
+        seen.add(a.hex);
+        flights.push({
+          icao: a.hex || "",
+          callsign: (a.flight || a.r || "").trim() || "UNKNOWN",
+          country: a.cou || "",
+          lon: a.lon,
+          lat: a.lat,
+          alt: (a.alt_baro === "ground" ? 0 : (a.alt_baro || a.alt_geom || 0)) * 0.3048,
+          vel: (a.gs || 0) * 0.514444,
+          track: a.track || 0,
+          vrate: (a.baro_rate || a.geom_rate || 0) * 0.00508,
+          squawk: a.squawk || "",
+        });
+      }
     }
 
-    // Optional: limit to a reasonable count for mobile rendering
-    // If too many, take a sample; here we return all, filter client-side.
     return res.status(200).json({
       status: "ok",
-      time: data.time,
       count: flights.length,
       flights
     });
-
   } catch (e) {
     return res.status(502).json({ error: String(e.message || e) });
   }
