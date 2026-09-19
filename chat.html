@@ -69,6 +69,42 @@
   }
   .screen.hidden { display: none !important; }
 
+  /* SESSION CHECK OVERLAY */
+  .session-check-overlay {
+    position: absolute; inset: 0;
+    background: var(--bg);
+    z-index: 10;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 14px;
+    transition: opacity 0.25s ease;
+  }
+  .session-check-overlay.gone {
+    opacity: 0; pointer-events: none;
+  }
+  .session-check-text {
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 12px; letter-spacing: 4px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px var(--accent-glow);
+  }
+  .session-check-dots {
+    display: flex; gap: 8px;
+  }
+  .session-check-dots span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.3;
+    animation: sessionPulse 1.2s infinite;
+  }
+  .session-check-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .session-check-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes sessionPulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 10px var(--accent-glow); }
+  }
+
   /* LOGIN */
   #screen-login {
     justify-content: space-between;
@@ -375,8 +411,15 @@
 <div class="app-container">
   <div class="terminal-frame">
 
-    <!-- LOGIN — visible by default now, no splash -->
+    <!-- LOGIN SCREEN — visible by default, has session overlay -->
     <div class="screen" id="screen-login">
+      <div class="session-check-overlay" id="session-overlay">
+        <div class="session-check-text">VERIFYING SESSION</div>
+        <div class="session-check-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+
       <div></div>
       <div class="login-box">
         <h1 class="login-title">YUKI</h1>
@@ -507,7 +550,6 @@ const db = getFirestore(app);
 setPersistence(auth, browserLocalPersistence).catch(console.error);
 
 const $ = (id) => document.getElementById(id);
-const $$ = (sel) => document.querySelectorAll(sel);
 
 function escapeHtml(s) {
   return String(s ?? "").replace(/[&<>"']/g, (c) => (
@@ -631,6 +673,13 @@ $("btn-copy-handle").addEventListener("click", () => {
 });
 
 onAuthStateChanged(auth, async (user) => {
+  // First thing: dismiss the session check overlay
+  const overlay = document.getElementById("session-overlay");
+  if (overlay) {
+    overlay.classList.add("gone");
+    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 300);
+  }
+
   if (!user) {
     currentUser = null;
     currentProfile = null;
@@ -767,7 +816,7 @@ async function openChatWith(peerUid, peerProfile) {
   subscribeMessages(activeChatId);
   subscribePeerTypingAndStatus(activeChatId, peerUid);
   markConversationSeen(activeChatId);
-  $$(".chat-row").forEach(r => r.classList.toggle("active", r.dataset.uid === peerUid));
+  document.querySelectorAll(".chat-row").forEach(r => r.classList.toggle("active", r.dataset.uid === peerUid));
   setTimeout(() => $("composer-text-input")?.focus(), 150);
 }
 
