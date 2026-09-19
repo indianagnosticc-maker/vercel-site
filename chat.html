@@ -618,6 +618,297 @@
 <!-- ═══════════ FIREBASE + LOGIC GOES HERE (PART 2 & 3) ═══════════ -->
 <!-- Part 2 paste karna hai yahan -->
 <!-- Part 3 paste karna hai yahan -->
+<script type="module">
+/* ═══════════════════════════════════════════════════════════
+   YUKI CHAT — Part 2: Firebase + Auth
+   ═══════════════════════════════════════════════════════════ */
 
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, onAuthStateChanged, updateProfile
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDZWHHSGkbdN5NLRdBKwecHHf7m2yu5cAk",
+  authDomain: "yuki-820b3.firebaseapp.com",
+  projectId: "yuki-820b3",
+  storageBucket: "yuki-820b3.firebasestorage.app",
+  messagingSenderId: "1055284096143",
+  appId: "1:1055284096143:web:f9463859371eb606db14fa"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+/* ─── helpers ─── */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const USERNAME_RE = /^[a-zA-Z0-9_]{3,16}$/;
+
+function show(el){ el.classList.remove("hidden"); }
+function hide(el){ el.classList.add("hidden"); }
+
+function setError(msg){ $("#auth-error").textContent = msg || ""; }
+function setInfo(msg){ $("#auth-info").textContent = msg || ""; }
+
+function esc(s){
+  return String(s ?? "").replace(/[&<>"']/g, c => (
+    {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]
+  ));
+}
+
+/* username → fake email so Firebase Auth works without real email */
+function usernameToEmail(u){ return u.toLowerCase() + "@yukichat.local"; }
+
+/* random password for guests */
+function randomPass(){
+  const a = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$";
+  let s = "";
+  for (let i = 0; i < 20; i++) s += a[Math.floor(Math.random()*a.length)];
+  return s;
+}
+
+/* random guest username */
+function randomGuestUser(){
+  const adj = ["yuki","star","moon","neon","cyber","lunar","echo","nova","pixel","solar"];
+  const n = Math.floor(Math.random() * 9000) + 1000;
+  return adj[Math.floor(Math.random()*adj.length)] + "_" + n;
+}
+
+/* ─── screen switching ─── */
+function showLogin(){
+  show($("#login-screen"));
+  hide($("#list-screen"));
+  hide($("#chat-screen"));
+}
+function showList(){
+  hide($("#login-screen"));
+  show($("#list-screen"));
+  hide($("#chat-screen"));
+}
+function showChat(){
+  hide($("#login-screen"));
+  hide($("#list-screen"));
+  show($("#chat-screen"));
+}
+
+/* ─── login/signup tab switch ─── */
+$("#show-login").addEventListener("click", () => {
+  hide($("#signup-form"));
+  show($("#login-form"));
+  setError(""); setInfo("");
+});
+$("#show-signup").addEventListener("click", () => {
+  show($("#signup-form"));
+  hide($("#login-form"));
+  setError(""); setInfo("");
+});
+
+/* ─── create account ─── */
+$("#btn-signup").addEventListener("click", async () => {
+  setError(""); setInfo("");
+  const username = $("#su-username").value.trim().toLowerCase();
+  const display  = $("#su-display").value.trim();
+
+  if (!USERNAME_RE.test(username)){
+    setError("username: 3-16 chars, letters/numbers/_ only");
+    return;
+  }
+  if (display.length < 2 || display.length > 24){
+    setError("display name: 2-24 chars");
+    return;
+  }
+
+  $("#btn-signup").disabled = true;
+  setInfo("creating account...");
+
+  try{
+    // check if username taken
+    const unameDoc = await getDoc(doc(db, "usernames", username));
+    if (unameDoc.exists()){
+      setError("username already taken");
+      $("#btn-signup").disabled = false;
+      setInfo("");
+      return;
+    }
+
+    const email = usernameToEmail(username);
+    const password = randomPass() + "Aa1!";  // strong random
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+    await updateProfile(cred.user, { displayName: display });
+
+    // save user profile + username reservation
+    await setDoc(doc(db, "users", cred.user.uid), {
+      username,
+      display,
+      createdAt: serverTimestamp(),
+      isGuest: false
+    });
+    await setDoc(doc(db, "usernames", username), {
+      uid: cred.user.uid,
+      createdAt: serverTimestamp()
+    });
+
+    // store password locally for auto-login later (this device)
+    localStorage.setItem("yuki_" + username, password);
+
+    setInfo("account created — logging in...");
+    // onAuthStateChanged will take over
+  }catch(e){
+    console.error(e);
+    setError(e.message || "signup failed");
+    $("#btn-signup").disabled = false;
+    setInfo("");
+  }
+});
+
+/* ─── login ─── */
+$("#btn-login").addEventListener("click", async () => {
+  setError(""); setInfo("");
+  const username = $("#li-username").value.trim().toLowerCase();
+  const password = $("#li-password").value;
+
+  if (!USERNAME_RE.test(username)){
+    setError("invalid username");
+    return;
+  }
+  if (!password){
+    setError("enter password");
+    return;
+  }
+
+  $("#btn-login").disabled = true;
+  setInfo("logging in...");
+
+  try{
+    const email = usernameToEmail(username);
+    await signInWithEmailAndPassword(auth, email, password);
+    setInfo("");
+    // onAuthStateChanged handles the rest
+  }catch(e){
+    console.error(e);
+    setError("invalid username or password");
+    $("#btn-login").disabled = false;
+    setInfo("");
+  }
+});
+
+/* ─── guest ─── */
+$("#btn-guest").addEventListener("click", async () => {
+  setError(""); setInfo("");
+  $("#btn-guest").disabled = true;
+  setInfo("creating guest account...");
+
+  try{
+    // retry until we get an unused username
+    let username, display, email, password;
+    for (let i = 0; i < 5; i++){
+      username = randomGuestUser();
+      const exists = await getDoc(doc(db, "usernames", username));
+      if (!exists.exists()) break;
+      username = null;
+    }
+    if (!username){
+      setError("could not generate guest id, try again");
+      $("#btn-guest").disabled = false;
+      setInfo("");
+      return;
+    }
+
+    display = "Guest " + username.split("_")[1];
+    email = usernameToEmail(username);
+    password = randomPass() + "Aa1!";
+
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(cred.user, { displayName: display });
+    await setDoc(doc(db, "users", cred.user.uid), {
+      username, display, createdAt: serverTimestamp(), isGuest: true
+    });
+    await setDoc(doc(db, "usernames", username), {
+      uid: cred.user.uid, createdAt: serverTimestamp()
+    });
+
+    localStorage.setItem("yuki_" + username, password);
+    setInfo("guest account ready");
+  }catch(e){
+    console.error(e);
+    setError(e.message || "guest signup failed");
+    $("#btn-guest").disabled = false;
+    setInfo("");
+  }
+});
+
+/* ─── logout ─── */
+$("#btn-logout").addEventListener("click", async () => {
+  if (!confirm("logout?")) return;
+  await signOut(auth);
+});
+
+/* ─── copy uid ─── */
+$("#btn-copy-uid").addEventListener("click", () => {
+  const uid = $("#me-uid").textContent.replace("@","");
+  navigator.clipboard.writeText(uid).then(() => {
+    const b = $("#btn-copy-uid");
+    const old = b.textContent;
+    b.textContent = "✓";
+    setTimeout(() => b.textContent = old, 1200);
+  });
+});
+
+/* ─── auth state ─── */
+window.__yuki = {
+  auth, db, esc, $, $$, show, hide,
+  showLogin, showList, showChat,
+  currentUser: null,
+  currentProfile: null
+};
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user){
+    window.__yuki.currentUser = null;
+    window.__yuki.currentProfile = null;
+    showLogin();
+    // reset forms
+    $("#btn-login").disabled = false;
+    $("#btn-signup").disabled = false;
+    $("#btn-guest").disabled = false;
+    return;
+  }
+
+  // load profile
+  try{
+    const p = await getDoc(doc(db, "users", user.uid));
+    const profile = p.exists() ? p.data() : { username: "unknown", display: user.displayName || "user" };
+    window.__yuki.currentUser = user;
+    window.__yuki.currentProfile = profile;
+
+    // update top bar
+    const initial = (profile.display || profile.username || "?").charAt(0).toUpperCase();
+    $("#me-avatar").textContent = initial;
+    $("#me-display").textContent = profile.display || profile.username;
+    $("#me-uid").textContent = "@" + profile.username;
+
+    // clear forms
+    $("#auth-error").textContent = "";
+    $("#auth-info").textContent = "";
+    $("#li-password").value = "";
+
+    showList();
+
+    // fire event for part 3
+    window.dispatchEvent(new CustomEvent("yuki:user-ready"));
+
+  }catch(e){
+    console.error(e);
+    showLogin();
+  }
+});
+</script>
 </body>
 </html>
