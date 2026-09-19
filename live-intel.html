@@ -170,22 +170,21 @@
     display:block; font-size:24px; color:var(--green-dim); margin-bottom:10px;
     letter-spacing:4px;
   }
-  /* flight dot — VERY small, VERY subtle */
+  /* ABSOLUTE MINIMAL flight dot — tiny, no glow, flat green */
   .flight-dot{
     fill: #00ff88;
-    fill-opacity: 0.85;
+    fill-opacity: 1;
+    stroke: none;
     filter: none;
+    pointer-events: all;
+    transition: fill .1s ease;
     cursor:pointer;
-    transition: fill .12s ease;
   }
   .flight-dot:hover{
     fill: #ffffff;
-    fill-opacity: 1;
   }
   .flight-dot.selected{
     fill: #ffffff;
-    fill-opacity: 1;
-    filter: drop-shadow(0 0 1.5px rgba(0,255,136,0.9));
   }
 </style>
 </head>
@@ -256,7 +255,7 @@ const CFG = {
   land:       "#020509",
   water:      "#04120d",
   green:      "#00ff88",
-  gridMinor:  "rgba(0,255,136,0.045)",
+  gridMinor:  "rgba(0,255,136,0.04)",
   graticuleStep: 15,
 };
 
@@ -325,10 +324,10 @@ async function boot(){
 
 async function loadFlights(){
   try{
-    const r = await fetch(API_FLIGHTS);
+    const r = await fetch(API_FLIGHTS + "?t=" + Date.now());
     if (!r.ok) throw new Error("HTTP " + r.status);
     const data = await r.json();
-    if (!data.flights) return;
+    if (!data.flights || !data.flights.length) return;
     flightsData = data.flights;
     $("#flights-count").textContent = flightsData.length;
     renderFlights();
@@ -336,17 +335,40 @@ async function loadFlights(){
 }
 
 function renderFlights(){
-  const sel = gFlights.selectAll("circle.flight-dot")
-    .data(flightsData, d => d.icao);
-  sel.exit().remove();
-  sel.enter().append("circle")
+  // append-only: don't remove, don't replace. Just draw new ones and let
+  // a light cleanup remove dots that fell off the world (never happens on
+  // equirect projection, so effectively no removal).
+  const existing = new Set();
+  gFlights.selectAll("circle.flight-dot").each(function(d){
+    if (d && d.icao) existing.add(d.icao);
+  });
+
+  const newFlights = flightsData.filter(f => !existing.has(f.icao));
+
+  // add new dots
+  gFlights.selectAll("circle.flight-dot.new")
+    .data(newFlights, d => d.icao)
+    .enter().append("circle")
     .attr("class","flight-dot")
-    .attr("r", 0.28)
-    .on("click", (ev, d) => { ev.stopPropagation(); selectFlight(d); })
-    .merge(sel)
+    .attr("r", 0.22)
     .attr("cx", d => projection([d.lon, d.lat])[0])
     .attr("cy", d => projection([d.lon, d.lat])[1])
-    .classed("selected", d => d.icao === selectedIcao);
+    .on("click", (ev, d) => { ev.stopPropagation(); selectFlight(d); });
+
+  // update positions of ALL existing dots to their new lat/lon
+  gFlights.selectAll("circle.flight-dot")
+    .data(flightsData, d => d.icao)
+    .attr("cx", d => projection([d.lon, d.lat])[0])
+    .attr("cy", d => projection([d.lon, d.lat])[1]);
+
+  // reduce memory: keep only latest ~4000 dots
+  const all = gFlights.selectAll("circle.flight-dot");
+  const total = all.size();
+  if (total > 4500){
+    all.sort((a,b) => (a.icao < b.icao ? -1 : 1))
+      .slice(0, total - 4500)
+      .remove();
+  }
 }
 
 function selectFlight(f){
