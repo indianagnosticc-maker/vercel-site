@@ -488,10 +488,9 @@
     <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
   </div>
 </div>
-      <div class="search-box">
-        <input class="search-inp" id="search-peer-input" type="text" placeholder="click query" />
-        <button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
-      </div>
+      <div style="padding:8px 10px;border-bottom:1px dashed var(--line);display:flex;gap:6px;">
+  <button id="btn-logout" style="flex:1;background:transparent;border:1px solid rgba(255,45,85,0.4);color:var(--red);font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.5px;padding:6px 10px;cursor:pointer;border-radius:3px;">⏻ LOGOUT</button>
+</div>
       <div class="roster-list">
         <div class="roster-list-body" id="roster-list-body"></div>
       </div>
@@ -813,7 +812,14 @@ $("btn-copy-id").addEventListener("click", function() {
   setTimeout(() => this.textContent = orig, 1500);
   playSfx('click');
 });
-
+$("btn-logout").addEventListener("click", async () => {
+  if (!currentUser) return;
+  if (!confirm("Logout from this terminal?")) return;
+  try {
+    await updateDoc(doc(db, "users", currentUser.uid), { lastSeen: serverTimestamp() });
+  } catch(e){}
+  await signOut(auth);
+});
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     currentUser = null; currentProfile = null;
