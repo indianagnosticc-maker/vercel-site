@@ -479,14 +479,17 @@
   <div class="workspace">
     <div class="sidebar" id="sidebar-roster">
       <div class="sidebar-head">
-        <div class="user-badge">
-          <div class="user-name" id="me-display">OPERATIVE</div>
-          <div class="user-id" id="me-uid">@operative</div>
-        </div>
-        <button class="copy-btn" id="btn-copy-id">COPY</button>
-      </div>
+  <div class="user-badge">
+    <div class="user-name" id="me-display">OPERATIVE</div>
+    <div class="user-id" id="me-uid">@operative</div>
+  </div>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <button class="copy-btn" id="btn-copy-id">COPY</button>
+    <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
+  </div>
+</div>
       <div class="search-box">
-        <input class="search-inp" id="search-peer-input" type="text" placeholder="@username" />
+        <input class="search-inp" id="search-peer-input" type="text" placeholder="click query" />
         <button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
       </div>
       <div class="roster-list">
@@ -523,7 +526,6 @@
         </form>
       </div>
 
-      <button class="btn-close-sidebar-mobile" id="btn-close-sidebar-mobile" style="display:none;position:absolute;top:10px;right:14px;background:transparent;border:1px solid var(--cyan-dim);color:var(--cyan);font-size:20px;padding:4px 8px;cursor:pointer;font-family:monospace;z-index:12;">✕</button>
     </main>
   </div>
 </div>
@@ -648,7 +650,7 @@ const btnCloseSidebarMobile = document.getElementById('btn-close-sidebar-mobile'
 function syncSidebarForMobile() {
   if (window.innerWidth <= 768) {
     sidebar.classList.add('sidebar-hidden');
-    btnCloseSidebarMobile.style.display = 'inline-block';
+    btnCloseSidebarMobile.style.display = 'flex';
   } else {
     sidebar.classList.remove('sidebar-hidden');
     btnCloseSidebarMobile.style.display = 'none';
