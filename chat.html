@@ -275,7 +275,7 @@
   .empty-chat-state {
     color: var(--dim); text-align: center; padding: 40px 20px;
     font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase;
-    line-height: 1.8; margin-top: auto; margin-bottom: auto;
+    line-height: 1.8; margin: auto 0;
   }
   .empty-chat-state b { display: block; font-size: 26px; color: var(--green-dim); margin-bottom: 10px; }
 
@@ -325,7 +325,7 @@
     font-size: 9px; color: var(--dim); margin-top: 3px;
   }
   .msg-meta .receipt { color: var(--dim); letter-spacing: 1px; font-weight: bold; }
-  .msg-meta .receipt.seen { color: var(--green); text-shadow: 0 0 6px var(--green-glow); }
+  .msg-meta .receipt.seen { color: var(--green); }
 
   .code-container { margin: 6px 0 3px; border: 1px solid #112d46; border-radius: 3px; background: #02050a; overflow: hidden; font-size: 11px; }
   .code-head { display: flex; justify-content: space-between; align-items: center; background: #050c16; padding: 4px 8px; border-bottom: 1px solid #112d46; color: var(--cyan); font-size: 9.5px; letter-spacing: 1px; }
@@ -673,7 +673,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection,
-  query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, writeBatch
+  query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -717,8 +717,6 @@ let unsubChatRoster = null;
 let typingBeaconTimer = null;
 let lastTypingTime = 0;
 let localChannels = [];
-let bannerTimer = null;
-let previousUnreadCounts = {};
 
 function formatTime(ts) {
   if (!ts) return "";
@@ -753,6 +751,12 @@ function hideBoot() {
   if (!b) return;
   b.classList.add("gone");
   setTimeout(() => { if (b.parentNode) b.remove(); }, 300);
+}
+
+function clearChatMessagesOnly() {
+  const stream = $("chat-stream");
+  if (!stream) return;
+  stream.querySelectorAll(".msg-row, .empty-chat-state").forEach(el => el.remove());
 }
 
 /* AUTH */
@@ -819,10 +823,10 @@ $("btn-copy-id").addEventListener("click", function() {
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     currentUser = null; currentProfile = null;
+    $("login-screen").classList.add("show");
     if (unsubMessages) { unsubMessages(); unsubMessages = null; }
     if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
     if (unsubChatRoster) { unsubChatRoster(); unsubChatRoster = null; }
-    $("login-screen").classList.add("show");
     hideBoot();
     return;
   }
@@ -845,22 +849,19 @@ onAuthStateChanged(auth, async (user) => {
     $("login-screen").classList.remove("show");
     subscribeChatRoster();
 
-    // always open YUKI bot on login
+    // open YUKI bot on login
     openYukiBot();
   } catch (e) {
     console.error(e);
     $("login-screen").classList.add("show");
-  } finally {
-    hideBoot();
   }
+  hideBoot();
 });
 
 /* SEARCH — modal only, no auto-open */
 $("btn-peer-search").addEventListener("click", performUserSearch);
 $("search-peer-input").addEventListener("keydown", e => { if (e.key === "Enter") performUserSearch(); });
 $("btn-close-search-modal").addEventListener("click", () => $("search-modal").classList.remove("open"));
-
-// Close modal when clicking on backdrop
 $("search-modal").addEventListener("click", (e) => {
   if (e.target === $("search-modal")) {
     $("search-modal").classList.remove("open");
@@ -910,14 +911,8 @@ async function performUserSearch() {
   }
 }
 
-function clearChatStream() {
-  const stream = $("chat-stream");
-  if (!stream) return;
-  stream.innerHTML = renderLegalDisclaimer();
-}
-
 /* YUKI BOT */
-async function openYukiBot() {
+function openYukiBot() {
   if (!currentUser) return;
   if (unsubMessages) { unsubMessages(); unsubMessages = null; }
   if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
@@ -926,16 +921,13 @@ async function openYukiBot() {
   activeChatId = computeChatId(currentUser.uid, YUKI_BOT_UID);
   sessionStorage.setItem("yuki_active_peer", YUKI_BOT_UID);
 
+  clearChatMessagesOnly();
+
   $("active-chat-title").textContent = "YUKI [AI COMPANION]";
   $("active-chat-title-wrap").classList.add("yuki");
   $("active-chat-sub").textContent = "secure neural websocket active";
   $("peer-live-dot").style.background = "var(--pink)";
   $("peer-live-dot").style.boxShadow = "0 0 6px var(--pink)";
-  $("chat-textarea").value = "";
-  updateWordCounter();
-
-  // Clear viewport BEFORE subscribing so old chat messages never linger
-  clearChatStream();
 
   if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
 
@@ -944,15 +936,31 @@ async function openYukiBot() {
 }
 
 /* OPEN REAL USER CHAT */
-async function openChatWith(peerUid, peerProfile) {
+function openChatWith(peerUid, peerProfile) {
   if (!currentUser || !peerUid) return;
+
   if (unsubMessages) { unsubMessages(); unsubMessages = null; }
   if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
 
   removeDeleted(currentUser.uid, peerUid);
-  activePeer = { uid: peerUid, username: peerProfile.username || "operator", display: peerProfile.display || peerProfile.username || "Operator" };
+
+  let cachedProfile = peerProfile;
+  if (!cachedProfile) {
+    const found = localChannels.find(c => c.otherUid === peerUid);
+    if (found && found.profile) {
+      cachedProfile = found.profile;
+    }
+  }
+
+  activePeer = {
+    uid: peerUid,
+    username: cachedProfile?.username || "operator",
+    display: cachedProfile?.display || cachedProfile?.username || "Operator"
+  };
   activeChatId = computeChatId(currentUser.uid, peerUid);
   sessionStorage.setItem("yuki_active_peer", peerUid);
+
+  clearChatMessagesOnly();
 
   $("active-chat-title").textContent = activePeer.display;
   $("active-chat-title-wrap").classList.remove("yuki");
@@ -962,35 +970,32 @@ async function openChatWith(peerUid, peerProfile) {
   $("chat-textarea").value = "";
   updateWordCounter();
 
-  // Clear viewport BEFORE subscribing so old chat messages never linger
-  clearChatStream();
-
   if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
-
-  const chatRef = doc(db, "chats", activeChatId);
-  try {
-    await setDoc(chatRef, {
-      users: [currentUser.uid, peerUid],
-      [`participants.${currentUser.uid}`]: true,
-      [`participants.${peerUid}`]: true,
-      touchAt: serverTimestamp()
-    }, { merge: true });
-  } catch(e){}
 
   subscribeMessages(activeChatId);
   subscribePeerStatus(activeChatId, peerUid);
   markSeen(activeChatId);
   renderRoster();
-}
 
-function renderLegalDisclaimer() {
-  return `<div class="legal-disclaimer">
-    <div class="legal-disclaimer-header">
-      <span>⚠️ [ SYSTEM ADVISORY // LEGAL COMPLIANCE NOTICE ]</span>
-      <span style="font-size:9.5px;color:var(--amber);">STRICT AUDIT</span>
-    </div>
-    <p><b>SECURITY & COMPLIANCE DIRECTIVE:</b> This terminal is engineered for authorized research, developer utility, and educational exchange. <b>Conducting or soliciting illegal activities, cyber offenses, harassment, or malicious operations is strictly prohibited.</b> Users bear <b>sole individual legal responsibility</b> for all transmitted data. The platform owner, developers, and operators assume <b>zero liability</b> for misuse. Unlawful actions are subject to applicable legal sanctions and cyber regulations.</p>
-  </div>`;
+  const chatRef = doc(db, "chats", activeChatId);
+  setDoc(chatRef, {
+    users: [currentUser.uid, peerUid],
+    [`participants.${currentUser.uid}`]: true,
+    [`participants.${peerUid}`]: true,
+    touchAt: serverTimestamp()
+  }, { merge: true }).catch(()=>{});
+
+  if (!cachedProfile || !cachedProfile.username) {
+    getDoc(doc(db, "users", peerUid)).then(uSnap => {
+      if (uSnap.exists() && activePeer && activePeer.uid === peerUid) {
+        const d = uSnap.data();
+        activePeer.username = d.username || activePeer.username;
+        activePeer.display = d.display || d.username || activePeer.display;
+        $("active-chat-title").textContent = activePeer.display;
+        $("active-chat-sub").textContent = "@" + activePeer.username;
+      }
+    }).catch(()=>{});
+  }
 }
 
 /* SUBSCRIBE MESSAGES */
@@ -998,17 +1003,19 @@ function subscribeMessages(chatId) {
   if (unsubMessages) { unsubMessages(); unsubMessages = null; }
 
   const stream = $("chat-stream");
-  stream.querySelectorAll(".msg-row").forEach(el => el.remove());
-  stream.querySelectorAll(".empty-chat-state").forEach(el => el.remove());
+  if (!stream) return;
 
+  const currentActiveChatId = chatId;
   const ref = collection(db, "chats", chatId, "messages");
   const q = query(ref, orderBy("at", "asc"), limit(300));
-  unsubMessages = onSnapshot(q, (snap) => {
-    const streamEl = $("chat-stream");
-    if (!streamEl || activeChatId !== chatId) return;
 
-    streamEl.querySelectorAll(".msg-row").forEach(el => el.remove());
-    streamEl.querySelectorAll(".empty-chat-state").forEach(el => el.remove());
+  unsubMessages = onSnapshot(q, (snap) => {
+    if (activeChatId !== currentActiveChatId) return;
+
+    const streamEl = $("chat-stream");
+    if (!streamEl) return;
+
+    clearChatMessagesOnly();
 
     const wasAtBottom = streamEl.scrollHeight - streamEl.scrollTop - streamEl.clientHeight < 150;
 
@@ -1017,7 +1024,6 @@ function subscribeMessages(chatId) {
         const intro = document.createElement("div");
         intro.className = "msg-row peer";
         intro.innerHTML = `
-          <div style="font-size:9px;color:var(--pink);letter-spacing:1.5px;margin-bottom:3px;font-weight:700;">◆ YUKI [NEURAL CORE]</div>
           <div class="msg-bubble">Greetings, Operator. Neural telemetry channel synchronized. You can transmit queries, code fragments, or tactical directives directly. All records are processed through secure sandboxed shards.</div>
           <div class="msg-meta"><span>${formatClock(new Date())}</span></div>
         `;
@@ -1031,6 +1037,7 @@ function subscribeMessages(chatId) {
       return;
     }
 
+    const fragment = document.createDocumentFragment();
     snap.forEach(d => {
       const m = d.data();
       const isMine = m.by === currentUser.uid;
@@ -1051,12 +1058,11 @@ function subscribeMessages(chatId) {
           <span>${formatClock(m.at)}</span>
           ${receipt}
         </div>`;
-      streamEl.appendChild(row);
+      fragment.appendChild(row);
     });
+    streamEl.appendChild(fragment);
 
-    if (wasAtBottom) {
-      streamEl.scrollTop = streamEl.scrollHeight;
-    }
+    if (wasAtBottom) streamEl.scrollTop = streamEl.scrollHeight;
     markSeen(chatId);
   });
 }
@@ -1077,18 +1083,25 @@ function formatMessageContent(raw) {
 }
 
 function subscribePeerStatus(chatId, otherUid) {
-  if (unsubPeerStatus) unsubPeerStatus();
+  if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
+  const currentActiveChatId = chatId;
   unsubPeerStatus = onSnapshot(doc(db, "chats", chatId), async (snap) => {
-    if (!snap.exists() || activeChatId !== chatId) return;
+    if (activeChatId !== currentActiveChatId || !snap.exists()) return;
     const d = snap.data();
     const statusEl = $("active-chat-sub");
     if (d.typing && d.typing[otherUid] === true) {
       statusEl.textContent = "typing...";
       return;
     }
+    const found = localChannels.find(c => c.otherUid === otherUid);
+    if (found && found.profile && found.profile.username) {
+      const ud = found.profile;
+      statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
+      return;
+    }
     try {
       const u = await getDoc(doc(db, "users", otherUid));
-      if (u.exists() && activeChatId === chatId) {
+      if (u.exists() && activeChatId === currentActiveChatId) {
         const ud = u.data();
         statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
       }
@@ -1098,18 +1111,14 @@ function subscribePeerStatus(chatId, otherUid) {
 
 async function markSeen(chatId) {
   if (!chatId || !currentUser) return;
-  if (activePeer?.isYuki) return; // no seen marks for bot
+  if (activePeer?.isYuki) return;
   try {
-    await updateDoc(doc(db, "chats", chatId), { [`unread.${currentUser.uid}`]: 0 });
+    updateDoc(doc(db, "chats", chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(()=>{});
     const qU = query(collection(db, "chats", chatId, "messages"), where("by", "!=", currentUser.uid), where("seen", "==", false), limit(50));
     const snap = await getDocs(qU);
-    if (!snap.empty) {
-      const batch = writeBatch(db);
-      snap.forEach(d => {
-        batch.update(d.ref, { seen: true });
-      });
-      await batch.commit();
-    }
+    snap.forEach(d => {
+      updateDoc(d.ref, { seen: true }).catch(()=>{});
+    });
   } catch(e){}
 }
 
@@ -1121,7 +1130,7 @@ async function transmitMessage() {
   ta.value = "";
   ta.style.height = "auto";
   updateWordCounter();
-  ta.focus(); // Keep keyboard open on mobile & composer focused on send
+  ta.focus();
   const payload = { text, by: currentUser.uid, at: serverTimestamp(), seen: false };
   try {
     await addDoc(collection(db, "chats", activeChatId, "messages"), payload);
@@ -1218,7 +1227,6 @@ function subscribeChatRoster() {
       const data = d.data();
       const otherUid = data.users?.find(u => u !== currentUser.uid);
       if (!otherUid) continue;
-      if (otherUid === YUKI_BOT_UID) continue; // Yuki bot is handled via pinned entry
       if (isDeleted(currentUser.uid, otherUid)) continue;
       list.push({ chatId: d.id, data, otherUid });
     }
@@ -1238,11 +1246,10 @@ function subscribeChatRoster() {
       };
       return getMs(b) - getMs(a);
     });
-
-    checkForNewMessagePopup(hydrated);
     localChannels = hydrated;
     $("peer-count").textContent = (hydrated.length + 1);
     renderRoster();
+    checkForNewMessagePopup();
   });
 }
 
@@ -1337,30 +1344,27 @@ function showRosterMenu(rowEl, otherUid) {
   }, 50);
 }
 
-function checkForNewMessagePopup(newChannels) {
+let lastPopupTime = 0;
+function checkForNewMessagePopup() {
   const me = currentUser?.uid;
   if (!me) return;
-  for (const c of newChannels) {
+  for (const c of localChannels) {
     const unread = (c.data?.unread && c.data.unread[me]) || 0;
-    const prevUnread = previousUnreadCounts[c.otherUid] || 0;
-    // Trigger incoming banner when a new incoming unread message arrives from a chat not currently open
-    if (unread > prevUnread && unread > 0 && activePeer?.uid !== c.otherUid && c.data?.lastMsgBy !== me) {
+    if (unread > 0 && activePeer?.uid !== c.otherUid) {
+      if (Date.now() - lastPopupTime < 3000) return;
+      lastPopupTime = Date.now();
       showTopBanner(c.profile?.username || "operator", c.data.lastMsg || "new message", c.otherUid, c.profile);
-      playSfx('receive');
+      return;
     }
-    previousUnreadCounts[c.otherUid] = unread;
   }
 }
-
+let bannerTimer = null;
 function showTopBanner(handle, preview, peerUid, profile) {
   const b = $("incoming-banner");
   $("banner-sender").textContent = "@" + handle;
   $("banner-preview").textContent = preview;
   b.classList.add("visible");
-  b.onclick = () => {
-    b.classList.remove("visible");
-    openChatWith(peerUid, profile);
-  };
+  b.onclick = () => { b.classList.remove("visible"); openChatWith(peerUid, profile); };
   if (bannerTimer) clearTimeout(bannerTimer);
   bannerTimer = setTimeout(() => b.classList.remove("visible"), 5000);
 }
