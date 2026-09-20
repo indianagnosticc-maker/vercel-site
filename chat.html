@@ -69,38 +69,34 @@
   }
   .screen.hidden { display: none !important; }
 
-  /* SESSION CHECK OVERLAY */
-  .session-check-overlay {
-    position: absolute; inset: 0;
+  /* BOOT COVER — hides everything until Firebase decides */
+  #boot-check {
+    position: fixed; inset: 0;
     background: var(--bg);
-    z-index: 10;
+    z-index: 9999;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
     gap: 14px;
     transition: opacity 0.25s ease;
   }
-  .session-check-overlay.gone {
-    opacity: 0; pointer-events: none;
-  }
-  .session-check-text {
+  #boot-check.gone { opacity: 0; pointer-events: none; }
+  .boot-text {
     color: var(--accent);
     font-family: var(--font-mono);
     font-size: 12px; letter-spacing: 4px;
     text-transform: uppercase;
     text-shadow: 0 0 10px var(--accent-glow);
   }
-  .session-check-dots {
-    display: flex; gap: 8px;
-  }
-  .session-check-dots span {
+  .boot-dots { display: flex; gap: 8px; }
+  .boot-dots span {
     width: 6px; height: 6px; border-radius: 50%;
     background: var(--accent);
     opacity: 0.3;
-    animation: sessionPulse 1.2s infinite;
+    animation: bootPulse 1.2s infinite;
   }
-  .session-check-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .session-check-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes sessionPulse {
+  .boot-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .boot-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bootPulse {
     0%, 100% { opacity: 0.3; transform: scale(0.8); }
     50% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 10px var(--accent-glow); }
   }
@@ -283,24 +279,39 @@
   .chat-target-status { font-size: 10px; color: var(--dim); height: 14px; }
   .chat-target-status.typing { color: var(--accent); font-weight: 600; }
 
+  /* MESSAGES — flex-end so empty state sits at bottom, chat grows up */
   .messages-viewport {
     flex: 1; min-height: 0; overflow-y: auto;
     overscroll-behavior: contain;
     padding: 16px 14px;
-    display: flex; flex-direction: column; gap: 12px;
+    display: flex; flex-direction: column;
+    justify-content: flex-end;   /* <-- messages stack from bottom */
+    gap: 12px;
   }
-  .msg-wrapper { display: flex; flex-direction: column; max-width: 82%; cursor: pointer; flex-shrink: 0; }
+  .msg-wrapper { display: flex; flex-direction: column; max-width: 82%; flex-shrink: 0; }
   .msg-wrapper.own { align-self: flex-end; align-items: flex-end; }
   .msg-wrapper.own .msg-inner { border-left: 1px solid var(--accent); padding: 4px 10px; background: rgba(0, 255, 136, 0.035); color: var(--accent); }
   .msg-wrapper.received { align-self: flex-start; align-items: flex-start; }
   .msg-wrapper.received .msg-inner { border-left: 1px solid var(--dim); padding: 4px 10px; background: rgba(58, 92, 72, 0.06); color: var(--text-received); }
   .msg-text-content { font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
-  .msg-reply-quote { margin-bottom: 4px; padding: 3px 8px; border-left: 2px solid var(--accent); background: rgba(0, 0, 0, 0.6); font-size: 10.5px; color: var(--dim-text); }
-  .msg-reply-quote-name { color: var(--accent); font-size: 9.5px; font-weight: 600; }
   .msg-meta-footer { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 3px; font-size: 9.5px; color: var(--dim); }
   .read-dot { letter-spacing: 1px; font-size: 12px; }
   .read-dot.unseen { color: var(--dim); }
   .read-dot.seen { color: var(--accent); text-shadow: 0 0 6px var(--accent-glow); }
+
+  /* bottom disclaimer inside chat */
+  .chat-disclaimer {
+    flex-shrink: 0;
+    padding: 10px 14px;
+    font-size: 9px;
+    color: var(--dim);
+    letter-spacing: 0.3px;
+    line-height: 1.55;
+    text-align: center;
+    border-top: 1px dotted var(--dim-subtle);
+    background: var(--bg);
+  }
+  .chat-disclaimer b { color: var(--dim-text); font-weight: 500; }
 
   .chat-composer-section {
     padding: 10px 14px 12px;
@@ -309,16 +320,6 @@
     display: flex; flex-direction: column; gap: 8px;
     flex-shrink: 0;
   }
-  .composer-reply-banner {
-    display: none; padding: 5px 10px;
-    border-left: 2px solid var(--accent);
-    background: rgba(0, 255, 136, 0.05);
-    font-size: 10.5px; align-items: center; justify-content: space-between;
-  }
-  .composer-reply-banner.active { display: flex; }
-  .composer-reply-info { color: var(--dim-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; }
-  .composer-reply-info strong { color: var(--accent); }
-  .btn-close-reply { background: transparent; border: 0; color: var(--dim); padding: 2px 6px; cursor: pointer; }
   .composer-input-row { display: flex; align-items: flex-end; gap: 10px; }
   .composer-textarea-wrap {
     flex: 1; position: relative;
@@ -335,12 +336,21 @@
   .composer-textarea::placeholder { color: var(--dim); }
   .composer-subline { display: flex; justify-content: flex-end; margin-top: 4px; }
   .composer-char-count { font-size: 9.5px; color: var(--dim); }
+
+  /* SEND BUTTON — solid circle with arrow, no border */
   .btn-send-circular {
-    width: 38px; height: 38px; border-radius: 50%;
+    width: 40px; height: 40px; border-radius: 50%;
     background: var(--accent); color: #05070a;
-    border: 1px solid var(--accent);
+    border: none;
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 14px; font-weight: 800;
+    cursor: pointer; flex-shrink: 0;
+    box-shadow: 0 0 12px var(--accent-glow);
+    transition: transform 0.12s ease, filter 0.12s ease;
+  }
+  .btn-send-circular:active { transform: scale(0.94); filter: brightness(0.92); }
+  .btn-send-circular svg {
+    width: 18px; height: 18px;
+    fill: #05070a;
   }
 
   .modal-backdrop {
@@ -406,20 +416,19 @@
 </head>
 <body>
 
+<!-- BOOT — covers everything until Firebase decides -->
+<div id="boot-check">
+  <div class="boot-text">INITIALIZING</div>
+  <div class="boot-dots"><span></span><span></span><span></span></div>
+</div>
+
 <div class="scanline-layer"></div>
 
 <div class="app-container">
   <div class="terminal-frame">
 
-    <!-- LOGIN SCREEN — visible by default, has session overlay -->
-    <div class="screen" id="screen-login">
-      <div class="session-check-overlay" id="session-overlay">
-        <div class="session-check-text">VERIFYING SESSION</div>
-        <div class="session-check-dots">
-          <span></span><span></span><span></span>
-        </div>
-      </div>
-
+    <!-- LOGIN — hidden by default; only shown when Firebase confirms logged out -->
+    <div class="screen hidden" id="screen-login">
       <div></div>
       <div class="login-box">
         <h1 class="login-title">YUKI</h1>
@@ -483,19 +492,14 @@
               <div class="chat-target-status" id="peer-status-line">encrypted tunnel offline</div>
             </div>
           </header>
-          <div class="messages-viewport" id="chat-messages-stream">
-            <div class="empty-channels-state">
-              <span class="empty-channels-symbol">◇</span>
-              no active channels · query a user above
-            </div>
+          <div class="messages-viewport" id="chat-messages-stream"></div>
+          <!-- disclaimer at bottom of chat -->
+          <div class="chat-disclaimer">
+            <b>notice:</b> all messages are user-generated. any illegal, harmful, or malicious
+            activity is solely the responsibility of the sender. the platform owner assumes
+            no liability for user content or actions.
           </div>
           <div class="chat-composer-section">
-            <div class="composer-reply-banner" id="composer-reply-bar">
-              <div class="composer-reply-info">
-                <strong>REPLYING:</strong> <span id="reply-quote-snippet">Text...</span>
-              </div>
-              <button class="btn-close-reply" id="btn-cancel-reply">✕</button>
-            </div>
             <div class="composer-input-row">
               <div class="composer-textarea-wrap">
                 <textarea id="composer-text-input" class="composer-textarea" rows="1" maxlength="700" placeholder="type transmission (max 700)..."></textarea>
@@ -503,7 +507,9 @@
                   <span class="composer-char-count" id="composer-char-count">0 / 700</span>
                 </div>
               </div>
-              <button class="btn-send-circular" id="btn-send-message">➤</button>
+              <button class="btn-send-circular" id="btn-send-message" title="Send">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+              </button>
             </div>
           </div>
         </main>
@@ -568,7 +574,6 @@ let currentProfile = null;
 let activePeer = null;
 let activeChatId = null;
 let isSignUpMode = false;
-let activeReply = null;
 let unsubMessages = null;
 let unsubTypingStatus = null;
 let unsubChatRoster = null;
@@ -604,6 +609,13 @@ function removeDeleted(uid, otherUid) {
   localStorage.setItem("yuki_deleted_" + uid, JSON.stringify(list));
 }
 function isDeleted(uid, otherUid) { return getDeleted(uid).includes(otherUid); }
+
+function hideBoot() {
+  const boot = $("boot-check");
+  if (!boot) return;
+  boot.classList.add("gone");
+  setTimeout(() => { if (boot.parentNode) boot.remove(); }, 300);
+}
 
 $("btn-toggle-auth-mode").addEventListener("click", () => {
   isSignUpMode = !isSignUpMode;
@@ -673,21 +685,15 @@ $("btn-copy-handle").addEventListener("click", () => {
 });
 
 onAuthStateChanged(auth, async (user) => {
-  // First thing: dismiss the session check overlay
-  const overlay = document.getElementById("session-overlay");
-  if (overlay) {
-    overlay.classList.add("gone");
-    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 300);
-  }
-
   if (!user) {
     currentUser = null;
     currentProfile = null;
-    $("screen-login").classList.remove("hidden");
     $("screen-workspace").classList.add("hidden");
+    $("screen-login").classList.remove("hidden");
     if (unsubMessages) unsubMessages();
     if (unsubTypingStatus) unsubTypingStatus();
     if (unsubChatRoster) unsubChatRoster();
+    hideBoot();
     return;
   }
 
@@ -718,8 +724,9 @@ onAuthStateChanged(auth, async (user) => {
 
     updateDoc(doc(db, "users", user.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
 
-    $("screen-login").classList.add("hidden");
+    // show workspace BEFORE hiding login screen — swap atomically
     $("screen-workspace").classList.remove("hidden");
+    $("screen-login").classList.add("hidden");
 
     subscribeChatRoster();
 
@@ -732,7 +739,9 @@ onAuthStateChanged(auth, async (user) => {
     }
   } catch (err) {
     console.error("Profile load err:", err);
+    $("screen-login").classList.remove("hidden");
   }
+  hideBoot();
 });
 
 $("btn-search-exec").addEventListener("click", performUserSearch);
@@ -797,8 +806,6 @@ async function openChatWith(peerUid, peerProfile) {
   $("peer-username").textContent = `@${activePeer.username}`;
   $("peer-status-line").textContent = `@${activePeer.username}`;
   $("peer-status-line").className = "chat-target-status";
-  activeReply = null;
-  $("composer-reply-bar").classList.remove("active");
   $("composer-text-input").value = "";
   updateCharCount();
   $("workspace-layout").classList.add("show-chat");
@@ -817,7 +824,7 @@ async function openChatWith(peerUid, peerProfile) {
   subscribePeerTypingAndStatus(activeChatId, peerUid);
   markConversationSeen(activeChatId);
   document.querySelectorAll(".chat-row").forEach(r => r.classList.toggle("active", r.dataset.uid === peerUid));
-  setTimeout(() => $("composer-text-input")?.focus(), 150);
+  // NOTE: no auto-focus here — user must tap composer to open keyboard
 }
 
 $("btn-chat-back").addEventListener("click", () => {
@@ -917,7 +924,7 @@ function showRowMenu(rowEl, otherUid) {
       $("peer-display-name").textContent = "Select Channel";
       $("peer-username").textContent = "@peer_id";
       $("peer-status-line").textContent = "encrypted tunnel offline";
-      $("chat-messages-stream").innerHTML = `<div class="empty-channels-state"><span class="empty-channels-symbol">◇</span>no active channels</div>`;
+      $("chat-messages-stream").innerHTML = "";
     }
     localChannels = localChannels.filter(c => c.otherUid !== otherUid);
     renderChatList();
@@ -940,7 +947,7 @@ function subscribeMessages(chatId) {
     const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 120;
     viewport.innerHTML = "";
     if (snap.empty) {
-      viewport.innerHTML = `<div class="empty-channels-state"><span class="empty-channels-symbol">◇</span>secure channel initialized</div>`;
+      // no messages → just leave empty (bottom-justified by flex-end)
       return;
     }
     snap.forEach((docSnap) => {
@@ -949,35 +956,18 @@ function subscribeMessages(chatId) {
       const wrap = document.createElement("div");
       wrap.className = `msg-wrapper ${isMine ? "own" : "received"}`;
       wrap.dataset.id = docSnap.id;
-      let quoteHtml = "";
-      if (m.replyTo && m.replyTo.text) {
-        quoteHtml = `<div class="msg-reply-quote"><div class="msg-reply-quote-name">&gt; ${escapeHtml(m.replyTo.name || "operative")}</div><div>${escapeHtml(m.replyTo.text.slice(0, 60))}</div></div>`;
-      }
       let receiptHtml = "";
       if (isMine) {
         if (m.seen === true) receiptHtml = `<span class="read-dot seen">• •</span>`;
         else receiptHtml = `<span class="read-dot unseen">•</span>`;
       }
-      wrap.innerHTML = `<div class="msg-inner">${quoteHtml}<div class="msg-text-content">${escapeHtml(m.text || "")}</div><div class="msg-meta-footer"><span>${formatClock(m.at)}</span>${receiptHtml}</div></div>`;
-      wrap.addEventListener("dblclick", () => setupReply(m, docSnap.id, isMine));
+      wrap.innerHTML = `<div class="msg-inner"><div class="msg-text-content">${escapeHtml(m.text || "")}</div><div class="msg-meta-footer"><span>${formatClock(m.at)}</span>${receiptHtml}</div></div>`;
       viewport.appendChild(wrap);
     });
     if (isAtBottom) viewport.scrollTop = viewport.scrollHeight;
     markConversationSeen(chatId);
   }, (err) => {});
 }
-
-function setupReply(m, msgId, isMine) {
-  activeReply = { id: msgId, text: m.text || "", name: isMine ? "You" : (activePeer?.display || "operative") };
-  $("reply-quote-snippet").textContent = `${activeReply.name}: "${activeReply.text.slice(0, 50)}"`;
-  $("composer-reply-bar").classList.add("active");
-  $("composer-text-input").focus();
-}
-
-$("btn-cancel-reply").addEventListener("click", () => {
-  activeReply = null;
-  $("composer-reply-bar").classList.remove("active");
-});
 
 function subscribePeerTypingAndStatus(chatId, otherUid) {
   if (unsubTypingStatus) unsubTypingStatus();
@@ -1018,9 +1008,10 @@ async function transmitMessage() {
   input.value = "";
   updateCharCount();
   input.style.height = "auto";
-  const payload = { text, by: currentUser.uid, at: serverTimestamp(), seen: false, replyTo: activeReply || null };
-  activeReply = null;
-  $("composer-reply-bar").classList.remove("active");
+  // keep keyboard open — refocus composer
+  input.focus();
+
+  const payload = { text, by: currentUser.uid, at: serverTimestamp(), seen: false };
   try {
     await addDoc(collection(db, "chats", activeChatId, "messages"), payload);
     await setDoc(doc(db, "chats", activeChatId), {
