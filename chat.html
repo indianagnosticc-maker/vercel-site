@@ -176,36 +176,29 @@
     display: flex; flex-direction: column; flex-shrink: 0;
     z-index: 10; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .sidebar-head { padding: 10px 12px; border-bottom: 1px solid var(--panel-border); display: flex; justify-content: space-between; align-items: center; }
-  .user-badge { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .sidebar-head { padding: 10px 12px; border-bottom: 1px solid var(--panel-border); display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .user-badge { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
   .user-name { color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .user-id { color: var(--dim); font-size: 9.5px; }
   .copy-btn {
     background: transparent; border: 1px solid var(--line); border-radius: 3px;
     color: var(--dim); font-size: 9.5px; padding: 3px 6px; cursor: pointer;
-    font-family: var(--font-mono);
+    font-family: var(--font-mono); flex-shrink: 0;
   }
   .copy-btn:hover { color: var(--green); border-color: var(--green-dim); }
-  .search-row {
-    padding: 8px 10px; border-bottom: 1px dashed var(--line);
-    display: flex; flex-direction: column; gap: 6px;
-  }
+  .search-box { padding: 8px 10px; border-bottom: 1px dashed var(--line); display: flex; gap: 6px; }
   .search-inp {
-    width: 100%; background: #03070d; border: 1px solid var(--line); border-radius: 3px;
+    flex: 1; min-width: 0; background: #03070d; border: 1px solid var(--line); border-radius: 3px;
     padding: 5px 8px; color: var(--green); font-family: var(--font-mono); font-size: 10.5px; outline: none;
   }
   .search-inp:focus { border-color: var(--green-dim); }
   .search-inp::placeholder { color: var(--dim); }
-  .search-actions { display: flex; gap: 6px; }
-  .search-btn {
-    flex: 1; background: var(--green-dim); color: var(--white); border: 0; border-radius: 3px;
-    font-size: 10px; font-weight: 700; padding: 6px 10px; cursor: pointer;
-    font-family: var(--font-mono); letter-spacing: 1px;
-  }
+  .search-btn { background: var(--green-dim); color: var(--white); border: 0; border-radius: 3px; font-size: 10px; font-weight: 700; padding: 0 10px; cursor: pointer; font-family: var(--font-mono); }
+  .logout-row { padding: 8px 10px; border-bottom: 1px dashed var(--line); }
   .logout-btn {
-    flex: 1; background: transparent; color: var(--red); border: 1px solid rgba(255,45,85,0.4);
+    width: 100%; background: transparent; color: var(--red); border: 1px solid rgba(255,45,85,0.4);
     border-radius: 3px; font-size: 10px; font-weight: 700; padding: 6px 10px;
-    cursor: pointer; font-family: var(--font-mono); letter-spacing: 1px;
+    cursor: pointer; font-family: var(--font-mono); letter-spacing: 1.5px;
   }
   .logout-btn:hover { background: rgba(255,45,85,0.1); border-color: var(--red); }
   .roster-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
@@ -254,12 +247,12 @@
     display: flex; justify-content: space-between; align-items: center;
     background: rgba(8, 14, 24, 0.75); font-size: 11px; gap: 8px;
   }
-  .chat-subhead-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .chat-subhead-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
   .btn-toggle-roster {
     display: none; background: rgba(0, 229, 255, 0.08); border: 1px solid var(--cyan-dim);
     color: var(--cyan); border-radius: 3px; font-family: var(--font-mono);
     font-size: 10px; font-weight: 700; padding: 4px 8px; cursor: pointer;
-    align-items: center; gap: 4px; white-space: nowrap;
+    align-items: center; gap: 4px; white-space: nowrap; flex-shrink: 0;
   }
   .btn-toggle-roster:hover { background: rgba(0, 229, 255, 0.18); border-color: var(--cyan); }
   .target-title { color: var(--green); font-weight: 700; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; }
@@ -471,13 +464,14 @@
           <div class="user-id" id="me-uid">@operative</div>
         </div>
         <button class="copy-btn" id="btn-copy-id">COPY</button>
+        <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
       </div>
-      <div class="search-row">
+      <div class="search-box">
         <input class="search-inp" id="search-peer-input" type="text" placeholder="click query" />
-        <div class="search-actions">
-          <button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
-          <button class="logout-btn" id="btn-logout" type="button">⏻ LOGOUT</button>
-        </div>
+        <button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
+      </div>
+      <div class="logout-row">
+        <button class="logout-btn" id="btn-logout" type="button">⏻ LOGOUT</button>
       </div>
       <div class="roster-list">
         <div class="roster-list-body" id="roster-list-body"></div>
@@ -632,16 +626,20 @@ btnRain.addEventListener('click', () => {
 
 const sidebar = document.getElementById('sidebar-roster');
 const btnRosterToggle = document.getElementById('btn-mobile-roster-toggle');
+const btnCloseSidebarMobile = document.getElementById('btn-close-sidebar-mobile');
 function syncSidebarForMobile() {
   if (window.innerWidth <= 768) {
     sidebar.classList.add('sidebar-hidden');
+    btnCloseSidebarMobile.style.display = 'inline-block';
   } else {
     sidebar.classList.remove('sidebar-hidden');
+    btnCloseSidebarMobile.style.display = 'none';
   }
 }
 window.addEventListener('resize', syncSidebarForMobile);
 syncSidebarForMobile();
 btnRosterToggle.addEventListener('click', () => { sidebar.classList.remove('sidebar-hidden'); playSfx('click'); });
+btnCloseSidebarMobile.addEventListener('click', () => { sidebar.classList.add('sidebar-hidden'); playSfx('click'); });
 </script>
 
 <script type="module">
@@ -789,16 +787,6 @@ async function handleAuthSubmit() {
   }
 }
 
-/* ========== LOGOUT ========== */
-$("btn-logout").addEventListener("click", async () => {
-  if (!currentUser) return;
-  if (!confirm("Logout from this terminal?")) return;
-  try {
-    await updateDoc(doc(db, "users", currentUser.uid), { lastSeen: serverTimestamp() });
-  } catch(e){}
-  await signOut(auth);
-});
-
 /* ========== COPY ID ========== */
 $("btn-copy-id").addEventListener("click", function() {
   if (!currentProfile) return;
@@ -807,6 +795,16 @@ $("btn-copy-id").addEventListener("click", function() {
   this.textContent = "COPIED";
   setTimeout(() => this.textContent = orig, 1500);
   playSfx('click');
+});
+
+/* ========== LOGOUT ========== */
+$("btn-logout").addEventListener("click", async () => {
+  if (!currentUser) return;
+  if (!confirm("Logout from this terminal?")) return;
+  try {
+    await updateDoc(doc(db, "users", currentUser.uid), { lastSeen: serverTimestamp() });
+  } catch(e){}
+  await signOut(auth);
 });
 
 /* ========== AUTH OBSERVER ========== */
@@ -847,8 +845,10 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 /* ========== SEARCH ========== */
-$("btn-peer-search").addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); performUserSearch(); });
-$("search-peer-input").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); performUserSearch(); } });
+$("btn-peer-search").addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openSearchModal(); });
+$("search-peer-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); openSearchModal(); }
+});
 $("btn-close-search-modal").addEventListener("click", (e) => {
   e.preventDefault(); e.stopPropagation();
   $("search-modal").classList.remove("open");
@@ -864,34 +864,65 @@ if (searchModalBox) {
   searchModalBox.addEventListener("click", (e) => { e.stopPropagation(); });
 }
 
-async function performUserSearch() {
-  const q = $("search-peer-input").value.trim().toLowerCase().replace(/^@/, "");
-  if (!q) { showToast("ENTER USERNAME"); return; }
-  if (!currentUser || !currentProfile) return;
-  if (q === currentProfile.username.toLowerCase()) { showToast("CANNOT QUERY YOUR OWN ID"); return; }
-
+function openSearchModal() {
   const modal = $("search-modal");
   const content = $("search-modal-content");
-  content.innerHTML = `<div style="color:var(--dim);font-size:11px;padding:6px 0;">searching...</div>`;
+  const prefill = $("search-peer-input").value.trim().replace(/^@/, "");
+  content.innerHTML = `
+    <div style="padding:8px 0;">
+      <input type="text" id="modal-search-input" placeholder="Enter username to search..." value="${escapeHtml(prefill)}" style="width:100%;padding:8px 10px;background:#03070d;border:1px solid var(--green-dim);color:var(--green);font-family:var(--font-mono);font-size:11px;border-radius:3px;outline:none;" />
+    </div>
+    <div id="modal-search-results" style="margin-top:10px;"></div>
+  `;
   modal.classList.add("open");
+  const searchInput = $("modal-search-input");
+  if (searchInput) {
+    setTimeout(() => searchInput.focus(), 100);
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        performUserSearchModal(searchInput.value);
+      }
+    });
+    let debounceTimer = null;
+    searchInput.addEventListener("input", (e) => {
+      clearTimeout(debounceTimer);
+      const v = e.target.value.trim();
+      if (v.length < 2) { $("modal-search-results").innerHTML = ""; return; }
+      debounceTimer = setTimeout(() => performUserSearchModal(v), 400);
+    });
+    if (prefill && prefill.length >= 2) {
+      performUserSearchModal(prefill);
+    }
+  }
+}
+
+async function performUserSearchModal(q) {
+  const searchQ = q.trim().toLowerCase().replace(/^@/, "");
+  if (!searchQ) { $("modal-search-results").innerHTML = ""; return; }
+  if (!currentUser || !currentProfile) return;
+  if (searchQ === currentProfile.username.toLowerCase()) {
+    $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">Cannot message yourself</div>`;
+    return;
+  }
   try {
     let otherUid = null, otherData = null;
-    const uDoc = await getDoc(doc(db, "usernames", q));
+    const uDoc = await getDoc(doc(db, "usernames", searchQ));
     if (uDoc.exists()) {
       otherUid = uDoc.data().uid;
       const uSnap = await getDoc(doc(db, "users", otherUid));
       if (uSnap.exists()) otherData = uSnap.data();
     } else {
-      const qU = query(collection(db, "users"), where("username", "==", q), limit(1));
+      const qU = query(collection(db, "users"), where("username", "==", searchQ), limit(1));
       const uSnap = await getDocs(qU);
       if (!uSnap.empty) { otherUid = uSnap.docs[0].id; otherData = uSnap.docs[0].data(); }
     }
     if (!otherUid || !otherData) {
-      content.innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">No user found: @${escapeHtml(q)}</div>`;
+      $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">No user found: @${escapeHtml(searchQ)}</div>`;
       return;
     }
     removeDeleted(currentUser.uid, otherUid);
-    content.innerHTML = `
+    $("modal-search-results").innerHTML = `
       <div class="search-result-row">
         <div class="search-result-info">
           <div class="search-result-name">${escapeHtml(otherData.display || otherData.username)}</div>
@@ -910,7 +941,7 @@ async function performUserSearch() {
     }
   } catch (e) {
     console.error(e);
-    content.innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">Search error</div>`;
+    $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">Search error</div>`;
   }
 }
 
