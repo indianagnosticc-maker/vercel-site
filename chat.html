@@ -6,6 +6,7 @@
 <title>CYBER//OSINT • CHAT TERMINAL</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"/>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
 <style>
   :root {
@@ -693,6 +694,9 @@ let unsubChatRoster = null;
 let typingBeaconTimer = null;
 let lastTypingTime = 0;
 let localChannels = [];
+const profileCache = {};
+let isInitialMessageLoad = true;
+let rosterDebounceTimer = null;
 
 function formatTime(ts) {
   if (!ts) return "";
@@ -808,7 +812,7 @@ $("btn-logout").addEventListener("click", async () => {
 });
 
 /* ========== AUTH OBSERVER ========== */
-onAuthStateChanged(auth, async (user) => {
+onAuthStateChanged(auth, (user) => {
   if (!user) {
     currentUser = null; currentProfile = null;
     $("login-screen").classList.add("show");
@@ -819,17 +823,17 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
   currentUser = user;
-  try {
-    const uDoc = await getDoc(doc(db, "users", user.uid));
-    if (uDoc.exists()) currentProfile = uDoc.data();
-    else {
+  getDoc(doc(db, "users", user.uid)).then(async (uDoc) => {
+    if (uDoc.exists()) {
+      currentProfile = uDoc.data();
+    } else {
       const defaultHandle = (user.email ? user.email.split("@")[0] : "operator").replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
       currentProfile = {
         username: defaultHandle, display: defaultHandle.toUpperCase() + "_UNIT",
         email: user.email || "", createdAt: serverTimestamp(), lastSeen: serverTimestamp()
       };
-      await setDoc(doc(db, "users", user.uid), currentProfile, { merge: true });
-      await setDoc(doc(db, "usernames", defaultHandle), { uid: user.uid }, { merge: true });
+      setDoc(doc(db, "users", user.uid), currentProfile, { merge: true }).catch(()=>{});
+      setDoc(doc(db, "usernames", defaultHandle), { uid: user.uid }, { merge: true }).catch(()=>{});
     }
     $("me-display").textContent = currentProfile.display || currentProfile.username;
     $("me-uid").textContent = "@" + currentProfile.username;
@@ -837,11 +841,12 @@ onAuthStateChanged(auth, async (user) => {
     $("login-screen").classList.remove("show");
     subscribeChatRoster();
     openYukiBot();
-  } catch (e) {
+    hideBoot();
+  }).catch((e) => {
     console.error("Profile load error:", e);
     $("login-screen").classList.add("show");
-  }
-  hideBoot();
+    hideBoot();
+  });
 });
 
 /* ========== SEARCH ========== */
@@ -910,12 +915,23 @@ async function performUserSearchModal(q) {
     const uDoc = await getDoc(doc(db, "usernames", searchQ));
     if (uDoc.exists()) {
       otherUid = uDoc.data().uid;
-      const uSnap = await getDoc(doc(db, "users", otherUid));
-      if (uSnap.exists()) otherData = uSnap.data();
+      if (profileCache[otherUid]) {
+        otherData = profileCache[otherUid];
+      } else {
+        const uSnap = await getDoc(doc(db, "users", otherUid));
+        if (uSnap.exists()) {
+          otherData = uSnap.data();
+          profileCache[otherUid] = otherData;
+        }
+      }
     } else {
       const qU = query(collection(db, "users"), where("username", "==", searchQ), limit(1));
       const uSnap = await getDocs(qU);
-      if (!uSnap.empty) { otherUid = uSnap.docs[0].id; otherData = uSnap.docs[0].data(); }
+      if (!uSnap.empty) {
+        otherUid = uSnap.docs[0].id;
+        otherData = uSnap.docs[0].data();
+        profileCache[otherUid] = otherData;
+      }
     }
     if (!otherUid || !otherData) {
       $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">No user found: @${escapeHtml(searchQ)}</div>`;
@@ -966,7 +982,7 @@ function openYukiBot() {
   if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
 
   subscribeMessages(activeChatId);
-  setTimeout(renderRoster, 0);
+  renderRoster();
 }
 
 /* ========== OPEN CHAT WITH USER ========== */
@@ -980,10 +996,13 @@ function openChatWith(peerUid, peerProfile) {
 
   removeDeleted(currentUser.uid, peerUid);
 
-  let cachedProfile = peerProfile;
+  let cachedProfile = peerProfile || profileCache[peerUid];
   if (!cachedProfile) {
     const found = localChannels.find(c => c.otherUid === peerUid);
-    if (found && found.profile) cachedProfile = found.profile;
+    if (found && found.profile) {
+      cachedProfile = found.profile;
+      profileCache[peerUid] = cachedProfile;
+    }
   }
 
   activePeer = {
@@ -1019,12 +1038,15 @@ function openChatWith(peerUid, peerProfile) {
 
   if (!cachedProfile || !cachedProfile.username) {
     getDoc(doc(db, "users", peerUid)).then(uSnap => {
-      if (uSnap.exists() && activePeer && activePeer.uid === peerUid) {
+      if (uSnap.exists()) {
         const d = uSnap.data();
-        activePeer.username = d.username || activePeer.username;
-        activePeer.display = d.display || d.username || activePeer.display;
-        $("active-chat-title").textContent = activePeer.display;
-        $("active-chat-sub").textContent = "@" + activePeer.username;
+        profileCache[peerUid] = d;
+        if (activePeer && activePeer.uid === peerUid) {
+          activePeer.username = d.username || activePeer.username;
+          activePeer.display = d.display || d.username || activePeer.display;
+          $("active-chat-title").textContent = activePeer.display;
+          $("active-chat-sub").textContent = "@" + activePeer.username;
+        }
       }
     }).catch(()=>{});
   }
@@ -1037,6 +1059,7 @@ function subscribeMessages(chatId) {
   const stream = $("chat-stream");
   if (!stream) return;
 
+  isInitialMessageLoad = true;
   const currentActiveChatId = chatId;
   const ref = collection(db, "chats", chatId, "messages");
   const q = query(ref, orderBy("at", "asc"), limit(300));
@@ -1052,6 +1075,7 @@ function subscribeMessages(chatId) {
     const wasAtBottom = streamEl.scrollHeight - streamEl.scrollTop - streamEl.clientHeight < 150;
 
     if (snap.empty) {
+      isInitialMessageLoad = false;
       if (activePeer?.isYuki) {
         const intro = document.createElement("div");
         intro.className = "msg-row peer";
@@ -1069,10 +1093,14 @@ function subscribeMessages(chatId) {
       return;
     }
 
+    let hasIncoming = false;
     const fragment = document.createDocumentFragment();
     snap.forEach(d => {
       const m = d.data();
       const isMine = m.by === currentUser.uid;
+      if (!isMine && !isInitialMessageLoad) {
+        hasIncoming = true;
+      }
       const row = document.createElement("div");
       row.className = `msg-row ${isMine ? "me" : "peer"}`;
       row.dataset.id = d.id;
@@ -1094,7 +1122,16 @@ function subscribeMessages(chatId) {
     });
     streamEl.appendChild(fragment);
 
-    if (wasAtBottom) streamEl.scrollTop = streamEl.scrollHeight;
+    if (hasIncoming) {
+      playSfx('receive');
+    }
+    isInitialMessageLoad = false;
+
+    if (wasAtBottom) {
+      requestAnimationFrame(() => {
+        streamEl.scrollTop = streamEl.scrollHeight;
+      });
+    }
     markSeen(chatId);
   }, (err) => {
     console.error("Messages subscription error:", err);
@@ -1129,9 +1166,15 @@ function subscribePeerStatus(chatId, otherUid) {
       statusEl.textContent = "typing...";
       return;
     }
+    if (profileCache[otherUid] && profileCache[otherUid].username) {
+      const ud = profileCache[otherUid];
+      statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
+      return;
+    }
     const found = localChannels.find(c => c.otherUid === otherUid);
     if (found && found.profile && found.profile.username) {
       const ud = found.profile;
+      profileCache[otherUid] = ud;
       statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
       return;
     }
@@ -1139,6 +1182,7 @@ function subscribePeerStatus(chatId, otherUid) {
       const u = await getDoc(doc(db, "users", otherUid));
       if (u.exists() && activeChatId === currentActiveChatId) {
         const ud = u.data();
+        profileCache[otherUid] = ud;
         statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
       }
     } catch(e){}
@@ -1151,7 +1195,7 @@ async function markSeen(chatId) {
   if (activePeer?.isYuki) return;
   try {
     updateDoc(doc(db, "chats", chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(()=>{});
-    const qU = query(collection(db, "chats", chatId, "messages"), where("by", "!=", currentUser.uid), where("seen", "==", false), limit(50));
+    const qU = query(collection(db, "chats", chatId, "messages"), where("by", "!=", currentUser.uid), where("seen", "==", false), limit(30));
     const snap = await getDocs(qU);
     snap.forEach(d => {
       updateDoc(d.ref, { seen: true }).catch(()=>{});
@@ -1164,6 +1208,7 @@ async function transmitMessage() {
   const ta = $("chat-textarea");
   const text = ta.value.trim();
   if (!text || !currentUser || !activeChatId || !activePeer) return;
+  playSfx('send');
   ta.value = "";
   ta.style.height = "auto";
   updateWordCounter();
@@ -1182,7 +1227,6 @@ async function transmitMessage() {
       unread: activePeer.isYuki ? {} : { [activePeer.uid]: increment(1), [currentUser.uid]: 0 },
       typing: { [currentUser.uid]: false }
     }, { merge: true });
-    playSfx('send');
 
     if (activePeer.isYuki) {
       setTimeout(async () => {
@@ -1219,7 +1263,6 @@ async function transmitMessage() {
             lastMsgBy: YUKI_BOT_UID,
             touchAt: serverTimestamp()
           }, { merge: true });
-          playSfx('receive');
         } catch(e){ console.error("Yuki reply error:", e); }
       }, 700);
     }
@@ -1285,10 +1328,18 @@ function subscribeChatRoster() {
       list.push({ chatId: d.id, data, otherUid });
     }
     const hydrated = await Promise.all(list.map(async item => {
-      try {
-        const u = await getDoc(doc(db, "users", item.otherUid));
-        item.profile = u.exists() ? u.data() : { username: "operative", display: "Operative" };
-      } catch(e) { item.profile = { username: "operative", display: "Operative" }; }
+      if (profileCache[item.otherUid]) {
+        item.profile = profileCache[item.otherUid];
+      } else {
+        try {
+          const u = await getDoc(doc(db, "users", item.otherUid));
+          item.profile = u.exists() ? u.data() : { username: "operative", display: "Operative" };
+          profileCache[item.otherUid] = item.profile;
+        } catch(e) {
+          item.profile = { username: "operative", display: "Operative" };
+          profileCache[item.otherUid] = item.profile;
+        }
+      }
       return item;
     }));
     hydrated.sort((a, b) => {
@@ -1302,7 +1353,10 @@ function subscribeChatRoster() {
     });
     localChannels = hydrated;
     $("peer-count").textContent = (hydrated.length + 1);
-    renderRoster();
+    if (rosterDebounceTimer) clearTimeout(rosterDebounceTimer);
+    rosterDebounceTimer = setTimeout(() => {
+      renderRoster();
+    }, 100);
     checkForNewMessagePopup();
   }, (err) => {
     console.error("Roster error:", err);
@@ -1312,7 +1366,7 @@ function subscribeChatRoster() {
 function renderRoster() {
   const c = $("roster-list-body");
   if (!c) return;
-  c.innerHTML = "";
+  const fragment = document.createDocumentFragment();
 
   const yukiRow = document.createElement("div");
   const yukiActive = activePeer?.isYuki;
@@ -1329,48 +1383,50 @@ function renderRoster() {
     </div>
   `;
   yukiRow.addEventListener("click", () => { playSfx('click'); openYukiBot(); });
-  c.appendChild(yukiRow);
+  fragment.appendChild(yukiRow);
 
   if (localChannels.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty-roster";
     empty.innerHTML = `<b>◇</b>no other active channels<br>query a user above`;
-    c.appendChild(empty);
-    return;
+    fragment.appendChild(empty);
+  } else {
+    for (const item of localChannels) {
+      const p = item.profile || {}, d = item.data || {};
+      const unread = (d.unread && d.unread[currentUser.uid]) || 0;
+      const isActive = activeChatId === item.chatId;
+      const initial = (p.display || p.username || "?").charAt(0).toUpperCase();
+      const row = document.createElement("div");
+      row.className = "roster-item" + (isActive ? " active" : "");
+      row.dataset.uid = item.otherUid;
+      row.innerHTML = `
+        <div class="roster-avatar">${escapeHtml(initial)}</div>
+        <div class="roster-info">
+          <div class="roster-top">
+            <span class="roster-title">${escapeHtml(p.display || p.username || "Operator")}</span>
+            <span class="roster-time">${escapeHtml(formatTime(d.lastMsgAt || d.touchAt))}</span>
+          </div>
+          <div class="roster-snippet">${escapeHtml(d.lastMsg || "channel initialized")}</div>
+        </div>
+        ${unread > 0 ? `<span style="background:var(--green);color:#00160a;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;">${unread > 9 ? "9+" : unread}</span>` : ""}
+        <button class="roster-menu-btn" data-uid="${escapeHtml(item.otherUid)}">⋮</button>
+      `;
+      row.addEventListener("click", (ev) => {
+        if (ev.target.classList.contains("roster-menu-btn")) return;
+        if (ev.target.closest(".roster-menu-popup")) return;
+        playSfx('click');
+        openChatWith(item.otherUid, p);
+      });
+      row.querySelector(".roster-menu-btn").addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        showRosterMenu(row, item.otherUid);
+      });
+      fragment.appendChild(row);
+    }
   }
 
-  for (const item of localChannels) {
-    const p = item.profile || {}, d = item.data || {};
-    const unread = (d.unread && d.unread[currentUser.uid]) || 0;
-    const isActive = activeChatId === item.chatId;
-    const initial = (p.display || p.username || "?").charAt(0).toUpperCase();
-    const row = document.createElement("div");
-    row.className = "roster-item" + (isActive ? " active" : "");
-    row.dataset.uid = item.otherUid;
-    row.innerHTML = `
-      <div class="roster-avatar">${escapeHtml(initial)}</div>
-      <div class="roster-info">
-        <div class="roster-top">
-          <span class="roster-title">${escapeHtml(p.display || p.username || "Operator")}</span>
-          <span class="roster-time">${escapeHtml(formatTime(d.lastMsgAt || d.touchAt))}</span>
-        </div>
-        <div class="roster-snippet">${escapeHtml(d.lastMsg || "channel initialized")}</div>
-      </div>
-      ${unread > 0 ? `<span style="background:var(--green);color:#00160a;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;">${unread > 9 ? "9+" : unread}</span>` : ""}
-      <button class="roster-menu-btn" data-uid="${escapeHtml(item.otherUid)}">⋮</button>
-    `;
-    row.addEventListener("click", (ev) => {
-      if (ev.target.classList.contains("roster-menu-btn")) return;
-      if (ev.target.closest(".roster-menu-popup")) return;
-      playSfx('click');
-      openChatWith(item.otherUid, p);
-    });
-    row.querySelector(".roster-menu-btn").addEventListener("click", (ev) => {
-      ev.stopPropagation();
-      showRosterMenu(row, item.otherUid);
-    });
-    c.appendChild(row);
-  }
+  c.innerHTML = "";
+  c.appendChild(fragment);
 }
 
 function showRosterMenu(rowEl, otherUid) {
