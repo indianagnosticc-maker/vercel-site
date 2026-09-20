@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+
+<html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" name="viewport"/>
 <title>CYBER//OSINT • CHAT TERMINAL</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"/>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+<link as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="preload"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
 <style>
   :root {
     --bg: #03070d;
@@ -66,7 +66,7 @@
     align-items: center; justify-content: center;
     gap: 14px; transition: opacity 0.25s ease;
   }
-  #boot-cover.gone { opacity: 0; pointer-events: none; }
+  #boot-cover.gone { opacity: 0; pointer-events: none; display: none !important; }
   .boot-title {
     color: var(--green); font-size: 12px; letter-spacing: 4px;
     text-transform: uppercase; text-shadow: 0 0 10px var(--green-glow);
@@ -420,117 +420,107 @@
 <body>
 <canvas id="matrix-rain"></canvas>
 <div class="app-wrap">
-  <div class="hud-bar" id="hud-bar">
-    <div class="hud-left">
-      <div class="live-dot" id="peer-live-dot"></div>
-      <span id="system-status">TERMINAL ONLINE</span>
-    </div>
-    <div class="hud-stats">
-      <span>SYS <b id="peer-count">1</b></span>
-    </div>
-    <div class="hud-controls">
-      <button class="ctrl-btn active" id="btn-sound-toggle">SFX <span id="sfx-status">ON</span></button>
-      <button class="ctrl-btn active" id="btn-matrix-toggle">MATRIX <span id="matrix-status">ON</span></button>
-      <a href="/index.html" class="ctrl-btn back-osint-btn">◀ OSINT KERNEL</a>
-    </div>
-  </div>
-
-  <div id="boot-cover">
-    <div class="boot-title">YUKI // TERMINAL</div>
-    <div class="boot-dots">
-      <span></span> <span></span> <span></span>
-    </div>
-  </div>
-
-  <div id="login-screen" class="show">
-    <div class="login-box">
-      <div class="login-title">YUKI</div>
-      <div class="login-sub">// neural terminal access</div>
-      <div class="login-fields">
-        <input class="login-field" id="auth-email" type="email" placeholder="Email address" autocomplete="email" />
-        <input class="login-field" id="auth-password" type="password" placeholder="Security key" autocomplete="current-password" />
-      </div>
-      <button class="login-btn" id="btn-auth-submit">SIGN IN</button>
-      <div class="login-error" id="auth-error"></div>
-      <button class="login-toggle" id="btn-toggle-auth">Don't have an account? <span>Sign up</span></button>
-    </div>
-    <div class="login-disclaimer">Secure neural interface. Communications are sandboxed within Firestore shards and monitored for security protocol compliance. By accessing this terminal, you acknowledge all usage is logged and retained per SECURITY POLICY.</div>
-  </div>
-
-  <div class="workspace">
-    <div class="sidebar" id="sidebar-roster">
-      <div class="sidebar-head">
-        <div class="user-badge">
-          <div class="user-name" id="me-display">OPERATIVE</div>
-          <div class="user-id" id="me-uid">@operative</div>
-        </div>
-        <button class="copy-btn" id="btn-copy-id">COPY</button>
-        <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
-      </div>
-      <div class="search-box">
-        <input class="search-inp" id="search-peer-input" type="text" placeholder="click query" />
-        <button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
-      </div>
-      <div class="logout-row">
-        <button class="logout-btn" id="btn-logout" type="button">⏻ LOGOUT</button>
-      </div>
-      <div class="roster-list">
-        <div class="roster-list-body" id="roster-list-body"></div>
-      </div>
-    </div>
-
-    <main class="chat-pane" id="chat-pane">
-      <div class="chat-subhead">
-        <div class="chat-subhead-left">
-          <button class="btn-toggle-roster" id="btn-mobile-roster-toggle">☰ ROSTER</button>
-          <div id="active-chat-title-wrap">
-            <div class="target-title" id="active-chat-title">TERMINAL READY</div>
-            <div class="target-sub" id="active-chat-sub">awaiting user input</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="chat-stream" id="chat-stream">
-        <div class="legal-disclaimer">
-          <div class="legal-disclaimer-header">⚠ OPERATIONAL SECURITY NOTICE</div>
-          <p>This is a private, encrypted channel. All communications are logged and retained for security auditing. Do not transmit sensitive personal information, credentials, or classified material. Use this terminal only for intended operational purposes. Unauthorized access is prohibited. By continuing, you agree to all terms of service and security policies.</p>
-        </div>
-      </div>
-
-      <div class="composer-pane" id="composer-pane">
-        <div class="composer-status-bar">
-          <div id="word-counter-display" class="word-counter">0 / 5,000 words</div>
-        </div>
-        <form class="composer-form" id="chat-form">
-          <span class="prefix-prompt">❯</span>
-          <textarea class="msg-textarea" id="chat-textarea" placeholder="Transmit message..."></textarea>
-          <button class="send-btn" id="btn-send" type="submit">SEND ❯</button>
-        </form>
-      </div>
-    </main>
-  </div>
+<div class="hud-bar" id="hud-bar">
+<div class="hud-left">
+<div class="live-dot" id="peer-live-dot"></div>
+<span id="system-status">TERMINAL ONLINE</span>
 </div>
-
+<div class="hud-stats">
+<span>SYS <b id="peer-count">1</b></span>
+</div>
+<div class="hud-controls">
+<button class="ctrl-btn active" id="btn-sound-toggle">SFX <span id="sfx-status">ON</span></button>
+<button class="ctrl-btn active" id="btn-matrix-toggle">MATRIX <span id="matrix-status">ON</span></button>
+<a class="ctrl-btn back-osint-btn" href="/index.html">◀ OSINT KERNEL</a>
+</div>
+</div>
+<div id="boot-cover">
+<div class="boot-title">YUKI // TERMINAL</div>
+<div class="boot-dots">
+<span></span> <span></span> <span></span>
+</div>
+</div>
+<div class="show" id="login-screen">
+<div class="login-box">
+<div class="login-title">YUKI</div>
+<div class="login-sub">// neural terminal access</div>
+<div class="login-fields">
+<input autocomplete="email" class="login-field" id="auth-email" placeholder="Email address" type="email"/>
+<input autocomplete="current-password" class="login-field" id="auth-password" placeholder="Security key" type="password"/>
+</div>
+<button class="login-btn" id="btn-auth-submit">SIGN IN</button>
+<div class="login-error" id="auth-error"></div>
+<button class="login-toggle" id="btn-toggle-auth">Don't have an account? <span>Sign up</span></button>
+</div>
+<div class="login-disclaimer">Secure neural interface. Communications are sandboxed within Firestore shards and monitored for security protocol compliance. By accessing this terminal, you acknowledge all usage is logged and retained per SECURITY POLICY.</div>
+</div>
+<div class="workspace">
+<div class="sidebar" id="sidebar-roster">
+<div class="sidebar-head">
+<div class="user-badge">
+<div class="user-name" id="me-display">OPERATIVE</div>
+<div class="user-id" id="me-uid">@operative</div>
+</div>
+<button class="copy-btn" id="btn-copy-id">COPY</button>
+<button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
+</div>
+<div class="search-box">
+<input class="search-inp" id="search-peer-input" placeholder="click query" type="text"/>
+<button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
+</div>
+<div class="logout-row">
+<button class="logout-btn" id="btn-logout" type="button">⏻ LOGOUT</button>
+</div>
+<div class="roster-list">
+<div class="roster-list-body" id="roster-list-body"></div>
+</div>
+</div>
+<main class="chat-pane" id="chat-pane">
+<div class="chat-subhead">
+<div class="chat-subhead-left">
+<button class="btn-toggle-roster" id="btn-mobile-roster-toggle">☰ ROSTER</button>
+<div id="active-chat-title-wrap">
+<div class="target-title" id="active-chat-title">TERMINAL READY</div>
+<div class="target-sub" id="active-chat-sub">awaiting user input</div>
+</div>
+</div>
+</div>
+<div class="chat-stream" id="chat-stream">
+<div class="legal-disclaimer">
+<div class="legal-disclaimer-header">⚠ OPERATIONAL SECURITY NOTICE</div>
+<p>This is a private, encrypted channel. All communications are logged and retained for security auditing. Do not transmit sensitive personal information, credentials, or classified material. Use this terminal only for intended operational purposes. Unauthorized access is prohibited. By continuing, you agree to all terms of service and security policies.</p>
+</div>
+</div>
+<div class="composer-pane" id="composer-pane">
+<div class="composer-status-bar">
+<div class="word-counter" id="word-counter-display">0 / 5,000 words</div>
+</div>
+<form class="composer-form" id="chat-form" onsubmit="return false;">
+<span class="prefix-prompt">❯</span>
+<textarea class="msg-textarea" id="chat-textarea" placeholder="Transmit message..."></textarea>
+<button class="send-btn" id="btn-send" type="button">SEND ❯</button>
+</form>
+</div>
+</main>
+</div>
+</div>
 <div class="modal-backdrop" id="search-modal">
-  <div class="search-modal-box">
-    <div class="search-modal-header">
-      <span class="search-modal-title">QUERY RESULT</span>
-      <button class="btn-modal-close" id="btn-close-search-modal">✕</button>
-    </div>
-    <div id="search-modal-content"></div>
-  </div>
+<div class="search-modal-box">
+<div class="search-modal-header">
+<span class="search-modal-title">QUERY RESULT</span>
+<button class="btn-modal-close" id="btn-close-search-modal">✕</button>
 </div>
-
+<div id="search-modal-content"></div>
+</div>
+</div>
 <div class="slide-notice" id="incoming-banner">
-  <div class="slide-notice-left">
-    <span style="color:var(--green);">⚡</span>
-    <span class="slide-notice-sender" id="banner-sender">@—</span>:
+<div class="slide-notice-left">
+<span style="color:var(--green);">⚡</span>
+<span class="slide-notice-sender" id="banner-sender">@—</span>:
     <span class="slide-notice-preview" id="banner-preview">new message</span>
-  </div>
 </div>
-
+</div>
 <div class="toast-indicator" id="terminal-toast">COPIED</div>
-
 <script>
 let soundEnabled = true;
 let audioCtx = null;
@@ -542,8 +532,15 @@ function getAudioCtx() {
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
+
+let lastSfxTimes = { send: 0, receive: 0, click: 0 };
+
 function playSfx(type) {
   if (!soundEnabled) return;
+  const now = performance.now();
+  if (lastSfxTimes[type] && now - lastSfxTimes[type] < 120) return;
+  lastSfxTimes[type] = now;
+
   const ctx = getAudioCtx();
   if (!ctx) return;
   const t = ctx.currentTime;
@@ -642,7 +639,6 @@ syncSidebarForMobile();
 btnRosterToggle.addEventListener('click', () => { sidebar.classList.remove('sidebar-hidden'); playSfx('click'); });
 btnCloseSidebarMobile.addEventListener('click', () => { sidebar.classList.add('sidebar-hidden'); playSfx('click'); });
 </script>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
@@ -697,6 +693,8 @@ let localChannels = [];
 const profileCache = {};
 let isInitialMessageLoad = true;
 let rosterDebounceTimer = null;
+const playedMessageIds = new Set();
+let isTransmitting = false;
 
 function formatTime(ts) {
   if (!ts) return "";
@@ -1098,9 +1096,17 @@ function subscribeMessages(chatId) {
     snap.forEach(d => {
       const m = d.data();
       const isMine = m.by === currentUser.uid;
-      if (!isMine && !isInitialMessageLoad) {
-        hasIncoming = true;
+      const msgId = d.id;
+
+      if (isInitialMessageLoad) {
+        playedMessageIds.add(msgId);
+      } else {
+        if (!isMine && !playedMessageIds.has(msgId)) {
+          hasIncoming = true;
+          playedMessageIds.add(msgId);
+        }
       }
+
       const row = document.createElement("div");
       row.className = `msg-row ${isMine ? "me" : "peer"}`;
       row.dataset.id = d.id;
@@ -1205,17 +1211,22 @@ async function markSeen(chatId) {
 
 /* ========== SEND MESSAGE ========== */
 async function transmitMessage() {
+  if (isTransmitting) return;
   const ta = $("chat-textarea");
   const text = ta.value.trim();
   if (!text || !currentUser || !activeChatId || !activePeer) return;
+
+  isTransmitting = true;
   playSfx('send');
   ta.value = "";
   ta.style.height = "auto";
   updateWordCounter();
-  ta.focus();
+  ta.focus({ preventScroll: true });
+
   const payload = { text, by: currentUser.uid, at: serverTimestamp(), seen: false };
   try {
-    await addDoc(collection(db, "chats", activeChatId, "messages"), payload);
+    const docRef = await addDoc(collection(db, "chats", activeChatId, "messages"), payload);
+    if (docRef && docRef.id) playedMessageIds.add(docRef.id);
     await setDoc(doc(db, "chats", activeChatId), {
       users: [currentUser.uid, activePeer.uid],
       [`participants.${currentUser.uid}`]: true,
@@ -1269,12 +1280,28 @@ async function transmitMessage() {
   } catch (e) {
     console.error("Transmit error:", e);
     showToast("TRANSMISSION ERROR");
+  } finally {
+    setTimeout(() => { isTransmitting = false; }, 250);
   }
 }
 
-$("chat-form").addEventListener("submit", e => { e.preventDefault(); transmitMessage(); });
+$("chat-form").addEventListener("submit", e => {
+  e.preventDefault();
+  e.stopPropagation();
+  transmitMessage();
+  return false;
+});
+$("btn-send").addEventListener("click", e => {
+  e.preventDefault();
+  e.stopPropagation();
+  transmitMessage();
+});
 $("chat-textarea").addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); transmitMessage(); }
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    e.stopPropagation();
+    transmitMessage();
+  }
 });
 
 function countWords(str) {
@@ -1480,5 +1507,4 @@ function showTopBanner(handle, preview, peerUid, profile) {
   bannerTimer = setTimeout(() => b.classList.remove("visible"), 5000);
 }
 </script>
-</body>
-</html>
+</body></html>
