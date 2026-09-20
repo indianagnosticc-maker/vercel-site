@@ -42,7 +42,6 @@
   #matrix-rain {
     position: fixed; inset: 0; width: 100%; height: 100%;
     z-index: 1; pointer-events: none; opacity: 0.18;
-    transition: opacity 0.3s ease;
   }
   #matrix-rain.disabled { opacity: 0; }
   body::before {
@@ -60,7 +59,7 @@
     display: flex; flex-direction: column;
   }
 
-  /* BOOT OVERLAY */
+  /* BOOT COVER */
   #boot-cover {
     position: fixed; inset: 0; z-index: 9999;
     background: var(--bg);
@@ -86,31 +85,23 @@
     50% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 10px var(--green-glow); }
   }
 
-  /* LOGIN SCREEN */
+  /* LOGIN */
   #login-screen {
     position: fixed; inset: 0; z-index: 500;
     background: radial-gradient(circle at 50% 38%, rgba(0,255,136,0.05) 0%, transparent 65%), var(--bg);
-    display: none;
-    flex-direction: column;
+    display: none; flex-direction: column;
     align-items: center; justify-content: center;
     padding: 24px 20px;
   }
   #login-screen.show { display: flex; }
-  .login-box {
-    width: 100%; max-width: 380px;
-    display: flex; flex-direction: column; text-align: center;
-  }
+  .login-box { width: 100%; max-width: 380px; display: flex; flex-direction: column; text-align: center; }
   .login-title {
     font-size: 38px; font-weight: 700; letter-spacing: 10px;
     color: var(--green);
     text-shadow: 0 0 14px var(--green-glow), 0 0 30px rgba(0,255,136,0.3);
     margin-bottom: 6px; text-transform: uppercase;
   }
-  .login-sub {
-    font-size: 10.5px; color: var(--dim);
-    letter-spacing: 2px; text-transform: uppercase;
-    margin-bottom: 28px;
-  }
+  .login-sub { font-size: 10.5px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 28px; }
   .login-fields { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; text-align: left; }
   .login-field {
     width: 100%; background: transparent;
@@ -118,8 +109,7 @@
     padding: 12px 14px; color: var(--green);
     font-family: var(--font-mono); font-size: 12.5px;
     outline: none; caret-color: var(--green);
-    transition: border-color 0.2s, box-shadow 0.2s;
-    border-radius: 3px;
+    transition: border-color 0.2s; border-radius: 3px;
   }
   .login-field:focus { border-color: var(--green); box-shadow: 0 0 12px rgba(0,255,136,0.25); }
   .login-field::placeholder { color: var(--dim); }
@@ -130,22 +120,12 @@
     font-family: var(--font-mono); font-size: 12px; font-weight: 700;
     letter-spacing: 3px; text-transform: uppercase;
     cursor: pointer; box-shadow: 0 0 15px var(--green-glow);
-    margin-top: 4px;
-    border-radius: 3px;
+    margin-top: 4px; border-radius: 3px;
   }
   .login-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .login-toggle {
-    margin-top: 18px; font-size: 11px;
-    color: var(--dim); cursor: pointer;
-    background: transparent; border: 0;
-    font-family: var(--font-mono);
-  }
+  .login-toggle { margin-top: 18px; font-size: 11px; color: var(--dim); cursor: pointer; background: transparent; border: 0; font-family: var(--font-mono); }
   .login-toggle span { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
-  .login-error {
-    min-height: 20px; margin-top: 14px;
-    color: var(--red); text-shadow: 0 0 8px var(--red-glow);
-    font-size: 11px;
-  }
+  .login-error { min-height: 20px; margin-top: 14px; color: var(--red); text-shadow: 0 0 8px var(--red-glow); font-size: 11px; }
   .login-disclaimer {
     position: absolute; bottom: 0; left: 0; right: 0;
     padding: 12px 16px max(12px, env(safe-area-inset-bottom, 12px));
@@ -156,7 +136,7 @@
   }
   .login-disclaimer b { color: var(--green-dim); font-weight: 500; }
 
-  /* Top HUD Bar */
+  /* HUD BAR */
   .hud-bar {
     display: flex; justify-content: space-between; align-items: center;
     background: rgba(8, 14, 24, 0.92);
@@ -169,24 +149,15 @@
     backdrop-filter: blur(14px); flex-shrink: 0;
     gap: 10px; flex-wrap: wrap;
   }
-  .hud-left {
-    display: inline-flex; align-items: center; gap: 8px; color: var(--green);
-    font-weight: 600; white-space: nowrap;
-  }
+  .hud-left { display: inline-flex; align-items: center; gap: 8px; color: var(--green); font-weight: 600; white-space: nowrap; }
   .live-dot {
     width: 7px; height: 7px; border-radius: 50%; background: var(--green);
     box-shadow: 0 0 8px var(--green); animation: pulseDot 2s infinite ease-in-out;
   }
   @keyframes pulseDot { 0%,100%{opacity:1; transform:scale(1)} 50%{opacity:.35; transform:scale(0.85)} }
-  .hud-stats {
-    display: flex; align-items: center; gap: 14px;
-    color: var(--dim); font-size: 10px; letter-spacing: 0.8px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
+  .hud-stats { display: flex; align-items: center; gap: 14px; color: var(--dim); font-size: 10px; letter-spacing: 0.8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .hud-stats span b { color: var(--txt); font-weight: 500; }
-  .hud-controls {
-    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
-  }
+  .hud-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
   .ctrl-btn {
     background: rgba(19, 42, 66, 0.4); border: 1px solid var(--line); border-radius: 3px;
     color: var(--dim); font: inherit; font-size: 10px; letter-spacing: 1px;
@@ -203,26 +174,17 @@
     color: var(--cyan); border-color: var(--cyan-dim);
     background: rgba(0, 229, 255, 0.08); font-weight: 600;
   }
-  .back-osint-btn:hover {
-    background: rgba(0, 229, 255, 0.2); border-color: var(--cyan);
-    box-shadow: 0 0 10px var(--cyan-glow); color: var(--white);
-  }
+  .back-osint-btn:hover { background: rgba(0, 229, 255, 0.2); border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan-glow); color: var(--white); }
 
   /* Workspace */
-  .workspace {
-    flex: 1; min-height: 0; display: flex; width: 100%; position: relative;
-    overflow: hidden;
-  }
+  .workspace { flex: 1; min-height: 0; display: flex; width: 100%; position: relative; overflow: hidden; }
   .sidebar {
     width: 320px; height: 100%; border-right: 1px solid var(--panel-border);
     background: rgba(6, 11, 18, 0.85); backdrop-filter: blur(10px);
     display: flex; flex-direction: column; flex-shrink: 0;
     z-index: 10; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .sidebar-head {
-    padding: 10px 12px; border-bottom: 1px solid var(--panel-border);
-    display: flex; justify-content: space-between; align-items: center;
-  }
+  .sidebar-head { padding: 10px 12px; border-bottom: 1px solid var(--panel-border); display: flex; justify-content: space-between; align-items: center; }
   .user-badge { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
   .user-name { color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .user-id { color: var(--dim); font-size: 9.5px; }
@@ -232,24 +194,15 @@
     font-family: var(--font-mono);
   }
   .copy-btn:hover { color: var(--green); border-color: var(--green-dim); }
-
-  .search-box {
-    padding: 8px 10px; border-bottom: 1px dashed var(--line);
-    display: flex; gap: 6px;
-  }
+  .search-box { padding: 8px 10px; border-bottom: 1px dashed var(--line); display: flex; gap: 6px; }
   .search-inp {
     flex: 1; background: #03070d; border: 1px solid var(--line); border-radius: 3px;
     padding: 5px 8px; color: var(--green); font-family: var(--font-mono); font-size: 10.5px; outline: none;
   }
   .search-inp:focus { border-color: var(--green-dim); }
   .search-inp::placeholder { color: var(--dim); }
-  .search-btn {
-    background: var(--green-dim); color: var(--white); border: 0; border-radius: 3px;
-    font-size: 10px; font-weight: 700; padding: 0 10px; cursor: pointer;
-    font-family: var(--font-mono);
-  }
-
-  .roster-list { flex: 1; overflow-y: auto; }
+  .search-btn { background: var(--green-dim); color: var(--white); border: 0; border-radius: 3px; font-size: 10px; font-weight: 700; padding: 0 10px; cursor: pointer; font-family: var(--font-mono); }
+  .roster-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .roster-item {
     padding: 10px 12px; border-bottom: 1px solid rgba(19, 42, 66, 0.4);
     cursor: pointer; transition: background .15s; display: flex; gap: 8px; align-items: center;
@@ -263,9 +216,11 @@
     color: var(--green); display: flex; align-items: center; justify-content: center;
     font-weight: 700; font-size: 11px; flex-shrink: 0;
   }
+  .roster-avatar.yuki { background: rgba(255, 91, 181, 0.12); border-color: var(--pink-dim); color: var(--pink); }
   .roster-info { flex: 1; min-width: 0; }
   .roster-top { display: flex; justify-content: space-between; margin-bottom: 2px; gap: 6px; }
   .roster-title { color: var(--txt); font-weight: 600; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .roster-title.pink { color: var(--pink); }
   .roster-time { color: var(--dim); font-size: 9px; flex-shrink: 0; }
   .roster-snippet { color: var(--dim); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .roster-menu-btn {
@@ -285,19 +240,11 @@
     text-align: left; cursor: pointer;
   }
   .roster-menu-popup button:hover { background: rgba(255, 45, 85, 0.1); color: var(--red); }
-  .empty-roster {
-    padding: 40px 16px; text-align: center;
-    color: var(--dim); font-size: 10.5px; line-height: 1.7;
-    letter-spacing: 1px; text-transform: uppercase;
-  }
+  .empty-roster { padding: 40px 16px; text-align: center; color: var(--dim); font-size: 10.5px; line-height: 1.7; letter-spacing: 1px; text-transform: uppercase; }
   .empty-roster b { display: block; font-size: 22px; color: var(--green-dim); margin-bottom: 8px; }
 
-  /* Main chat pane */
-  .chat-pane {
-    flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column;
-    background: radial-gradient(circle at 60% 40%, rgba(8, 18, 30, 0.4), transparent 70%), var(--bg);
-    position: relative;
-  }
+  /* MAIN CHAT */
+  .chat-pane { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; background: radial-gradient(circle at 60% 40%, rgba(8, 18, 30, 0.4), transparent 70%), var(--bg); position: relative; }
   .chat-subhead {
     padding: 8px 14px; border-bottom: 1px solid var(--panel-border);
     display: flex; justify-content: space-between; align-items: center;
@@ -312,24 +259,43 @@
   }
   .btn-toggle-roster:hover { background: rgba(0, 229, 255, 0.18); border-color: var(--cyan); }
   .target-title { color: var(--green); font-weight: 700; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; }
+  .target-title.yuki { color: var(--pink); }
   .target-sub { color: var(--dim); font-size: 9.5px; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .subhead-actions { display: flex; align-items: center; gap: 6px; }
 
-  /* Chat stream — bottom justified */
+  /* CHAT STREAM — normal top-to-bottom scrolling */
   .chat-stream {
-    flex: 1; min-height: 0; overflow-y: auto;
-    padding: 14px 18px; display: flex; flex-direction: column;
-    justify-content: flex-end;
+    flex: 1; min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 14px 18px;
+    display: flex; flex-direction: column;
     gap: 12px;
   }
   .empty-chat-state {
     color: var(--dim); text-align: center; padding: 40px 20px;
     font-size: 10.5px; letter-spacing: 1.5px; text-transform: uppercase;
-    line-height: 1.8;
+    line-height: 1.8; margin-top: auto; margin-bottom: auto;
   }
   .empty-chat-state b { display: block; font-size: 26px; color: var(--green-dim); margin-bottom: 10px; }
 
-  /* Message bubbles — clean, no reply quote */
+  /* LEGAL DISCLAIMER inside chat */
+  .legal-disclaimer {
+    width: 100%; border: 1px dashed rgba(255, 183, 3, 0.45);
+    background: rgba(255, 183, 3, 0.035);
+    border-radius: 4px; padding: 10px 14px;
+    font-size: 10.5px; line-height: 1.55; color: #d6b870;
+    margin-bottom: 4px; flex-shrink: 0;
+  }
+  .legal-disclaimer-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px; font-weight: 700; font-size: 11px; letter-spacing: 1.5px;
+    color: var(--amber);
+  }
+  .legal-disclaimer p { color: #d0c8b0; letter-spacing: 0.2px; }
+  .legal-disclaimer b { color: #ffe699; }
+
+  /* Message bubbles */
   .msg-row {
     display: flex; flex-direction: column;
     max-width: 82%; width: fit-content;
@@ -342,7 +308,7 @@
     width: fit-content; max-width: 100%;
     padding: 7px 12px; border-radius: 4px;
     font-size: 12.5px; line-height: 1.5; word-break: break-word;
-    border: 1px solid var(--line); position: relative;
+    border: 1px solid var(--line);
   }
   .msg-row.me .msg-bubble {
     background: rgba(0, 255, 136, 0.07);
@@ -359,51 +325,25 @@
     font-size: 9px; color: var(--dim); margin-top: 3px;
   }
   .msg-meta .receipt { color: var(--dim); letter-spacing: 1px; font-weight: bold; }
-  .msg-meta .receipt.seen { color: var(--green); }
+  .msg-meta .receipt.seen { color: var(--green); text-shadow: 0 0 6px var(--green-glow); }
 
-  .code-container {
-    margin: 6px 0 3px; border: 1px solid #112d46; border-radius: 3px;
-    background: #02050a; overflow: hidden; font-size: 11px;
-  }
-  .code-head {
-    display: flex; justify-content: space-between; align-items: center;
-    background: #050c16; padding: 4px 8px; border-bottom: 1px solid #112d46;
-    color: var(--cyan); font-size: 9.5px; letter-spacing: 1px;
-  }
-  .copy-code-btn {
-    background: transparent; border: 1px solid rgba(0,229,255,0.3); border-radius: 2px;
-    color: var(--cyan); font-size: 9px; padding: 1px 6px; cursor: pointer;
-  }
-  .copy-code-btn:hover { background: rgba(0,229,255,0.15); }
-  pre.code-body {
-    padding: 8px 10px; margin: 0; overflow-x: auto; color: #a4e5c5;
-    line-height: 1.45; font-family: var(--font-mono);
-  }
+  .code-container { margin: 6px 0 3px; border: 1px solid #112d46; border-radius: 3px; background: #02050a; overflow: hidden; font-size: 11px; }
+  .code-head { display: flex; justify-content: space-between; align-items: center; background: #050c16; padding: 4px 8px; border-bottom: 1px solid #112d46; color: var(--cyan); font-size: 9.5px; letter-spacing: 1px; }
+  .copy-code-btn { background: transparent; border: 1px solid rgba(0,229,255,0.3); border-radius: 2px; color: var(--cyan); font-size: 9px; padding: 1px 6px; cursor: pointer; }
+  pre.code-body { padding: 8px 10px; margin: 0; overflow-x: auto; color: #a4e5c5; line-height: 1.45; font-family: var(--font-mono); }
 
   /* Composer */
-  .composer-pane {
-    background: rgba(8, 14, 24, 0.94);
-    border-top: 1px solid var(--panel-border);
-    padding: 10px 14px max(12px, env(safe-area-inset-bottom, 12px));
-    flex-shrink: 0;
-  }
-  .composer-status-bar {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 9.5px; color: var(--dim); margin-bottom: 6px; letter-spacing: 1px;
-  }
+  .composer-pane { background: rgba(8, 14, 24, 0.94); border-top: 1px solid var(--panel-border); padding: 10px 14px max(12px, env(safe-area-inset-bottom, 12px)); flex-shrink: 0; }
+  .composer-status-bar { display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; color: var(--dim); margin-bottom: 6px; letter-spacing: 1px; }
   .word-counter.warn { color: var(--amber); }
   .word-counter.over { color: var(--red); font-weight: 700; }
   .composer-form {
     display: flex; gap: 8px; align-items: flex-end;
     background: var(--panel); border: 1px solid var(--green-dim);
     border-radius: 4px; padding: 6px 8px;
-    box-shadow: 0 0 16px rgba(0,255,136,0.04) inset;
-    transition: border-color .2s, box-shadow .2s;
+    transition: border-color .2s;
   }
-  .composer-form:focus-within {
-    border-color: var(--green);
-    box-shadow: 0 0 0 1px rgba(0,255,136,0.2), 0 0 20px rgba(0,255,136,0.08) inset;
-  }
+  .composer-form:focus-within { border-color: var(--green); }
   .prefix-prompt { color: var(--green); font-size: 13px; padding-bottom: 6px; padding-left: 4px; }
   .msg-textarea {
     flex: 1; min-width: 0; background: transparent; border: 0; outline: 0;
@@ -414,13 +354,11 @@
   .send-btn {
     background: var(--green); color: #011409; border: 0; border-radius: 3px;
     font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 1.5px;
-    padding: 8px 16px; cursor: pointer; transition: all .15s ease;
-    box-shadow: 0 0 10px rgba(0,255,136,0.25); flex-shrink: 0;
+    padding: 8px 16px; cursor: pointer; flex-shrink: 0;
   }
-  .send-btn:hover { filter: brightness(1.15); }
   .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-  /* Search result modal */
+  /* Modal */
   .modal-backdrop {
     position: fixed; inset: 0;
     background: rgba(3, 7, 13, 0.85);
@@ -434,10 +372,7 @@
     background: #060b12; border: 1px solid var(--green-dim);
     padding: 14px; border-radius: 4px;
   }
-  .search-modal-header {
-    display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px dashed var(--line); padding-bottom: 8px; margin-bottom: 10px;
-  }
+  .search-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--line); padding-bottom: 8px; margin-bottom: 10px; }
   .search-modal-title { color: var(--green); font-size: 10.5px; letter-spacing: 2px; }
   .btn-modal-close { background: transparent; border: 0; color: var(--dim); font-size: 14px; cursor: pointer; }
   .search-result-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; gap: 10px; }
@@ -445,13 +380,11 @@
   .search-result-name { color: var(--txt); font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .search-result-user { color: var(--green); font-size: 10.5px; }
   .btn-open-result {
-    background: var(--green); color: #011409;
-    border: 0; border-radius: 3px;
+    background: var(--green); color: #011409; border: 0; border-radius: 3px;
     font-family: var(--font-mono); font-weight: 700; font-size: 10.5px;
     letter-spacing: 1px; padding: 6px 14px; cursor: pointer;
   }
 
-  /* Top new message banner */
   .slide-notice {
     position: absolute; top: 0; left: 0; right: 0;
     padding: 8px 14px;
@@ -468,7 +401,6 @@
   .slide-notice-sender { color: var(--green); font-weight: 700; }
   .slide-notice-preview { color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* Toast */
   .toast-indicator {
     position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
     background: #060b12; border: 1px solid var(--green-dim);
@@ -479,10 +411,7 @@
   .toast-indicator.show { opacity: 1; }
 
   @media (max-width: 768px) {
-    .hud-bar {
-      padding: max(6px, env(safe-area-inset-top, 6px)) 10px 6px;
-      gap: 6px;
-    }
+    .hud-bar { padding: max(6px, env(safe-area-inset-top, 6px)) 10px 6px; gap: 6px; }
     .hud-stats { display: none; }
     .hud-left { font-size: 10px; }
     .ctrl-btn { padding: 3px 6px; font-size: 9.5px; }
@@ -492,10 +421,7 @@
       z-index: 50; transform: translateX(0);
       background: rgba(3, 7, 13, 0.98);
     }
-    .sidebar.sidebar-hidden {
-      transform: translateX(-100%);
-      pointer-events: none;
-    }
+    .sidebar.sidebar-hidden { transform: translateX(-100%); pointer-events: none; }
     .btn-toggle-roster { display: inline-flex; }
     .chat-stream { padding: 10px 12px; }
     .msg-row { max-width: 90%; }
@@ -505,18 +431,15 @@
 <body>
 <canvas id="matrix-rain"></canvas>
 
-<!-- BOOT COVER -->
 <div id="boot-cover">
   <div class="boot-title">INITIALIZING COMM TERMINAL</div>
   <div class="boot-dots"><span></span><span></span><span></span></div>
 </div>
 
-<!-- LOGIN SCREEN -->
 <div id="login-screen">
   <div class="login-box">
     <h1 class="login-title">YUKI</h1>
     <div class="login-sub">classified comm protocol</div>
-
     <div class="login-fields">
       <input type="email" id="auth-email" class="login-field" placeholder="operator email" autocomplete="off"/>
       <input type="password" id="auth-password" class="login-field" placeholder="security key" autocomplete="off"/>
@@ -525,14 +448,12 @@
     <button class="login-toggle" id="btn-toggle-auth">Don't have an account? <span>Sign up</span></button>
     <div class="login-error" id="auth-error"></div>
   </div>
-
   <div class="login-disclaimer">
     <b>notice:</b> this terminal is for research and developer communication. any illegal or malicious activity is solely the responsibility of the individual user. the platform owner takes no liability.
   </div>
 </div>
 
 <div class="app-wrap">
-  <!-- HUD TOP BAR -->
   <header class="hud-bar">
     <div class="hud-left">
       <span class="live-dot"></span>
@@ -544,20 +465,13 @@
       <span>NODE: <b>SHARD-COMM-01</b></span>
     </div>
     <div class="hud-controls">
-      <button class="ctrl-btn active" id="btn-sound-toggle" title="Toggle Terminal Audio">
-        <span>SFX:</span> <span id="sfx-status">ON</span>
-      </button>
-      <button class="ctrl-btn active" id="btn-matrix-toggle" title="Toggle Digital Rain">
-        <span>MATRIX:</span> <span id="matrix-status">ON</span>
-      </button>
-      <a class="ctrl-btn back-osint-btn" href="index.html" id="btn-back-osint" title="Return to OSINT Kernel Hub">
-        <span>‹ OSINT KERNEL</span>
-      </a>
+      <button class="ctrl-btn active" id="btn-sound-toggle"><span>SFX:</span> <span id="sfx-status">ON</span></button>
+      <button class="ctrl-btn active" id="btn-matrix-toggle"><span>MATRIX:</span> <span id="matrix-status">ON</span></button>
+      <a class="ctrl-btn back-osint-btn" href="index.html" title="OSINT Hub"><span>‹ OSINT KERNEL</span></a>
     </div>
   </header>
 
   <div class="workspace">
-    <!-- SIDEBAR ROSTER -->
     <aside class="sidebar" id="sidebar-roster">
       <div class="sidebar-head">
         <div class="user-badge">
@@ -566,7 +480,7 @@
         </div>
         <div style="display: flex; gap: 6px;">
           <button class="copy-btn" id="btn-copy-id">COPY ID</button>
-          <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;" title="Close list">✕</button>
+          <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;" title="Close">✕</button>
         </div>
       </div>
       <div class="search-box">
@@ -576,27 +490,31 @@
       <div class="roster-list" id="roster-list-body"></div>
     </aside>
 
-    <!-- MAIN CHAT PANE -->
     <main class="chat-pane">
       <div class="chat-subhead">
         <div class="chat-subhead-left">
-          <button class="btn-toggle-roster" id="btn-mobile-roster-toggle" title="View channels">
-            <span>‹ CHATS</span>
-          </button>
+          <button class="btn-toggle-roster" id="btn-mobile-roster-toggle"><span>‹ CHATS</span></button>
           <div>
-            <div class="target-title">
-              <span class="live-dot" id="peer-live-dot" style="background:var(--dim);box-shadow:none"></span>
-              <span id="active-chat-title">SELECT CHANNEL</span>
+            <div class="target-title" id="active-chat-title-wrap">
+              <span class="live-dot" id="peer-live-dot" style="background:var(--pink);box-shadow:0 0 6px var(--pink)"></span>
+              <span id="active-chat-title">YUKI [AI COMPANION]</span>
             </div>
-            <div class="target-sub" id="active-chat-sub">no active peer</div>
+            <div class="target-sub" id="active-chat-sub">secure neural websocket active</div>
           </div>
         </div>
       </div>
 
       <div class="chat-stream" id="chat-stream">
-        <div class="empty-chat-state">
-          <b>◇</b>
-          no active channel<br>query a user to begin
+        <div class="legal-disclaimer">
+          <div class="legal-disclaimer-header">
+            <span>⚠️ [ SYSTEM ADVISORY // LEGAL COMPLIANCE NOTICE ]</span>
+            <span style="font-size:9.5px;color:var(--amber);">STRICT AUDIT</span>
+          </div>
+          <p>
+            <b>SECURITY & COMPLIANCE DIRECTIVE:</b> This terminal is engineered for authorized research, developer utility, and educational exchange.
+            <b>Conducting or soliciting illegal activities, cyber offenses, harassment, or malicious operations is strictly prohibited.</b>
+            Users bear <b>sole individual legal responsibility</b> for all transmitted data. The platform owner, developers, and operators assume <b>zero liability</b> for misuse. Unlawful actions are subject to applicable legal sanctions and cyber regulations.
+          </p>
         </div>
       </div>
 
@@ -615,7 +533,6 @@
   </div>
 </div>
 
-<!-- SEARCH RESULT MODAL -->
 <div class="modal-backdrop" id="search-modal">
   <div class="search-modal-box">
     <div class="search-modal-header">
@@ -626,7 +543,6 @@
   </div>
 </div>
 
-<!-- NEW MESSAGE BANNER -->
 <div class="slide-notice" id="incoming-banner">
   <div class="slide-notice-left">
     <span style="color:var(--green);">⚡</span>
@@ -638,18 +554,6 @@
 <div class="toast-indicator" id="terminal-toast">COPIED</div>
 
 <script>
-/* Safe nav */
-function navigateBack() {
-  if (window.history.length > 1) window.history.back();
-  else window.location.href = 'index.html';
-}
-function handleKernelBack(e) {
-  if (document.referrer && document.referrer.includes(window.location.host)) {
-    e.preventDefault(); window.history.back();
-  }
-}
-
-/* SFX */
 let soundEnabled = true;
 let audioCtx = null;
 function getAudioCtx() {
@@ -671,36 +575,27 @@ function playSfx(type) {
       osc.type = 'sine';
       osc.frequency.setValueAtTime(1200, t);
       osc.frequency.exponentialRampToValueAtTime(600, t + 0.04);
-      g.gain.setValueAtTime(0.06, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
-      osc.connect(g); g.connect(ctx.destination);
-      osc.start(t); osc.stop(t + 0.05);
+      g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+      osc.connect(g); g.connect(ctx.destination); osc.start(t); osc.stop(t + 0.05);
     } else if (type === 'receive') {
       [880, 1320].forEach((freq, idx) => {
         const osc = ctx.createOscillator(), g = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, t + idx * 0.06);
-        g.gain.setValueAtTime(0.05, t + idx * 0.06);
-        g.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.06 + 0.12);
-        osc.connect(g); g.connect(ctx.destination);
-        osc.start(t + idx * 0.06); osc.stop(t + idx * 0.06 + 0.13);
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, t + idx * 0.06);
+        g.gain.setValueAtTime(0.05, t + idx * 0.06); g.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.06 + 0.12);
+        osc.connect(g); g.connect(ctx.destination); osc.start(t + idx * 0.06); osc.stop(t + idx * 0.06 + 0.13);
       });
     } else if (type === 'click') {
       const osc = ctx.createOscillator(), g = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(1500, t);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(1500, t);
       osc.frequency.exponentialRampToValueAtTime(800, t + 0.03);
-      g.gain.setValueAtTime(0.04, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
-      osc.connect(g); g.connect(ctx.destination);
-      osc.start(t); osc.stop(t + 0.035);
+      g.gain.setValueAtTime(0.04, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+      osc.connect(g); g.connect(ctx.destination); osc.start(t); osc.stop(t + 0.035);
     }
   } catch (err) {}
 }
 window.addEventListener('pointerdown', () => getAudioCtx(), { once: true });
 window.addEventListener('keydown', () => getAudioCtx(), { once: true });
 
-/* Matrix rain */
 let rainActive = true;
 const canvas = document.getElementById('matrix-rain');
 const ctx2d = canvas.getContext('2d');
@@ -709,14 +604,11 @@ const charArr = chars.split('');
 const fontSize = 13;
 let columns = 0, drops = [];
 function resizeRain() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  columns = Math.floor(canvas.width / fontSize);
-  drops = [];
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  columns = Math.floor(canvas.width / fontSize); drops = [];
   for (let i = 0; i < columns; i++) drops[i] = Math.floor(Math.random() * -40);
 }
-window.addEventListener('resize', resizeRain);
-resizeRain();
+window.addEventListener('resize', resizeRain); resizeRain();
 let lastFrame = 0;
 function renderRain(time) {
   requestAnimationFrame(renderRain);
@@ -737,7 +629,6 @@ function renderRain(time) {
 }
 requestAnimationFrame(renderRain);
 
-/* Toggles */
 const btnSound = document.getElementById('btn-sound-toggle');
 const sfxStatus = document.getElementById('sfx-status');
 btnSound.addEventListener('click', () => {
@@ -756,7 +647,6 @@ btnRain.addEventListener('click', () => {
   playSfx('click');
 });
 
-/* Sidebar mobile */
 const sidebar = document.getElementById('sidebar-roster');
 const btnRosterToggle = document.getElementById('btn-mobile-roster-toggle');
 const btnCloseSidebarMobile = document.getElementById('btn-close-sidebar-mobile');
@@ -771,17 +661,10 @@ function syncSidebarForMobile() {
 }
 window.addEventListener('resize', syncSidebarForMobile);
 syncSidebarForMobile();
-btnRosterToggle.addEventListener('click', () => {
-  sidebar.classList.remove('sidebar-hidden');
-  playSfx('click');
-});
-btnCloseSidebarMobile.addEventListener('click', () => {
-  sidebar.classList.add('sidebar-hidden');
-  playSfx('click');
-});
+btnRosterToggle.addEventListener('click', () => { sidebar.classList.remove('sidebar-hidden'); playSfx('click'); });
+btnCloseSidebarMobile.addEventListener('click', () => { sidebar.classList.add('sidebar-hidden'); playSfx('click'); });
 </script>
 
-<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
@@ -790,7 +673,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection,
-  query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment
+  query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment, writeBatch
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -801,7 +684,6 @@ const firebaseConfig = {
   messagingSenderId: "1055284096143",
   appId: "1:1055284096143:web:f9463859371eb606db14fa"
 };
-
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -819,6 +701,10 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove("show"), 2000);
 }
 
+/* YUKI BOT — special virtual peer */
+const YUKI_BOT_UID = "__yuki_ai__";
+const YUKI_BOT_PROFILE = { username: "yuki_ai", display: "YUKI [AI COMPANION]" };
+
 /* STATE */
 let currentUser = null;
 let currentProfile = null;
@@ -826,11 +712,13 @@ let activePeer = null;
 let activeChatId = null;
 let isSignUpMode = false;
 let unsubMessages = null;
-let unsubTypingStatus = null;
+let unsubPeerStatus = null;
 let unsubChatRoster = null;
 let typingBeaconTimer = null;
 let lastTypingTime = 0;
 let localChannels = [];
+let bannerTimer = null;
+let previousUnreadCounts = {};
 
 function formatTime(ts) {
   if (!ts) return "";
@@ -867,7 +755,7 @@ function hideBoot() {
   setTimeout(() => { if (b.parentNode) b.remove(); }, 300);
 }
 
-/* AUTH UI */
+/* AUTH */
 $("btn-toggle-auth").addEventListener("click", () => {
   isSignUpMode = !isSignUpMode;
   $("auth-error").textContent = "";
@@ -903,11 +791,8 @@ async function handleAuthSubmit() {
       }
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const np = {
-        username: handle,
-        display: handle.toUpperCase() + "_UNIT",
-        email: email,
-        createdAt: serverTimestamp(),
-        lastSeen: serverTimestamp()
+        username: handle, display: handle.toUpperCase() + "_UNIT",
+        email: email, createdAt: serverTimestamp(), lastSeen: serverTimestamp()
       };
       await setDoc(doc(db, "users", cred.user.uid), np);
       await setDoc(doc(db, "usernames", handle), { uid: cred.user.uid });
@@ -922,13 +807,7 @@ async function handleAuthSubmit() {
   }
 }
 
-/* LOGOUT */
-document.getElementById("btn-back-osint").addEventListener("click", async (e) => {
-  // standard navigation — auth state persists; no forced logout
-});
-
-/* COPY ID */
-document.getElementById("btn-copy-id").addEventListener("click", function() {
+$("btn-copy-id").addEventListener("click", function() {
   if (!currentProfile) return;
   navigator.clipboard.writeText(currentProfile.username).catch(()=>{});
   const orig = this.textContent;
@@ -937,60 +816,56 @@ document.getElementById("btn-copy-id").addEventListener("click", function() {
   playSfx('click');
 });
 
-/* AUTH OBSERVER */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    currentUser = null;
-    currentProfile = null;
+    currentUser = null; currentProfile = null;
+    if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+    if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
+    if (unsubChatRoster) { unsubChatRoster(); unsubChatRoster = null; }
     $("login-screen").classList.add("show");
-    if (unsubMessages) unsubMessages();
-    if (unsubTypingStatus) unsubTypingStatus();
-    if (unsubChatRoster) unsubChatRoster();
     hideBoot();
     return;
   }
   currentUser = user;
   try {
     const uDoc = await getDoc(doc(db, "users", user.uid));
-    if (uDoc.exists()) {
-      currentProfile = uDoc.data();
-    } else {
+    if (uDoc.exists()) currentProfile = uDoc.data();
+    else {
       const defaultHandle = (user.email ? user.email.split("@")[0] : "operator").replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
       currentProfile = {
-        username: defaultHandle,
-        display: defaultHandle.toUpperCase() + "_UNIT",
-        email: user.email || "",
-        createdAt: serverTimestamp(),
-        lastSeen: serverTimestamp()
+        username: defaultHandle, display: defaultHandle.toUpperCase() + "_UNIT",
+        email: user.email || "", createdAt: serverTimestamp(), lastSeen: serverTimestamp()
       };
       await setDoc(doc(db, "users", user.uid), currentProfile, { merge: true });
       await setDoc(doc(db, "usernames", defaultHandle), { uid: user.uid }, { merge: true });
     }
-    const uname = currentProfile.username || "operator";
-    const dname = currentProfile.display || uname;
-    $("me-display").textContent = dname;
-    $("me-uid").textContent = "@" + uname;
+    $("me-display").textContent = currentProfile.display || currentProfile.username;
+    $("me-uid").textContent = "@" + currentProfile.username;
     updateDoc(doc(db, "users", user.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
     $("login-screen").classList.remove("show");
     subscribeChatRoster();
-    const cached = sessionStorage.getItem("yuki_active_peer");
-    if (cached) {
-      try {
-        const pDoc = await getDoc(doc(db, "users", cached));
-        if (pDoc.exists()) openChatWith(cached, pDoc.data());
-      } catch(e){}
-    }
+
+    // always open YUKI bot on login
+    openYukiBot();
   } catch (e) {
     console.error(e);
     $("login-screen").classList.add("show");
+  } finally {
+    hideBoot();
   }
-  hideBoot();
 });
 
-/* SEARCH */
+/* SEARCH — modal only, no auto-open */
 $("btn-peer-search").addEventListener("click", performUserSearch);
 $("search-peer-input").addEventListener("keydown", e => { if (e.key === "Enter") performUserSearch(); });
 $("btn-close-search-modal").addEventListener("click", () => $("search-modal").classList.remove("open"));
+
+// Close modal when clicking on backdrop
+$("search-modal").addEventListener("click", (e) => {
+  if (e.target === $("search-modal")) {
+    $("search-modal").classList.remove("open");
+  }
+});
 
 async function performUserSearch() {
   const q = $("search-peer-input").value.trim().toLowerCase().replace(/^@/, "");
@@ -1016,7 +891,6 @@ async function performUserSearch() {
       content.innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">no record for @${escapeHtml(q)}</div>`;
       return;
     }
-    removeDeleted(currentUser.uid, otherUid);
     content.innerHTML = `
       <div class="search-result-row">
         <div class="search-result-info">
@@ -1036,25 +910,60 @@ async function performUserSearch() {
   }
 }
 
-/* OPEN CHAT */
+function clearChatStream() {
+  const stream = $("chat-stream");
+  if (!stream) return;
+  stream.innerHTML = renderLegalDisclaimer();
+}
+
+/* YUKI BOT */
+async function openYukiBot() {
+  if (!currentUser) return;
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+  if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
+
+  activePeer = { uid: YUKI_BOT_UID, username: "yuki_ai", display: "YUKI [AI COMPANION]", isYuki: true };
+  activeChatId = computeChatId(currentUser.uid, YUKI_BOT_UID);
+  sessionStorage.setItem("yuki_active_peer", YUKI_BOT_UID);
+
+  $("active-chat-title").textContent = "YUKI [AI COMPANION]";
+  $("active-chat-title-wrap").classList.add("yuki");
+  $("active-chat-sub").textContent = "secure neural websocket active";
+  $("peer-live-dot").style.background = "var(--pink)";
+  $("peer-live-dot").style.boxShadow = "0 0 6px var(--pink)";
+  $("chat-textarea").value = "";
+  updateWordCounter();
+
+  // Clear viewport BEFORE subscribing so old chat messages never linger
+  clearChatStream();
+
+  if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
+
+  subscribeMessages(activeChatId);
+  renderRoster();
+}
+
+/* OPEN REAL USER CHAT */
 async function openChatWith(peerUid, peerProfile) {
   if (!currentUser || !peerUid) return;
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+  if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
+
   removeDeleted(currentUser.uid, peerUid);
   activePeer = { uid: peerUid, username: peerProfile.username || "operator", display: peerProfile.display || peerProfile.username || "Operator" };
   activeChatId = computeChatId(currentUser.uid, peerUid);
   sessionStorage.setItem("yuki_active_peer", peerUid);
 
   $("active-chat-title").textContent = activePeer.display;
+  $("active-chat-title-wrap").classList.remove("yuki");
   $("active-chat-sub").textContent = "@" + activePeer.username;
   $("peer-live-dot").style.background = "var(--green)";
   $("peer-live-dot").style.boxShadow = "0 0 6px var(--green)";
   $("chat-textarea").value = "";
   updateWordCounter();
 
-  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
-  if (unsubTypingStatus) { unsubTypingStatus(); unsubTypingStatus = null; }
-  const stream = $("chat-stream");
-  stream.innerHTML = "";
+  // Clear viewport BEFORE subscribing so old chat messages never linger
+  clearChatStream();
 
   if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
 
@@ -1071,25 +980,57 @@ async function openChatWith(peerUid, peerProfile) {
   subscribeMessages(activeChatId);
   subscribePeerStatus(activeChatId, peerUid);
   markSeen(activeChatId);
-  document.querySelectorAll(".roster-item").forEach(r => r.classList.toggle("active", r.dataset.uid === peerUid));
+  renderRoster();
+}
+
+function renderLegalDisclaimer() {
+  return `<div class="legal-disclaimer">
+    <div class="legal-disclaimer-header">
+      <span>⚠️ [ SYSTEM ADVISORY // LEGAL COMPLIANCE NOTICE ]</span>
+      <span style="font-size:9.5px;color:var(--amber);">STRICT AUDIT</span>
+    </div>
+    <p><b>SECURITY & COMPLIANCE DIRECTIVE:</b> This terminal is engineered for authorized research, developer utility, and educational exchange. <b>Conducting or soliciting illegal activities, cyber offenses, harassment, or malicious operations is strictly prohibited.</b> Users bear <b>sole individual legal responsibility</b> for all transmitted data. The platform owner, developers, and operators assume <b>zero liability</b> for misuse. Unlawful actions are subject to applicable legal sanctions and cyber regulations.</p>
+  </div>`;
 }
 
 /* SUBSCRIBE MESSAGES */
 function subscribeMessages(chatId) {
-  if (unsubMessages) unsubMessages();
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+
   const stream = $("chat-stream");
-  stream.innerHTML = "";
+  stream.querySelectorAll(".msg-row").forEach(el => el.remove());
+  stream.querySelectorAll(".empty-chat-state").forEach(el => el.remove());
+
   const ref = collection(db, "chats", chatId, "messages");
   const q = query(ref, orderBy("at", "asc"), limit(300));
   unsubMessages = onSnapshot(q, (snap) => {
     const streamEl = $("chat-stream");
-    if (!streamEl) return;
-    const wasAtBottom = streamEl.scrollHeight - streamEl.scrollTop - streamEl.clientHeight < 120;
-    streamEl.innerHTML = "";
+    if (!streamEl || activeChatId !== chatId) return;
+
+    streamEl.querySelectorAll(".msg-row").forEach(el => el.remove());
+    streamEl.querySelectorAll(".empty-chat-state").forEach(el => el.remove());
+
+    const wasAtBottom = streamEl.scrollHeight - streamEl.scrollTop - streamEl.clientHeight < 150;
+
     if (snap.empty) {
-      streamEl.innerHTML = `<div class="empty-chat-state"><b>◇</b>secure channel initialized<br>send a message to begin</div>`;
+      if (activePeer?.isYuki) {
+        const intro = document.createElement("div");
+        intro.className = "msg-row peer";
+        intro.innerHTML = `
+          <div style="font-size:9px;color:var(--pink);letter-spacing:1.5px;margin-bottom:3px;font-weight:700;">◆ YUKI [NEURAL CORE]</div>
+          <div class="msg-bubble">Greetings, Operator. Neural telemetry channel synchronized. You can transmit queries, code fragments, or tactical directives directly. All records are processed through secure sandboxed shards.</div>
+          <div class="msg-meta"><span>${formatClock(new Date())}</span></div>
+        `;
+        streamEl.appendChild(intro);
+      } else {
+        const empty = document.createElement("div");
+        empty.className = "empty-chat-state";
+        empty.innerHTML = `<b>◇</b>secure channel initialized<br>send a message to begin`;
+        streamEl.appendChild(empty);
+      }
       return;
     }
+
     snap.forEach(d => {
       const m = d.data();
       const isMine = m.by === currentUser.uid;
@@ -1102,7 +1043,9 @@ function subscribeMessages(chatId) {
           ? `<span class="receipt seen">••</span>`
           : `<span class="receipt">•</span>`;
       }
+      const senderLabel = activePeer?.isYuki ? "YUKI [AI]" : (activePeer?.username || "peer");
       row.innerHTML = `
+        ${!isMine ? `<div style="font-size:9px;color:${activePeer?.isYuki ? 'var(--pink)' : 'var(--dim)'};letter-spacing:1.5px;margin-bottom:3px;font-weight:700;">${activePeer?.isYuki ? '◆ YUKI [NEURAL CORE]' : '◆ ' + escapeHtml(senderLabel).toUpperCase()}</div>` : ''}
         <div class="msg-bubble">${formatMessageContent(m.text || "")}</div>
         <div class="msg-meta">
           <span>${formatClock(m.at)}</span>
@@ -1110,12 +1053,14 @@ function subscribeMessages(chatId) {
         </div>`;
       streamEl.appendChild(row);
     });
-    if (wasAtBottom) streamEl.scrollTop = streamEl.scrollHeight;
+
+    if (wasAtBottom) {
+      streamEl.scrollTop = streamEl.scrollHeight;
+    }
     markSeen(chatId);
   });
 }
 
-/* FORMAT CONTENT */
 function formatMessageContent(raw) {
   let text = String(raw ?? "").replace(/[&<>"']/g, c => (
     {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]
@@ -1123,10 +1068,7 @@ function formatMessageContent(raw) {
   text = text.replace(/```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g, (match, lang, code) => {
     const l = lang ? lang.toUpperCase() : 'CODE';
     return `<div class="code-container">
-      <div class="code-head">
-        <span>${l}</span>
-        <button class="copy-code-btn" onclick="navigator.clipboard.writeText(this.closest('.code-container').querySelector('.code-body').innerText); this.textContent='COPIED'; setTimeout(()=>this.textContent='COPY',1500);">COPY</button>
-      </div>
+      <div class="code-head"><span>${l}</span><button class="copy-code-btn" onclick="navigator.clipboard.writeText(this.closest('.code-container').querySelector('.code-body').innerText); this.textContent='COPIED'; setTimeout(()=>this.textContent='COPY',1500);">COPY</button></div>
       <pre class="code-body">${code.trim()}</pre>
     </div>`;
   });
@@ -1134,11 +1076,10 @@ function formatMessageContent(raw) {
   return text.replace(/\n/g, '<br/>');
 }
 
-/* PEER STATUS/TYPING */
 function subscribePeerStatus(chatId, otherUid) {
-  if (unsubTypingStatus) unsubTypingStatus();
-  unsubTypingStatus = onSnapshot(doc(db, "chats", chatId), async (snap) => {
-    if (!snap.exists()) return;
+  if (unsubPeerStatus) unsubPeerStatus();
+  unsubPeerStatus = onSnapshot(doc(db, "chats", chatId), async (snap) => {
+    if (!snap.exists() || activeChatId !== chatId) return;
     const d = snap.data();
     const statusEl = $("active-chat-sub");
     if (d.typing && d.typing[otherUid] === true) {
@@ -1147,7 +1088,7 @@ function subscribePeerStatus(chatId, otherUid) {
     }
     try {
       const u = await getDoc(doc(db, "users", otherUid));
-      if (u.exists()) {
+      if (u.exists() && activeChatId === chatId) {
         const ud = u.data();
         statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
       }
@@ -1155,18 +1096,24 @@ function subscribePeerStatus(chatId, otherUid) {
   });
 }
 
-/* MARK SEEN */
 async function markSeen(chatId) {
   if (!chatId || !currentUser) return;
+  if (activePeer?.isYuki) return; // no seen marks for bot
   try {
     await updateDoc(doc(db, "chats", chatId), { [`unread.${currentUser.uid}`]: 0 });
     const qU = query(collection(db, "chats", chatId, "messages"), where("by", "!=", currentUser.uid), where("seen", "==", false), limit(50));
     const snap = await getDocs(qU);
-    snap.forEach(async d => { try { await updateDoc(d.ref, { seen: true }); } catch(e){} });
+    if (!snap.empty) {
+      const batch = writeBatch(db);
+      snap.forEach(d => {
+        batch.update(d.ref, { seen: true });
+      });
+      await batch.commit();
+    }
   } catch(e){}
 }
 
-/* SEND */
+/* SEND MESSAGE */
 async function transmitMessage() {
   const ta = $("chat-textarea");
   const text = ta.value.trim();
@@ -1174,7 +1121,7 @@ async function transmitMessage() {
   ta.value = "";
   ta.style.height = "auto";
   updateWordCounter();
-  ta.focus(); // keep keyboard open
+  ta.focus(); // Keep keyboard open on mobile & composer focused on send
   const payload = { text, by: currentUser.uid, at: serverTimestamp(), seen: false };
   try {
     await addDoc(collection(db, "chats", activeChatId, "messages"), payload);
@@ -1186,10 +1133,37 @@ async function transmitMessage() {
       lastMsgAt: serverTimestamp(),
       lastMsgBy: currentUser.uid,
       touchAt: serverTimestamp(),
-      unread: { [activePeer.uid]: increment(1), [currentUser.uid]: 0 },
+      unread: activePeer.isYuki ? {} : { [activePeer.uid]: increment(1), [currentUser.uid]: 0 },
       typing: { [currentUser.uid]: false }
     }, { merge: true });
     playSfx('send');
+
+    // Yuki bot auto-reply
+    if (activePeer.isYuki) {
+      setTimeout(async () => {
+        try {
+          const lower = text.toLowerCase();
+          let reply = "";
+          if (lower.includes("hi") || lower.includes("hello") || lower.includes("hey")) {
+            reply = "Neural connection confirmed, Operator. Standing by for intelligence tasks. 💚";
+          } else if (lower.includes("json") || lower.includes("data") || lower.includes("code")) {
+            reply = "Directive logged for shard processing.\n\n```json\n{\n  \"status\": \"PROCESSED\",\n  \"digest\": \"" + text.slice(0, 30).replace(/"/g, '\\"') + "\",\n  \"telemetry\": \"" + new Date().toISOString() + "\"\n}\n```";
+          } else {
+            reply = `Acknowledge query: "${text.slice(0, 60)}". Security layers verified. Shard pipeline active.`;
+          }
+          await addDoc(collection(db, "chats", activeChatId, "messages"), {
+            text: reply, by: YUKI_BOT_UID, at: serverTimestamp(), seen: true
+          });
+          await setDoc(doc(db, "chats", activeChatId), {
+            lastMsg: reply.slice(0, 80),
+            lastMsgAt: serverTimestamp(),
+            lastMsgBy: YUKI_BOT_UID,
+            touchAt: serverTimestamp()
+          }, { merge: true });
+          playSfx('receive');
+        } catch(e){}
+      }, 700);
+    }
   } catch (e) { showToast("TRANSMISSION ERROR"); }
 }
 
@@ -1198,7 +1172,6 @@ $("chat-textarea").addEventListener("keydown", e => {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); transmitMessage(); }
 });
 
-/* WORD COUNTER */
 function countWords(str) {
   const m = str.trim().match(/\S+/g);
   return m ? m.length : 0;
@@ -1219,9 +1192,8 @@ $("chat-textarea").addEventListener("input", e => {
   broadcastTyping();
 });
 
-/* TYPING */
 async function broadcastTyping() {
-  if (!currentUser || !activeChatId) return;
+  if (!currentUser || !activeChatId || activePeer?.isYuki) return;
   const now = Date.now();
   if (now - lastTypingTime < 2500) return;
   lastTypingTime = now;
@@ -1246,6 +1218,7 @@ function subscribeChatRoster() {
       const data = d.data();
       const otherUid = data.users?.find(u => u !== currentUser.uid);
       if (!otherUid) continue;
+      if (otherUid === YUKI_BOT_UID) continue; // Yuki bot is handled via pinned entry
       if (isDeleted(currentUser.uid, otherUid)) continue;
       list.push({ chatId: d.id, data, otherUid });
     }
@@ -1265,21 +1238,45 @@ function subscribeChatRoster() {
       };
       return getMs(b) - getMs(a);
     });
+
+    checkForNewMessagePopup(hydrated);
     localChannels = hydrated;
-    document.getElementById("peer-count").textContent = hydrated.length;
+    $("peer-count").textContent = (hydrated.length + 1);
     renderRoster();
-    checkForNewMessagePopup();
   });
 }
 
 function renderRoster() {
   const c = $("roster-list-body");
   if (!c) return;
+  c.innerHTML = "";
+
+  // Yuki pinned at top
+  const yukiRow = document.createElement("div");
+  const yukiActive = activePeer?.isYuki;
+  yukiRow.className = "roster-item" + (yukiActive ? " active" : "");
+  yukiRow.dataset.uid = YUKI_BOT_UID;
+  yukiRow.innerHTML = `
+    <div class="roster-avatar yuki">Y</div>
+    <div class="roster-info">
+      <div class="roster-top">
+        <span class="roster-title pink">YUKI [AI COMPANION]</span>
+        <span class="roster-time" style="color:var(--pink)">LIVE</span>
+      </div>
+      <div class="roster-snippet">Neural interactive intelligence channel</div>
+    </div>
+  `;
+  yukiRow.addEventListener("click", () => { playSfx('click'); openYukiBot(); });
+  c.appendChild(yukiRow);
+
   if (localChannels.length === 0) {
-    c.innerHTML = `<div class="empty-roster"><b>◇</b>no active channels<br>query a user above</div>`;
+    const empty = document.createElement("div");
+    empty.className = "empty-roster";
+    empty.innerHTML = `<b>◇</b>no other active channels<br>query a user above`;
+    c.appendChild(empty);
     return;
   }
-  c.innerHTML = "";
+
   for (const item of localChannels) {
     const p = item.profile || {}, d = item.data || {};
     const unread = (d.unread && d.unread[currentUser.uid]) || 0;
@@ -1303,6 +1300,7 @@ function renderRoster() {
     row.addEventListener("click", (ev) => {
       if (ev.target.classList.contains("roster-menu-btn")) return;
       if (ev.target.closest(".roster-menu-popup")) return;
+      playSfx('click');
       openChatWith(item.otherUid, p);
     });
     row.querySelector(".roster-menu-btn").addEventListener("click", (ev) => {
@@ -1319,20 +1317,14 @@ function showRosterMenu(rowEl, otherUid) {
   pop.className = "roster-menu-popup";
   pop.innerHTML = `<button data-act="delete">Delete chat</button>`;
   rowEl.appendChild(pop);
-  pop.querySelector('[data-act="delete"]').addEventListener("click", (ev) => {
+  pop.querySelector('[data-act="delete"]').addEventListener("click", async (ev) => {
     ev.stopPropagation();
     if (!confirm("Delete this chat?")) return;
     addDeleted(currentUser.uid, otherUid);
     if (activePeer?.uid === otherUid) {
       activePeer = null; activeChatId = null;
       sessionStorage.removeItem("yuki_active_peer");
-      $("active-chat-title").textContent = "SELECT CHANNEL";
-      $("active-chat-sub").textContent = "no active peer";
-      $("peer-live-dot").style.background = "var(--dim)";
-      $("peer-live-dot").style.boxShadow = "none";
-      $("chat-stream").innerHTML = `<div class="empty-chat-state"><b>◇</b>no active channel<br>query a user to begin</div>`;
-      if (unsubMessages) { unsubMessages(); unsubMessages = null; }
-      if (unsubTypingStatus) { unsubTypingStatus(); unsubTypingStatus = null; }
+      openYukiBot();
     }
     localChannels = localChannels.filter(x => x.otherUid !== otherUid);
     renderRoster();
@@ -1345,28 +1337,30 @@ function showRosterMenu(rowEl, otherUid) {
   }, 50);
 }
 
-/* NEW MESSAGE POPUP */
-let lastPopupTime = 0;
-function checkForNewMessagePopup() {
+function checkForNewMessagePopup(newChannels) {
   const me = currentUser?.uid;
   if (!me) return;
-  for (const c of localChannels) {
+  for (const c of newChannels) {
     const unread = (c.data?.unread && c.data.unread[me]) || 0;
-    if (unread > 0 && activePeer?.uid !== c.otherUid) {
-      if (Date.now() - lastPopupTime < 3000) return;
-      lastPopupTime = Date.now();
+    const prevUnread = previousUnreadCounts[c.otherUid] || 0;
+    // Trigger incoming banner when a new incoming unread message arrives from a chat not currently open
+    if (unread > prevUnread && unread > 0 && activePeer?.uid !== c.otherUid && c.data?.lastMsgBy !== me) {
       showTopBanner(c.profile?.username || "operator", c.data.lastMsg || "new message", c.otherUid, c.profile);
-      return;
+      playSfx('receive');
     }
+    previousUnreadCounts[c.otherUid] = unread;
   }
 }
-let bannerTimer = null;
+
 function showTopBanner(handle, preview, peerUid, profile) {
   const b = $("incoming-banner");
   $("banner-sender").textContent = "@" + handle;
   $("banner-preview").textContent = preview;
   b.classList.add("visible");
-  b.onclick = () => { b.classList.remove("visible"); openChatWith(peerUid, profile); };
+  b.onclick = () => {
+    b.classList.remove("visible");
+    openChatWith(peerUid, profile);
+  };
   if (bannerTimer) clearTimeout(bannerTimer);
   bannerTimer = setTimeout(() => b.classList.remove("visible"), 5000);
 }
