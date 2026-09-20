@@ -479,18 +479,24 @@
   <div class="workspace">
     <div class="sidebar" id="sidebar-roster">
       <div class="sidebar-head">
-  <div class="user-badge">
-    <div class="user-name" id="me-display">OPERATIVE</div>
-    <div class="user-id" id="me-uid">@operative</div>
-  </div>
-  <div style="display:flex;gap:6px;align-items:center;">
-    <button class="copy-btn" id="btn-copy-id">COPY</button>
-    <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
-  </div>
-</div>
+        <div class="user-badge">
+          <div class="user-name" id="me-display">OPERATIVE</div>
+          <div class="user-id" id="me-uid">@operative</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="copy-btn" id="btn-copy-id">COPY</button>
+          <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
+        </div>
+      </div>
+      <!-- ===== CHANGED: search input (no QUERY button) + new QUERY/LOGOUT row ===== -->
+      <div class="search-box">
+        <input class="search-inp" id="search-peer-input" type="text" placeholder="search @username..." />
+      </div>
       <div style="padding:8px 10px;border-bottom:1px dashed var(--line);display:flex;gap:6px;">
-  <button id="btn-logout" style="flex:1;background:transparent;border:1px solid rgba(255,45,85,0.4);color:var(--red);font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.5px;padding:6px 10px;cursor:pointer;border-radius:3px;">⏻ LOGOUT</button>
-</div>
+        <button class="search-btn" id="btn-peer-search" style="flex:1;padding:6px 10px;font-size:10px;letter-spacing:1.5px;">QUERY</button>
+        <button id="btn-logout" style="flex:1;background:transparent;border:1px solid rgba(255,45,85,0.4);color:var(--red);font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.5px;padding:6px 10px;cursor:pointer;border-radius:3px;">⏻ LOGOUT</button>
+      </div>
+      <!-- ===== END CHANGE ===== -->
       <div class="roster-list">
         <div class="roster-list-body" id="roster-list-body"></div>
       </div>
