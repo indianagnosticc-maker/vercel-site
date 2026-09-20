@@ -450,7 +450,7 @@
     <div class="hud-controls">
       <button class="ctrl-btn active" id="btn-sound-toggle">SFX <span id="sfx-status">ON</span></button>
       <button class="ctrl-btn active" id="btn-matrix-toggle">MATRIX <span id="matrix-status">ON</span></button>
-      <a href="https://claude.ai/projects/5673d3f9-23ea-4b38-bccc-84849d56b5a9" target="_blank" class="ctrl-btn back-osint-btn">◀ OSINT KERNEL</a>
+      <a href="/index.html" class="ctrl-btn back-osint-btn">◀ OSINT KERNEL</a>
     </div>
   </div>
 
@@ -479,24 +479,18 @@
   <div class="workspace">
     <div class="sidebar" id="sidebar-roster">
       <div class="sidebar-head">
-        <div class="user-badge">
-          <div class="user-name" id="me-display">OPERATIVE</div>
-          <div class="user-id" id="me-uid">@operative</div>
-        </div>
-        <div style="display:flex;gap:6px;align-items:center;">
-          <button class="copy-btn" id="btn-copy-id">COPY</button>
-          <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
-        </div>
-      </div>
-      <!-- ===== CHANGED: search input (no QUERY button) + new QUERY/LOGOUT row ===== -->
-      <div class="search-box">
-        <input class="search-inp" id="search-peer-input" type="text" placeholder="search @username..." />
-      </div>
+  <div class="user-badge">
+    <div class="user-name" id="me-display">OPERATIVE</div>
+    <div class="user-id" id="me-uid">@operative</div>
+  </div>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <button class="copy-btn" id="btn-copy-id">COPY</button>
+    <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
+  </div>
+</div>
       <div style="padding:8px 10px;border-bottom:1px dashed var(--line);display:flex;gap:6px;">
-        <button class="search-btn" id="btn-peer-search" style="flex:1;padding:6px 10px;font-size:10px;letter-spacing:1.5px;">QUERY</button>
-        <button id="btn-logout" style="flex:1;background:transparent;border:1px solid rgba(255,45,85,0.4);color:var(--red);font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.5px;padding:6px 10px;cursor:pointer;border-radius:3px;">⏻ LOGOUT</button>
-      </div>
-      <!-- ===== END CHANGE ===== -->
+  <button id="btn-logout" style="flex:1;background:transparent;border:1px solid rgba(255,45,85,0.4);color:var(--red);font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.5px;padding:6px 10px;cursor:pointer;border-radius:3px;">⏻ LOGOUT</button>
+</div>
       <div class="roster-list">
         <div class="roster-list-body" id="roster-list-body"></div>
       </div>
@@ -705,7 +699,7 @@ function showToast(msg) {
 
 const YUKI_BOT_UID = "__yuki_ai__";
 const YUKI_BOT_PROFILE = { username: "yuki_ai", display: "YUKI [AI COMPANION]" };
-
+let yukiChatHistory = [];
 let currentUser = null;
 let currentProfile = null;
 let activePeer = null;
@@ -1209,30 +1203,41 @@ async function transmitMessage() {
     playSfx('send');
 
     if (activePeer.isYuki) {
-      setTimeout(async () => {
-        try {
-          const lower = text.toLowerCase();
-          let reply = "";
-          if (lower.includes("hi") || lower.includes("hello") || lower.includes("hey")) {
-            reply = "Neural connection confirmed, Operator. Standing by for intelligence tasks. 💚";
-          } else if (lower.includes("json") || lower.includes("data") || lower.includes("code")) {
-            reply = "Directive logged for shard processing.\n\n```json\n{\n  \"status\": \"PROCESSED\",\n  \"digest\": \"" + text.slice(0, 30).replace(/"/g, '\\"') + "\",\n  \"telemetry\": \"" + new Date().toISOString() + "\"\n}\n```";
-          } else {
-            reply = `Acknowledge query: "${text.slice(0, 60)}". Security layers verified. Shard pipeline active.`;
-          }
-          await addDoc(collection(db, "chats", activeChatId, "messages"), {
-            text: reply, by: YUKI_BOT_UID, at: serverTimestamp(), seen: true
-          });
-          await setDoc(doc(db, "chats", activeChatId), {
-            lastMsg: reply.slice(0, 80),
-            lastMsgAt: serverTimestamp(),
-            lastMsgBy: YUKI_BOT_UID,
-            touchAt: serverTimestamp()
-          }, { merge: true });
-          playSfx('receive');
-        } catch(e){}
-      }, 700);
-    }
+  setTimeout(async () => {
+    try {
+      let reply = "...";
+      try {
+        const r = await fetch("/api/yuki", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text, history: yukiChatHistory })
+        });
+        if (r.ok) {
+          const data = await r.json();
+          reply = data.reply || data.response || data.message || data.text || data.result || "...";
+          if (typeof reply !== "string") reply = JSON.stringify(reply);
+        }
+      } catch (fetchErr) {
+        reply = "Neural link unstable. Retry transmission.";
+      }
+
+      yukiChatHistory.push({ role: "user", content: text });
+      yukiChatHistory.push({ role: "assistant", content: reply });
+      yukiChatHistory = yukiChatHistory.slice(-20);
+
+      await addDoc(collection(db, "chats", activeChatId, "messages"), {
+        text: reply, by: YUKI_BOT_UID, at: serverTimestamp(), seen: true
+      });
+      await setDoc(doc(db, "chats", activeChatId), {
+        lastMsg: reply.slice(0, 80),
+        lastMsgAt: serverTimestamp(),
+        lastMsgBy: YUKI_BOT_UID,
+        touchAt: serverTimestamp()
+      }, { merge: true });
+      playSfx('receive');
+    } catch(e){}
+  }, 700);
+}
   } catch (e) { showToast("TRANSMISSION ERROR"); }
 }
 
