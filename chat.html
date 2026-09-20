@@ -58,8 +58,6 @@
     width: 100%; height: 100%;
     display: flex; flex-direction: column;
   }
-
-  /* BOOT COVER */
   #boot-cover {
     position: fixed; inset: 0; z-index: 9999;
     background: var(--bg);
@@ -84,8 +82,6 @@
     0%, 100% { opacity: 0.3; transform: scale(0.8); }
     50% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 10px var(--green-glow); }
   }
-
-  /* LOGIN */
   #login-screen {
     position: fixed; inset: 0; z-index: 500;
     background: radial-gradient(circle at 50% 38%, rgba(0,255,136,0.05) 0%, transparent 65%), var(--bg);
@@ -135,8 +131,6 @@
     background: var(--bg);
   }
   .login-disclaimer b { color: var(--green-dim); font-weight: 500; }
-
-  /* HUD BAR */
   .hud-bar {
     display: flex; justify-content: space-between; align-items: center;
     background: rgba(8, 14, 24, 0.92);
@@ -175,8 +169,6 @@
     background: rgba(0, 229, 255, 0.08); font-weight: 600;
   }
   .back-osint-btn:hover { background: rgba(0, 229, 255, 0.2); border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan-glow); color: var(--white); }
-
-  /* Workspace */
   .workspace { flex: 1; min-height: 0; display: flex; width: 100%; position: relative; overflow: hidden; }
   .sidebar {
     width: 320px; height: 100%; border-right: 1px solid var(--panel-border);
@@ -194,14 +186,28 @@
     font-family: var(--font-mono);
   }
   .copy-btn:hover { color: var(--green); border-color: var(--green-dim); }
-  .search-box { padding: 8px 10px; border-bottom: 1px dashed var(--line); display: flex; gap: 6px; }
+  .search-row {
+    padding: 8px 10px; border-bottom: 1px dashed var(--line);
+    display: flex; flex-direction: column; gap: 6px;
+  }
   .search-inp {
-    flex: 1; background: #03070d; border: 1px solid var(--line); border-radius: 3px;
+    width: 100%; background: #03070d; border: 1px solid var(--line); border-radius: 3px;
     padding: 5px 8px; color: var(--green); font-family: var(--font-mono); font-size: 10.5px; outline: none;
   }
   .search-inp:focus { border-color: var(--green-dim); }
   .search-inp::placeholder { color: var(--dim); }
-  .search-btn { background: var(--green-dim); color: var(--white); border: 0; border-radius: 3px; font-size: 10px; font-weight: 700; padding: 0 10px; cursor: pointer; font-family: var(--font-mono); }
+  .search-actions { display: flex; gap: 6px; }
+  .search-btn {
+    flex: 1; background: var(--green-dim); color: var(--white); border: 0; border-radius: 3px;
+    font-size: 10px; font-weight: 700; padding: 6px 10px; cursor: pointer;
+    font-family: var(--font-mono); letter-spacing: 1px;
+  }
+  .logout-btn {
+    flex: 1; background: transparent; color: var(--red); border: 1px solid rgba(255,45,85,0.4);
+    border-radius: 3px; font-size: 10px; font-weight: 700; padding: 6px 10px;
+    cursor: pointer; font-family: var(--font-mono); letter-spacing: 1px;
+  }
+  .logout-btn:hover { background: rgba(255,45,85,0.1); border-color: var(--red); }
   .roster-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .roster-item {
     padding: 10px 12px; border-bottom: 1px solid rgba(19, 42, 66, 0.4);
@@ -242,8 +248,6 @@
   .roster-menu-popup button:hover { background: rgba(255, 45, 85, 0.1); color: var(--red); }
   .empty-roster { padding: 40px 16px; text-align: center; color: var(--dim); font-size: 10.5px; line-height: 1.7; letter-spacing: 1px; text-transform: uppercase; }
   .empty-roster b { display: block; font-size: 22px; color: var(--green-dim); margin-bottom: 8px; }
-
-  /* MAIN CHAT */
   .chat-pane { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; background: radial-gradient(circle at 60% 40%, rgba(8, 18, 30, 0.4), transparent 70%), var(--bg); position: relative; }
   .chat-subhead {
     padding: 8px 14px; border-bottom: 1px solid var(--panel-border);
@@ -261,8 +265,6 @@
   .target-title { color: var(--green); font-weight: 700; letter-spacing: 1.5px; display: flex; align-items: center; gap: 6px; }
   .target-title.yuki { color: var(--pink); }
   .target-sub { color: var(--dim); font-size: 9.5px; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  /* CHAT STREAM — normal top-to-bottom scrolling */
   .chat-stream {
     flex: 1; min-height: 0;
     overflow-y: auto;
@@ -278,8 +280,6 @@
     line-height: 1.8; margin: auto 0;
   }
   .empty-chat-state b { display: block; font-size: 26px; color: var(--green-dim); margin-bottom: 10px; }
-
-  /* LEGAL DISCLAIMER inside chat */
   .legal-disclaimer {
     width: 100%; border: 1px dashed rgba(255, 183, 3, 0.45);
     background: rgba(255, 183, 3, 0.035);
@@ -294,8 +294,6 @@
   }
   .legal-disclaimer p { color: #d0c8b0; letter-spacing: 0.2px; }
   .legal-disclaimer b { color: #ffe699; }
-
-  /* Message bubbles */
   .msg-row {
     display: flex; flex-direction: column;
     max-width: 82%; width: fit-content;
@@ -326,13 +324,10 @@
   }
   .msg-meta .receipt { color: var(--dim); letter-spacing: 1px; font-weight: bold; }
   .msg-meta .receipt.seen { color: var(--green); }
-
   .code-container { margin: 6px 0 3px; border: 1px solid #112d46; border-radius: 3px; background: #02050a; overflow: hidden; font-size: 11px; }
   .code-head { display: flex; justify-content: space-between; align-items: center; background: #050c16; padding: 4px 8px; border-bottom: 1px solid #112d46; color: var(--cyan); font-size: 9.5px; letter-spacing: 1px; }
   .copy-code-btn { background: transparent; border: 1px solid rgba(0,229,255,0.3); border-radius: 2px; color: var(--cyan); font-size: 9px; padding: 1px 6px; cursor: pointer; }
   pre.code-body { padding: 8px 10px; margin: 0; overflow-x: auto; color: #a4e5c5; line-height: 1.45; font-family: var(--font-mono); }
-
-  /* Composer */
   .composer-pane { background: rgba(8, 14, 24, 0.94); border-top: 1px solid var(--panel-border); padding: 10px 14px max(12px, env(safe-area-inset-bottom, 12px)); flex-shrink: 0; }
   .composer-status-bar { display: flex; justify-content: space-between; align-items: center; font-size: 9.5px; color: var(--dim); margin-bottom: 6px; letter-spacing: 1px; }
   .word-counter.warn { color: var(--amber); }
@@ -357,8 +352,6 @@
     padding: 8px 16px; cursor: pointer; flex-shrink: 0;
   }
   .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  /* Modal */
   .modal-backdrop {
     position: fixed; inset: 0; z-index: 600;
     background: rgba(3, 7, 13, 0.65);
@@ -399,15 +392,11 @@
     padding: 5px 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
   }
   .btn-open-result:hover { opacity: 0.9; }
-
-  /* Sidebar toggle mobile */
   .sidebar-hidden { transform: translateX(-100%); }
   @media (max-width: 768px) {
     .sidebar { position: absolute; top: 0; left: 0; z-index: 11; width: 76vw; max-width: 300px; }
     .btn-toggle-roster { display: inline-flex; }
   }
-
-  /* Incoming message banner */
   .slide-notice {
     position: fixed; top: 0; left: 0; right: 0; z-index: 400;
     background: linear-gradient(135deg, rgba(0,255,136,0.2) 0%, rgba(0,255,136,0.08) 100%);
@@ -422,8 +411,6 @@
   .slide-notice-left { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
   .slide-notice-sender { color: var(--green); font-weight: 700; flex-shrink: 0; }
   .slide-notice-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); }
-
-  /* Toast */
   .toast-indicator {
     position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 20px)); left: 50%;
     transform: translateX(-50%) translateY(120px);
@@ -479,18 +466,19 @@
   <div class="workspace">
     <div class="sidebar" id="sidebar-roster">
       <div class="sidebar-head">
-  <div class="user-badge">
-    <div class="user-name" id="me-display">OPERATIVE</div>
-    <div class="user-id" id="me-uid">@operative</div>
-  </div>
-  <div style="display:flex;gap:6px;align-items:center;">
-    <button class="copy-btn" id="btn-copy-id">COPY</button>
-    <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
-  </div>
-</div>
-      <div style="padding:8px 10px;border-bottom:1px dashed var(--line);display:flex;gap:6px;">
-  <button id="btn-logout" style="flex:1;background:transparent;border:1px solid rgba(255,45,85,0.4);color:var(--red);font-family:var(--font-mono);font-size:10px;font-weight:700;letter-spacing:1.5px;padding:6px 10px;cursor:pointer;border-radius:3px;">⏻ LOGOUT</button>
-</div>
+        <div class="user-badge">
+          <div class="user-name" id="me-display">OPERATIVE</div>
+          <div class="user-id" id="me-uid">@operative</div>
+        </div>
+        <button class="copy-btn" id="btn-copy-id">COPY</button>
+      </div>
+      <div class="search-row">
+        <input class="search-inp" id="search-peer-input" type="text" placeholder="click query" />
+        <div class="search-actions">
+          <button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
+          <button class="logout-btn" id="btn-logout" type="button">⏻ LOGOUT</button>
+        </div>
+      </div>
       <div class="roster-list">
         <div class="roster-list-body" id="roster-list-body"></div>
       </div>
@@ -524,7 +512,6 @@
           <button class="send-btn" id="btn-send" type="submit">SEND ❯</button>
         </form>
       </div>
-
     </main>
   </div>
 </div>
@@ -645,20 +632,16 @@ btnRain.addEventListener('click', () => {
 
 const sidebar = document.getElementById('sidebar-roster');
 const btnRosterToggle = document.getElementById('btn-mobile-roster-toggle');
-const btnCloseSidebarMobile = document.getElementById('btn-close-sidebar-mobile');
 function syncSidebarForMobile() {
   if (window.innerWidth <= 768) {
     sidebar.classList.add('sidebar-hidden');
-    btnCloseSidebarMobile.style.display = 'flex';
   } else {
     sidebar.classList.remove('sidebar-hidden');
-    btnCloseSidebarMobile.style.display = 'none';
   }
 }
 window.addEventListener('resize', syncSidebarForMobile);
 syncSidebarForMobile();
 btnRosterToggle.addEventListener('click', () => { sidebar.classList.remove('sidebar-hidden'); playSfx('click'); });
-btnCloseSidebarMobile.addEventListener('click', () => { sidebar.classList.add('sidebar-hidden'); playSfx('click'); });
 </script>
 
 <script type="module">
@@ -700,6 +683,7 @@ function showToast(msg) {
 const YUKI_BOT_UID = "__yuki_ai__";
 const YUKI_BOT_PROFILE = { username: "yuki_ai", display: "YUKI [AI COMPANION]" };
 let yukiChatHistory = [];
+
 let currentUser = null;
 let currentProfile = null;
 let activePeer = null;
@@ -753,6 +737,7 @@ function clearChatMessagesOnly() {
   stream.querySelectorAll(".msg-row, .empty-chat-state").forEach(el => el.remove());
 }
 
+/* ========== AUTH ========== */
 $("btn-toggle-auth").addEventListener("click", () => {
   isSignUpMode = !isSignUpMode;
   $("auth-error").textContent = "";
@@ -804,14 +789,7 @@ async function handleAuthSubmit() {
   }
 }
 
-$("btn-copy-id").addEventListener("click", function() {
-  if (!currentProfile) return;
-  navigator.clipboard.writeText(currentProfile.username).catch(()=>{});
-  const orig = this.textContent;
-  this.textContent = "COPIED";
-  setTimeout(() => this.textContent = orig, 1500);
-  playSfx('click');
-});
+/* ========== LOGOUT ========== */
 $("btn-logout").addEventListener("click", async () => {
   if (!currentUser) return;
   if (!confirm("Logout from this terminal?")) return;
@@ -820,13 +798,25 @@ $("btn-logout").addEventListener("click", async () => {
   } catch(e){}
   await signOut(auth);
 });
+
+/* ========== COPY ID ========== */
+$("btn-copy-id").addEventListener("click", function() {
+  if (!currentProfile) return;
+  navigator.clipboard.writeText(currentProfile.username).catch(()=>{});
+  const orig = this.textContent;
+  this.textContent = "COPIED";
+  setTimeout(() => this.textContent = orig, 1500);
+  playSfx('click');
+});
+
+/* ========== AUTH OBSERVER ========== */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     currentUser = null; currentProfile = null;
     $("login-screen").classList.add("show");
-    if (unsubMessages) { unsubMessages(); unsubMessages = null; }
-    if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
-    if (unsubChatRoster) { unsubChatRoster(); unsubChatRoster = null; }
+    if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
+    if (unsubPeerStatus) { try { unsubPeerStatus(); } catch(e){} unsubPeerStatus = null; }
+    if (unsubChatRoster) { try { unsubChatRoster(); } catch(e){} unsubChatRoster = null; }
     hideBoot();
     return;
   }
@@ -850,17 +840,17 @@ onAuthStateChanged(auth, async (user) => {
     subscribeChatRoster();
     openYukiBot();
   } catch (e) {
-    console.error(e);
+    console.error("Profile load error:", e);
     $("login-screen").classList.add("show");
   }
   hideBoot();
 });
 
-$("btn-peer-search").addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openSearchModal(); });
+/* ========== SEARCH ========== */
+$("btn-peer-search").addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); performUserSearch(); });
 $("search-peer-input").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); performUserSearch(); } });
 $("btn-close-search-modal").addEventListener("click", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   $("search-modal").classList.remove("open");
 });
 $("search-modal").addEventListener("click", (e) => {
@@ -871,67 +861,37 @@ $("search-modal").addEventListener("click", (e) => {
 });
 const searchModalBox = document.querySelector(".search-modal-box");
 if (searchModalBox) {
-  searchModalBox.addEventListener("click", (e) => {
-    e.stopPropagation();
-  });
+  searchModalBox.addEventListener("click", (e) => { e.stopPropagation(); });
 }
 
-function openSearchModal() {
+async function performUserSearch() {
+  const q = $("search-peer-input").value.trim().toLowerCase().replace(/^@/, "");
+  if (!q) { showToast("ENTER USERNAME"); return; }
+  if (!currentUser || !currentProfile) return;
+  if (q === currentProfile.username.toLowerCase()) { showToast("CANNOT QUERY YOUR OWN ID"); return; }
+
   const modal = $("search-modal");
   const content = $("search-modal-content");
-  content.innerHTML = `
-    <div style="padding:12px 0;">
-      <input type="text" id="modal-search-input" placeholder="Enter username to search..." style="width:100%;padding:8px 10px;background:#03070d;border:1px solid var(--green-dim);color:var(--green);font-family:var(--font-mono);font-size:11px;border-radius:3px;outline:none;" />
-    </div>
-    <div id="modal-search-results" style="margin-top:10px;"></div>
-  `;
+  content.innerHTML = `<div style="color:var(--dim);font-size:11px;padding:6px 0;">searching...</div>`;
   modal.classList.add("open");
-  const searchInput = $("modal-search-input");
-  if (searchInput) {
-    setTimeout(() => searchInput.focus(), 100);
-    searchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        performUserSearchModal(searchInput.value);
-      }
-    });
-    searchInput.addEventListener("input", (e) => {
-      if (e.target.value.trim().length > 0) {
-        performUserSearchModal(e.target.value);
-      }
-    });
-  }
-}
-
-async function performUserSearchModal(q) {
-  const searchQ = q.trim().toLowerCase().replace(/^@/, "");
-  if (!searchQ) {
-    $("modal-search-results").innerHTML = "";
-    return;
-  }
-  if (!currentUser || !currentProfile) return;
-  if (searchQ === currentProfile.username.toLowerCase()) {
-    $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">Cannot message yourself</div>`;
-    return;
-  }
   try {
     let otherUid = null, otherData = null;
-    const uDoc = await getDoc(doc(db, "usernames", searchQ));
+    const uDoc = await getDoc(doc(db, "usernames", q));
     if (uDoc.exists()) {
       otherUid = uDoc.data().uid;
       const uSnap = await getDoc(doc(db, "users", otherUid));
       if (uSnap.exists()) otherData = uSnap.data();
     } else {
-      const qU = query(collection(db, "users"), where("username", "==", searchQ), limit(1));
+      const qU = query(collection(db, "users"), where("username", "==", q), limit(1));
       const uSnap = await getDocs(qU);
       if (!uSnap.empty) { otherUid = uSnap.docs[0].id; otherData = uSnap.docs[0].data(); }
     }
     if (!otherUid || !otherData) {
-      $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">No user found: @${escapeHtml(searchQ)}</div>`;
+      content.innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">No user found: @${escapeHtml(q)}</div>`;
       return;
     }
     removeDeleted(currentUser.uid, otherUid);
-    $("modal-search-results").innerHTML = `
+    content.innerHTML = `
       <div class="search-result-row">
         <div class="search-result-info">
           <div class="search-result-name">${escapeHtml(otherData.display || otherData.username)}</div>
@@ -941,39 +901,24 @@ async function performUserSearchModal(q) {
       </div>`;
     const openBtn = $("btn-open-peer");
     if (openBtn) {
-      openBtn.onclick = null;
-      openBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+      openBtn.onclick = (e) => {
+        e.preventDefault(); e.stopPropagation();
         $("search-modal").classList.remove("open");
-        $("modal-search-input").value = "";
+        $("search-peer-input").value = "";
         openChatWith(otherUid, otherData);
-      });
+      };
     }
   } catch (e) {
     console.error(e);
-    $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">Search error</div>`;
+    content.innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">Search error</div>`;
   }
 }
 
-async function performUserSearch() {
-  const q = $("search-peer-input").value.trim().toLowerCase().replace(/^@/, "");
-  if (!q) { openSearchModal(); return; }
-  if (!currentUser || !currentProfile) return;
-  openSearchModal();
-  setTimeout(() => {
-    const modalInput = $("modal-search-input");
-    if (modalInput) {
-      modalInput.value = q;
-      performUserSearchModal(q);
-    }
-  }, 100);
-}
-
+/* ========== YUKI BOT ========== */
 function openYukiBot() {
   if (!currentUser) return;
-  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
-  if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
+  if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
+  if (unsubPeerStatus) { try { unsubPeerStatus(); } catch(e){} unsubPeerStatus = null; }
 
   clearChatMessagesOnly();
 
@@ -990,14 +935,15 @@ function openYukiBot() {
   if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
 
   subscribeMessages(activeChatId);
-setTimeout(renderRoster, 0);
+  setTimeout(renderRoster, 0);
 }
 
+/* ========== OPEN CHAT WITH USER ========== */
 function openChatWith(peerUid, peerProfile) {
   if (!currentUser || !peerUid) return;
 
-  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
-  if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
+  if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
+  if (unsubPeerStatus) { try { unsubPeerStatus(); } catch(e){} unsubPeerStatus = null; }
 
   clearChatMessagesOnly();
 
@@ -1006,9 +952,7 @@ function openChatWith(peerUid, peerProfile) {
   let cachedProfile = peerProfile;
   if (!cachedProfile) {
     const found = localChannels.find(c => c.otherUid === peerUid);
-    if (found && found.profile) {
-      cachedProfile = found.profile;
-    }
+    if (found && found.profile) cachedProfile = found.profile;
   }
 
   activePeer = {
@@ -1055,8 +999,9 @@ function openChatWith(peerUid, peerProfile) {
   }
 }
 
+/* ========== MESSAGES ========== */
 function subscribeMessages(chatId) {
-  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+  if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
 
   const stream = $("chat-stream");
   if (!stream) return;
@@ -1120,6 +1065,8 @@ function subscribeMessages(chatId) {
 
     if (wasAtBottom) streamEl.scrollTop = streamEl.scrollHeight;
     markSeen(chatId);
+  }, (err) => {
+    console.error("Messages subscription error:", err);
   });
 }
 
@@ -1138,8 +1085,10 @@ function formatMessageContent(raw) {
   return text.replace(/\n/g, '<br/>');
 }
 
+/* ========== PEER STATUS ========== */
 function subscribePeerStatus(chatId, otherUid) {
-  if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
+  if (unsubPeerStatus) { try { unsubPeerStatus(); } catch(e){} unsubPeerStatus = null; }
+  if (otherUid === YUKI_BOT_UID) return;
   const currentActiveChatId = chatId;
   unsubPeerStatus = onSnapshot(doc(db, "chats", chatId), async (snap) => {
     if (activeChatId !== currentActiveChatId || !snap.exists()) return;
@@ -1165,6 +1114,7 @@ function subscribePeerStatus(chatId, otherUid) {
   });
 }
 
+/* ========== MARK SEEN ========== */
 async function markSeen(chatId) {
   if (!chatId || !currentUser) return;
   if (activePeer?.isYuki) return;
@@ -1178,6 +1128,7 @@ async function markSeen(chatId) {
   } catch(e){}
 }
 
+/* ========== SEND MESSAGE ========== */
 async function transmitMessage() {
   const ta = $("chat-textarea");
   const text = ta.value.trim();
@@ -1203,42 +1154,48 @@ async function transmitMessage() {
     playSfx('send');
 
     if (activePeer.isYuki) {
-  setTimeout(async () => {
-    try {
-      let reply = "...";
-      try {
-        const r = await fetch("/api/yuki", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text, history: yukiChatHistory })
-        });
-        if (r.ok) {
-          const data = await r.json();
-          reply = data.reply || data.response || data.message || data.text || data.result || "...";
-          if (typeof reply !== "string") reply = JSON.stringify(reply);
-        }
-      } catch (fetchErr) {
-        reply = "Neural link unstable. Retry transmission.";
-      }
+      setTimeout(async () => {
+        try {
+          let reply = "…";
+          try {
+            const r = await fetch("/api/yuki", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: text, history: yukiChatHistory })
+            });
+            if (r.ok) {
+              const data = await r.json();
+              reply = data.reply || data.response || data.message || data.text || data.result || "…";
+              if (typeof reply !== "string") reply = JSON.stringify(reply);
+            } else {
+              reply = "Neural link unstable. Retry transmission.";
+            }
+          } catch (fetchErr) {
+            console.error("Yuki API error:", fetchErr);
+            reply = "Neural link unstable. Retry transmission.";
+          }
 
-      yukiChatHistory.push({ role: "user", content: text });
-      yukiChatHistory.push({ role: "assistant", content: reply });
-      yukiChatHistory = yukiChatHistory.slice(-20);
+          yukiChatHistory.push({ role: "user", content: text });
+          yukiChatHistory.push({ role: "assistant", content: reply });
+          yukiChatHistory = yukiChatHistory.slice(-20);
 
-      await addDoc(collection(db, "chats", activeChatId, "messages"), {
-        text: reply, by: YUKI_BOT_UID, at: serverTimestamp(), seen: true
-      });
-      await setDoc(doc(db, "chats", activeChatId), {
-        lastMsg: reply.slice(0, 80),
-        lastMsgAt: serverTimestamp(),
-        lastMsgBy: YUKI_BOT_UID,
-        touchAt: serverTimestamp()
-      }, { merge: true });
-      playSfx('receive');
-    } catch(e){}
-  }, 700);
-}
-  } catch (e) { showToast("TRANSMISSION ERROR"); }
+          await addDoc(collection(db, "chats", activeChatId, "messages"), {
+            text: reply, by: YUKI_BOT_UID, at: serverTimestamp(), seen: true
+          });
+          await setDoc(doc(db, "chats", activeChatId), {
+            lastMsg: reply.slice(0, 80),
+            lastMsgAt: serverTimestamp(),
+            lastMsgBy: YUKI_BOT_UID,
+            touchAt: serverTimestamp()
+          }, { merge: true });
+          playSfx('receive');
+        } catch(e){ console.error("Yuki reply error:", e); }
+      }, 700);
+    }
+  } catch (e) {
+    console.error("Transmit error:", e);
+    showToast("TRANSMISSION ERROR");
+  }
 }
 
 $("chat-form").addEventListener("submit", e => { e.preventDefault(); transmitMessage(); });
@@ -1280,8 +1237,9 @@ async function broadcastTyping() {
   } catch(e){}
 }
 
+/* ========== CHAT ROSTER ========== */
 function subscribeChatRoster() {
-  if (unsubChatRoster) unsubChatRoster();
+  if (unsubChatRoster) { try { unsubChatRoster(); } catch(e){} unsubChatRoster = null; }
   if (!currentUser) return;
   const ref = collection(db, "chats");
   const q = query(ref, where("users", "array-contains", currentUser.uid));
@@ -1291,6 +1249,7 @@ function subscribeChatRoster() {
       const data = d.data();
       const otherUid = data.users?.find(u => u !== currentUser.uid);
       if (!otherUid) continue;
+      if (otherUid === YUKI_BOT_UID) continue;
       if (isDeleted(currentUser.uid, otherUid)) continue;
       list.push({ chatId: d.id, data, otherUid });
     }
@@ -1314,6 +1273,8 @@ function subscribeChatRoster() {
     $("peer-count").textContent = (hydrated.length + 1);
     renderRoster();
     checkForNewMessagePopup();
+  }, (err) => {
+    console.error("Roster error:", err);
   });
 }
 
@@ -1368,11 +1329,11 @@ function renderRoster() {
       <button class="roster-menu-btn" data-uid="${escapeHtml(item.otherUid)}">⋮</button>
     `;
     row.addEventListener("click", (ev) => {
-  if (ev.target.classList.contains("roster-menu-btn")) return;
-  if (ev.target.closest(".roster-menu-popup")) return;
-  playSfx('click');
-  openChatWith(item.otherUid, p);
-});
+      if (ev.target.classList.contains("roster-menu-btn")) return;
+      if (ev.target.closest(".roster-menu-popup")) return;
+      playSfx('click');
+      openChatWith(item.otherUid, p);
+    });
     row.querySelector(".roster-menu-btn").addEventListener("click", (ev) => {
       ev.stopPropagation();
       showRosterMenu(row, item.otherUid);
