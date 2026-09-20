@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" name="viewport"/>
 <title>CYBER//OSINT • CHAT TERMINAL</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link as="style" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="preload"/>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
 <style>
   :root {
     --bg: #03070d;
@@ -66,7 +65,7 @@
     align-items: center; justify-content: center;
     gap: 14px; transition: opacity 0.25s ease;
   }
-  #boot-cover.gone { opacity: 0; pointer-events: none; display: none !important; }
+  #boot-cover.gone { opacity: 0; pointer-events: none; }
   .boot-title {
     color: var(--green); font-size: 12px; letter-spacing: 4px;
     text-transform: uppercase; text-shadow: 0 0 10px var(--green-glow);
@@ -420,107 +419,117 @@
 <body>
 <canvas id="matrix-rain"></canvas>
 <div class="app-wrap">
-<div class="hud-bar" id="hud-bar">
-<div class="hud-left">
-<div class="live-dot" id="peer-live-dot"></div>
-<span id="system-status">TERMINAL ONLINE</span>
+  <div class="hud-bar" id="hud-bar">
+    <div class="hud-left">
+      <div class="live-dot" id="peer-live-dot"></div>
+      <span id="system-status">TERMINAL ONLINE</span>
+    </div>
+    <div class="hud-stats">
+      <span>SYS <b id="peer-count">1</b></span>
+    </div>
+    <div class="hud-controls">
+      <button class="ctrl-btn active" id="btn-sound-toggle">SFX <span id="sfx-status">ON</span></button>
+      <button class="ctrl-btn active" id="btn-matrix-toggle">MATRIX <span id="matrix-status">ON</span></button>
+      <a href="/index.html" class="ctrl-btn back-osint-btn">◀ OSINT KERNEL</a>
+    </div>
+  </div>
+
+  <div id="boot-cover">
+    <div class="boot-title">YUKI // TERMINAL</div>
+    <div class="boot-dots">
+      <span></span> <span></span> <span></span>
+    </div>
+  </div>
+
+  <div id="login-screen" class="show">
+    <div class="login-box">
+      <div class="login-title">YUKI</div>
+      <div class="login-sub">// neural terminal access</div>
+      <div class="login-fields">
+        <input class="login-field" id="auth-email" type="email" placeholder="Email address" autocomplete="email" />
+        <input class="login-field" id="auth-password" type="password" placeholder="Security key" autocomplete="current-password" />
+      </div>
+      <button class="login-btn" id="btn-auth-submit">SIGN IN</button>
+      <div class="login-error" id="auth-error"></div>
+      <button class="login-toggle" id="btn-toggle-auth">Don't have an account? <span>Sign up</span></button>
+    </div>
+    <div class="login-disclaimer">Secure neural interface. Communications are sandboxed within Firestore shards and monitored for security protocol compliance. By accessing this terminal, you acknowledge all usage is logged and retained per SECURITY POLICY.</div>
+  </div>
+
+  <div class="workspace">
+    <div class="sidebar" id="sidebar-roster">
+      <div class="sidebar-head">
+        <div class="user-badge">
+          <div class="user-name" id="me-display">OPERATIVE</div>
+          <div class="user-id" id="me-uid">@operative</div>
+        </div>
+        <button class="copy-btn" id="btn-copy-id">COPY</button>
+        <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
+      </div>
+      <div class="search-box">
+        <input class="search-inp" id="search-peer-input" type="text" placeholder="click query" />
+        <button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
+      </div>
+      <div class="logout-row">
+        <button class="logout-btn" id="btn-logout" type="button">⏻ LOGOUT</button>
+      </div>
+      <div class="roster-list">
+        <div class="roster-list-body" id="roster-list-body"></div>
+      </div>
+    </div>
+
+    <main class="chat-pane" id="chat-pane">
+      <div class="chat-subhead">
+        <div class="chat-subhead-left">
+          <button class="btn-toggle-roster" id="btn-mobile-roster-toggle">☰ ROSTER</button>
+          <div id="active-chat-title-wrap">
+            <div class="target-title" id="active-chat-title">TERMINAL READY</div>
+            <div class="target-sub" id="active-chat-sub">awaiting user input</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-stream" id="chat-stream">
+        <div class="legal-disclaimer">
+          <div class="legal-disclaimer-header">⚠ OPERATIONAL SECURITY NOTICE</div>
+          <p>This is a private, encrypted channel. All communications are logged and retained for security auditing. Do not transmit sensitive personal information, credentials, or classified material. Use this terminal only for intended operational purposes. Unauthorized access is prohibited. By continuing, you agree to all terms of service and security policies.</p>
+        </div>
+      </div>
+
+      <div class="composer-pane" id="composer-pane">
+        <div class="composer-status-bar">
+          <div id="word-counter-display" class="word-counter">0 / 5,000 words</div>
+        </div>
+        <form class="composer-form" id="chat-form">
+          <span class="prefix-prompt">❯</span>
+          <textarea class="msg-textarea" id="chat-textarea" placeholder="Transmit message..."></textarea>
+          <button class="send-btn" id="btn-send" type="submit">SEND ❯</button>
+        </form>
+      </div>
+    </main>
+  </div>
 </div>
-<div class="hud-stats">
-<span>SYS <b id="peer-count">1</b></span>
-</div>
-<div class="hud-controls">
-<button class="ctrl-btn active" id="btn-sound-toggle">SFX <span id="sfx-status">ON</span></button>
-<button class="ctrl-btn active" id="btn-matrix-toggle">MATRIX <span id="matrix-status">ON</span></button>
-<a class="ctrl-btn back-osint-btn" href="/index.html">◀ OSINT KERNEL</a>
-</div>
-</div>
-<div id="boot-cover">
-<div class="boot-title">YUKI // TERMINAL</div>
-<div class="boot-dots">
-<span></span> <span></span> <span></span>
-</div>
-</div>
-<div class="show" id="login-screen">
-<div class="login-box">
-<div class="login-title">YUKI</div>
-<div class="login-sub">// neural terminal access</div>
-<div class="login-fields">
-<input autocomplete="email" class="login-field" id="auth-email" placeholder="Email address" type="email"/>
-<input autocomplete="current-password" class="login-field" id="auth-password" placeholder="Security key" type="password"/>
-</div>
-<button class="login-btn" id="btn-auth-submit">SIGN IN</button>
-<div class="login-error" id="auth-error"></div>
-<button class="login-toggle" id="btn-toggle-auth">Don't have an account? <span>Sign up</span></button>
-</div>
-<div class="login-disclaimer">Secure neural interface. Communications are sandboxed within Firestore shards and monitored for security protocol compliance. By accessing this terminal, you acknowledge all usage is logged and retained per SECURITY POLICY.</div>
-</div>
-<div class="workspace">
-<div class="sidebar" id="sidebar-roster">
-<div class="sidebar-head">
-<div class="user-badge">
-<div class="user-name" id="me-display">OPERATIVE</div>
-<div class="user-id" id="me-uid">@operative</div>
-</div>
-<button class="copy-btn" id="btn-copy-id">COPY</button>
-<button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
-</div>
-<div class="search-box">
-<input class="search-inp" id="search-peer-input" placeholder="click query" type="text"/>
-<button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
-</div>
-<div class="logout-row">
-<button class="logout-btn" id="btn-logout" type="button">⏻ LOGOUT</button>
-</div>
-<div class="roster-list">
-<div class="roster-list-body" id="roster-list-body"></div>
-</div>
-</div>
-<main class="chat-pane" id="chat-pane">
-<div class="chat-subhead">
-<div class="chat-subhead-left">
-<button class="btn-toggle-roster" id="btn-mobile-roster-toggle">☰ ROSTER</button>
-<div id="active-chat-title-wrap">
-<div class="target-title" id="active-chat-title">TERMINAL READY</div>
-<div class="target-sub" id="active-chat-sub">awaiting user input</div>
-</div>
-</div>
-</div>
-<div class="chat-stream" id="chat-stream">
-<div class="legal-disclaimer">
-<div class="legal-disclaimer-header">⚠ OPERATIONAL SECURITY NOTICE</div>
-<p>This is a private, encrypted channel. All communications are logged and retained for security auditing. Do not transmit sensitive personal information, credentials, or classified material. Use this terminal only for intended operational purposes. Unauthorized access is prohibited. By continuing, you agree to all terms of service and security policies.</p>
-</div>
-</div>
-<div class="composer-pane" id="composer-pane">
-<div class="composer-status-bar">
-<div class="word-counter" id="word-counter-display">0 / 5,000 words</div>
-</div>
-<form class="composer-form" id="chat-form" onsubmit="return false;">
-<span class="prefix-prompt">❯</span>
-<textarea class="msg-textarea" id="chat-textarea" placeholder="Transmit message..."></textarea>
-<button class="send-btn" id="btn-send" type="button">SEND ❯</button>
-</form>
-</div>
-</main>
-</div>
-</div>
+
 <div class="modal-backdrop" id="search-modal">
-<div class="search-modal-box">
-<div class="search-modal-header">
-<span class="search-modal-title">QUERY RESULT</span>
-<button class="btn-modal-close" id="btn-close-search-modal">✕</button>
+  <div class="search-modal-box">
+    <div class="search-modal-header">
+      <span class="search-modal-title">QUERY RESULT</span>
+      <button class="btn-modal-close" id="btn-close-search-modal">✕</button>
+    </div>
+    <div id="search-modal-content"></div>
+  </div>
 </div>
-<div id="search-modal-content"></div>
-</div>
-</div>
+
 <div class="slide-notice" id="incoming-banner">
-<div class="slide-notice-left">
-<span style="color:var(--green);">⚡</span>
-<span class="slide-notice-sender" id="banner-sender">@—</span>:
+  <div class="slide-notice-left">
+    <span style="color:var(--green);">⚡</span>
+    <span class="slide-notice-sender" id="banner-sender">@—</span>:
     <span class="slide-notice-preview" id="banner-preview">new message</span>
+  </div>
 </div>
-</div>
+
 <div class="toast-indicator" id="terminal-toast">COPIED</div>
+
 <script>
 let soundEnabled = true;
 let audioCtx = null;
@@ -532,15 +541,8 @@ function getAudioCtx() {
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
-
-let lastSfxTimes = { send: 0, receive: 0, click: 0 };
-
 function playSfx(type) {
   if (!soundEnabled) return;
-  const now = performance.now();
-  if (lastSfxTimes[type] && now - lastSfxTimes[type] < 120) return;
-  lastSfxTimes[type] = now;
-
   const ctx = getAudioCtx();
   if (!ctx) return;
   const t = ctx.currentTime;
@@ -639,6 +641,7 @@ syncSidebarForMobile();
 btnRosterToggle.addEventListener('click', () => { sidebar.classList.remove('sidebar-hidden'); playSfx('click'); });
 btnCloseSidebarMobile.addEventListener('click', () => { sidebar.classList.add('sidebar-hidden'); playSfx('click'); });
 </script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
@@ -690,11 +693,6 @@ let unsubChatRoster = null;
 let typingBeaconTimer = null;
 let lastTypingTime = 0;
 let localChannels = [];
-const profileCache = {};
-let isInitialMessageLoad = true;
-let rosterDebounceTimer = null;
-const playedMessageIds = new Set();
-let isTransmitting = false;
 
 function formatTime(ts) {
   if (!ts) return "";
@@ -810,7 +808,7 @@ $("btn-logout").addEventListener("click", async () => {
 });
 
 /* ========== AUTH OBSERVER ========== */
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     currentUser = null; currentProfile = null;
     $("login-screen").classList.add("show");
@@ -821,17 +819,17 @@ onAuthStateChanged(auth, (user) => {
     return;
   }
   currentUser = user;
-  getDoc(doc(db, "users", user.uid)).then(async (uDoc) => {
-    if (uDoc.exists()) {
-      currentProfile = uDoc.data();
-    } else {
+  try {
+    const uDoc = await getDoc(doc(db, "users", user.uid));
+    if (uDoc.exists()) currentProfile = uDoc.data();
+    else {
       const defaultHandle = (user.email ? user.email.split("@")[0] : "operator").replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
       currentProfile = {
         username: defaultHandle, display: defaultHandle.toUpperCase() + "_UNIT",
         email: user.email || "", createdAt: serverTimestamp(), lastSeen: serverTimestamp()
       };
-      setDoc(doc(db, "users", user.uid), currentProfile, { merge: true }).catch(()=>{});
-      setDoc(doc(db, "usernames", defaultHandle), { uid: user.uid }, { merge: true }).catch(()=>{});
+      await setDoc(doc(db, "users", user.uid), currentProfile, { merge: true });
+      await setDoc(doc(db, "usernames", defaultHandle), { uid: user.uid }, { merge: true });
     }
     $("me-display").textContent = currentProfile.display || currentProfile.username;
     $("me-uid").textContent = "@" + currentProfile.username;
@@ -839,12 +837,11 @@ onAuthStateChanged(auth, (user) => {
     $("login-screen").classList.remove("show");
     subscribeChatRoster();
     openYukiBot();
-    hideBoot();
-  }).catch((e) => {
+  } catch (e) {
     console.error("Profile load error:", e);
     $("login-screen").classList.add("show");
-    hideBoot();
-  });
+  }
+  hideBoot();
 });
 
 /* ========== SEARCH ========== */
@@ -913,23 +910,12 @@ async function performUserSearchModal(q) {
     const uDoc = await getDoc(doc(db, "usernames", searchQ));
     if (uDoc.exists()) {
       otherUid = uDoc.data().uid;
-      if (profileCache[otherUid]) {
-        otherData = profileCache[otherUid];
-      } else {
-        const uSnap = await getDoc(doc(db, "users", otherUid));
-        if (uSnap.exists()) {
-          otherData = uSnap.data();
-          profileCache[otherUid] = otherData;
-        }
-      }
+      const uSnap = await getDoc(doc(db, "users", otherUid));
+      if (uSnap.exists()) otherData = uSnap.data();
     } else {
       const qU = query(collection(db, "users"), where("username", "==", searchQ), limit(1));
       const uSnap = await getDocs(qU);
-      if (!uSnap.empty) {
-        otherUid = uSnap.docs[0].id;
-        otherData = uSnap.docs[0].data();
-        profileCache[otherUid] = otherData;
-      }
+      if (!uSnap.empty) { otherUid = uSnap.docs[0].id; otherData = uSnap.docs[0].data(); }
     }
     if (!otherUid || !otherData) {
       $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">No user found: @${escapeHtml(searchQ)}</div>`;
@@ -980,7 +966,7 @@ function openYukiBot() {
   if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
 
   subscribeMessages(activeChatId);
-  renderRoster();
+  setTimeout(renderRoster, 0);
 }
 
 /* ========== OPEN CHAT WITH USER ========== */
@@ -994,13 +980,10 @@ function openChatWith(peerUid, peerProfile) {
 
   removeDeleted(currentUser.uid, peerUid);
 
-  let cachedProfile = peerProfile || profileCache[peerUid];
+  let cachedProfile = peerProfile;
   if (!cachedProfile) {
     const found = localChannels.find(c => c.otherUid === peerUid);
-    if (found && found.profile) {
-      cachedProfile = found.profile;
-      profileCache[peerUid] = cachedProfile;
-    }
+    if (found && found.profile) cachedProfile = found.profile;
   }
 
   activePeer = {
@@ -1036,15 +1019,12 @@ function openChatWith(peerUid, peerProfile) {
 
   if (!cachedProfile || !cachedProfile.username) {
     getDoc(doc(db, "users", peerUid)).then(uSnap => {
-      if (uSnap.exists()) {
+      if (uSnap.exists() && activePeer && activePeer.uid === peerUid) {
         const d = uSnap.data();
-        profileCache[peerUid] = d;
-        if (activePeer && activePeer.uid === peerUid) {
-          activePeer.username = d.username || activePeer.username;
-          activePeer.display = d.display || d.username || activePeer.display;
-          $("active-chat-title").textContent = activePeer.display;
-          $("active-chat-sub").textContent = "@" + activePeer.username;
-        }
+        activePeer.username = d.username || activePeer.username;
+        activePeer.display = d.display || d.username || activePeer.display;
+        $("active-chat-title").textContent = activePeer.display;
+        $("active-chat-sub").textContent = "@" + activePeer.username;
       }
     }).catch(()=>{});
   }
@@ -1057,7 +1037,6 @@ function subscribeMessages(chatId) {
   const stream = $("chat-stream");
   if (!stream) return;
 
-  isInitialMessageLoad = true;
   const currentActiveChatId = chatId;
   const ref = collection(db, "chats", chatId, "messages");
   const q = query(ref, orderBy("at", "asc"), limit(300));
@@ -1073,7 +1052,6 @@ function subscribeMessages(chatId) {
     const wasAtBottom = streamEl.scrollHeight - streamEl.scrollTop - streamEl.clientHeight < 150;
 
     if (snap.empty) {
-      isInitialMessageLoad = false;
       if (activePeer?.isYuki) {
         const intro = document.createElement("div");
         intro.className = "msg-row peer";
@@ -1091,22 +1069,10 @@ function subscribeMessages(chatId) {
       return;
     }
 
-    let hasIncoming = false;
     const fragment = document.createDocumentFragment();
     snap.forEach(d => {
       const m = d.data();
       const isMine = m.by === currentUser.uid;
-      const msgId = d.id;
-
-      if (isInitialMessageLoad) {
-        playedMessageIds.add(msgId);
-      } else {
-        if (!isMine && !playedMessageIds.has(msgId)) {
-          hasIncoming = true;
-          playedMessageIds.add(msgId);
-        }
-      }
-
       const row = document.createElement("div");
       row.className = `msg-row ${isMine ? "me" : "peer"}`;
       row.dataset.id = d.id;
@@ -1128,16 +1094,7 @@ function subscribeMessages(chatId) {
     });
     streamEl.appendChild(fragment);
 
-    if (hasIncoming) {
-      playSfx('receive');
-    }
-    isInitialMessageLoad = false;
-
-    if (wasAtBottom) {
-      requestAnimationFrame(() => {
-        streamEl.scrollTop = streamEl.scrollHeight;
-      });
-    }
+    if (wasAtBottom) streamEl.scrollTop = streamEl.scrollHeight;
     markSeen(chatId);
   }, (err) => {
     console.error("Messages subscription error:", err);
@@ -1172,15 +1129,9 @@ function subscribePeerStatus(chatId, otherUid) {
       statusEl.textContent = "typing...";
       return;
     }
-    if (profileCache[otherUid] && profileCache[otherUid].username) {
-      const ud = profileCache[otherUid];
-      statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
-      return;
-    }
     const found = localChannels.find(c => c.otherUid === otherUid);
     if (found && found.profile && found.profile.username) {
       const ud = found.profile;
-      profileCache[otherUid] = ud;
       statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
       return;
     }
@@ -1188,7 +1139,6 @@ function subscribePeerStatus(chatId, otherUid) {
       const u = await getDoc(doc(db, "users", otherUid));
       if (u.exists() && activeChatId === currentActiveChatId) {
         const ud = u.data();
-        profileCache[otherUid] = ud;
         statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
       }
     } catch(e){}
@@ -1201,7 +1151,7 @@ async function markSeen(chatId) {
   if (activePeer?.isYuki) return;
   try {
     updateDoc(doc(db, "chats", chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(()=>{});
-    const qU = query(collection(db, "chats", chatId, "messages"), where("by", "!=", currentUser.uid), where("seen", "==", false), limit(30));
+    const qU = query(collection(db, "chats", chatId, "messages"), where("by", "!=", currentUser.uid), where("seen", "==", false), limit(50));
     const snap = await getDocs(qU);
     snap.forEach(d => {
       updateDoc(d.ref, { seen: true }).catch(()=>{});
@@ -1211,22 +1161,16 @@ async function markSeen(chatId) {
 
 /* ========== SEND MESSAGE ========== */
 async function transmitMessage() {
-  if (isTransmitting) return;
   const ta = $("chat-textarea");
   const text = ta.value.trim();
   if (!text || !currentUser || !activeChatId || !activePeer) return;
-
-  isTransmitting = true;
-  playSfx('send');
   ta.value = "";
   ta.style.height = "auto";
   updateWordCounter();
-  ta.focus({ preventScroll: true });
-
+  ta.focus();
   const payload = { text, by: currentUser.uid, at: serverTimestamp(), seen: false };
   try {
-    const docRef = await addDoc(collection(db, "chats", activeChatId, "messages"), payload);
-    if (docRef && docRef.id) playedMessageIds.add(docRef.id);
+    await addDoc(collection(db, "chats", activeChatId, "messages"), payload);
     await setDoc(doc(db, "chats", activeChatId), {
       users: [currentUser.uid, activePeer.uid],
       [`participants.${currentUser.uid}`]: true,
@@ -1238,6 +1182,7 @@ async function transmitMessage() {
       unread: activePeer.isYuki ? {} : { [activePeer.uid]: increment(1), [currentUser.uid]: 0 },
       typing: { [currentUser.uid]: false }
     }, { merge: true });
+    playSfx('send');
 
     if (activePeer.isYuki) {
       setTimeout(async () => {
@@ -1274,34 +1219,19 @@ async function transmitMessage() {
             lastMsgBy: YUKI_BOT_UID,
             touchAt: serverTimestamp()
           }, { merge: true });
+          playSfx('receive');
         } catch(e){ console.error("Yuki reply error:", e); }
       }, 700);
     }
   } catch (e) {
     console.error("Transmit error:", e);
     showToast("TRANSMISSION ERROR");
-  } finally {
-    setTimeout(() => { isTransmitting = false; }, 250);
   }
 }
 
-$("chat-form").addEventListener("submit", e => {
-  e.preventDefault();
-  e.stopPropagation();
-  transmitMessage();
-  return false;
-});
-$("btn-send").addEventListener("click", e => {
-  e.preventDefault();
-  e.stopPropagation();
-  transmitMessage();
-});
+$("chat-form").addEventListener("submit", e => { e.preventDefault(); transmitMessage(); });
 $("chat-textarea").addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    e.stopPropagation();
-    transmitMessage();
-  }
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); transmitMessage(); }
 });
 
 function countWords(str) {
@@ -1355,18 +1285,10 @@ function subscribeChatRoster() {
       list.push({ chatId: d.id, data, otherUid });
     }
     const hydrated = await Promise.all(list.map(async item => {
-      if (profileCache[item.otherUid]) {
-        item.profile = profileCache[item.otherUid];
-      } else {
-        try {
-          const u = await getDoc(doc(db, "users", item.otherUid));
-          item.profile = u.exists() ? u.data() : { username: "operative", display: "Operative" };
-          profileCache[item.otherUid] = item.profile;
-        } catch(e) {
-          item.profile = { username: "operative", display: "Operative" };
-          profileCache[item.otherUid] = item.profile;
-        }
-      }
+      try {
+        const u = await getDoc(doc(db, "users", item.otherUid));
+        item.profile = u.exists() ? u.data() : { username: "operative", display: "Operative" };
+      } catch(e) { item.profile = { username: "operative", display: "Operative" }; }
       return item;
     }));
     hydrated.sort((a, b) => {
@@ -1380,10 +1302,7 @@ function subscribeChatRoster() {
     });
     localChannels = hydrated;
     $("peer-count").textContent = (hydrated.length + 1);
-    if (rosterDebounceTimer) clearTimeout(rosterDebounceTimer);
-    rosterDebounceTimer = setTimeout(() => {
-      renderRoster();
-    }, 100);
+    renderRoster();
     checkForNewMessagePopup();
   }, (err) => {
     console.error("Roster error:", err);
@@ -1393,7 +1312,7 @@ function subscribeChatRoster() {
 function renderRoster() {
   const c = $("roster-list-body");
   if (!c) return;
-  const fragment = document.createDocumentFragment();
+  c.innerHTML = "";
 
   const yukiRow = document.createElement("div");
   const yukiActive = activePeer?.isYuki;
@@ -1410,50 +1329,48 @@ function renderRoster() {
     </div>
   `;
   yukiRow.addEventListener("click", () => { playSfx('click'); openYukiBot(); });
-  fragment.appendChild(yukiRow);
+  c.appendChild(yukiRow);
 
   if (localChannels.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty-roster";
     empty.innerHTML = `<b>◇</b>no other active channels<br>query a user above`;
-    fragment.appendChild(empty);
-  } else {
-    for (const item of localChannels) {
-      const p = item.profile || {}, d = item.data || {};
-      const unread = (d.unread && d.unread[currentUser.uid]) || 0;
-      const isActive = activeChatId === item.chatId;
-      const initial = (p.display || p.username || "?").charAt(0).toUpperCase();
-      const row = document.createElement("div");
-      row.className = "roster-item" + (isActive ? " active" : "");
-      row.dataset.uid = item.otherUid;
-      row.innerHTML = `
-        <div class="roster-avatar">${escapeHtml(initial)}</div>
-        <div class="roster-info">
-          <div class="roster-top">
-            <span class="roster-title">${escapeHtml(p.display || p.username || "Operator")}</span>
-            <span class="roster-time">${escapeHtml(formatTime(d.lastMsgAt || d.touchAt))}</span>
-          </div>
-          <div class="roster-snippet">${escapeHtml(d.lastMsg || "channel initialized")}</div>
-        </div>
-        ${unread > 0 ? `<span style="background:var(--green);color:#00160a;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;">${unread > 9 ? "9+" : unread}</span>` : ""}
-        <button class="roster-menu-btn" data-uid="${escapeHtml(item.otherUid)}">⋮</button>
-      `;
-      row.addEventListener("click", (ev) => {
-        if (ev.target.classList.contains("roster-menu-btn")) return;
-        if (ev.target.closest(".roster-menu-popup")) return;
-        playSfx('click');
-        openChatWith(item.otherUid, p);
-      });
-      row.querySelector(".roster-menu-btn").addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        showRosterMenu(row, item.otherUid);
-      });
-      fragment.appendChild(row);
-    }
+    c.appendChild(empty);
+    return;
   }
 
-  c.innerHTML = "";
-  c.appendChild(fragment);
+  for (const item of localChannels) {
+    const p = item.profile || {}, d = item.data || {};
+    const unread = (d.unread && d.unread[currentUser.uid]) || 0;
+    const isActive = activeChatId === item.chatId;
+    const initial = (p.display || p.username || "?").charAt(0).toUpperCase();
+    const row = document.createElement("div");
+    row.className = "roster-item" + (isActive ? " active" : "");
+    row.dataset.uid = item.otherUid;
+    row.innerHTML = `
+      <div class="roster-avatar">${escapeHtml(initial)}</div>
+      <div class="roster-info">
+        <div class="roster-top">
+          <span class="roster-title">${escapeHtml(p.display || p.username || "Operator")}</span>
+          <span class="roster-time">${escapeHtml(formatTime(d.lastMsgAt || d.touchAt))}</span>
+        </div>
+        <div class="roster-snippet">${escapeHtml(d.lastMsg || "channel initialized")}</div>
+      </div>
+      ${unread > 0 ? `<span style="background:var(--green);color:#00160a;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;">${unread > 9 ? "9+" : unread}</span>` : ""}
+      <button class="roster-menu-btn" data-uid="${escapeHtml(item.otherUid)}">⋮</button>
+    `;
+    row.addEventListener("click", (ev) => {
+      if (ev.target.classList.contains("roster-menu-btn")) return;
+      if (ev.target.closest(".roster-menu-popup")) return;
+      playSfx('click');
+      openChatWith(item.otherUid, p);
+    });
+    row.querySelector(".roster-menu-btn").addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      showRosterMenu(row, item.otherUid);
+    });
+    c.appendChild(row);
+  }
 }
 
 function showRosterMenu(rowEl, otherUid) {
@@ -1507,4 +1424,5 @@ function showTopBanner(handle, preview, peerUid, profile) {
   bannerTimer = setTimeout(() => b.classList.remove("visible"), 5000);
 }
 </script>
-</body></html>
+</body>
+</html>
