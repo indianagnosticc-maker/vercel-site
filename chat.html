@@ -13,7 +13,7 @@
     --bg-secondary: #080d12;
     --accent: #00ff88;
     --accent-glow: rgba(0, 255, 136, 0.45);
-    --accent-border: rgba(0, 255, 136, 0.35);
+    --accent-border: rgba(0, 255, 136, 0.28);
     --dim: #3a5c48;
     --dim-text: #4e7a62;
     --dim-subtle: #243a2e;
@@ -33,16 +33,9 @@
     position: fixed; inset: 0;
     font-size: 12px;
   }
-  .scanline-layer {
-    position: fixed; inset: 0; pointer-events: none; z-index: 999;
-    background: linear-gradient(rgba(0, 255, 136, 0) 50%, rgba(0, 0, 0, 0.5) 50%),
-                linear-gradient(90deg, rgba(0, 255, 136, 0.015), rgba(0, 0, 0, 0.015));
-    background-size: 100% 3px, 6px 100%;
-    opacity: 0.035;
-  }
   body::before {
     content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 1;
-    background: radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.035) 0%, transparent 80%);
+    background: radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 80%);
   }
   .app-container {
     width: 100%; height: 100%;
@@ -57,9 +50,8 @@
   }
   @media (min-width: 960px) {
     .terminal-frame {
-      max-width: 1200px; height: 94vh;
+      max-width: 1100px; height: 94vh;
       border: 1px solid var(--accent-border);
-      box-shadow: 0 0 25px rgba(0, 255, 136, 0.12);
     }
   }
   .screen {
@@ -69,7 +61,7 @@
   }
   .screen.hidden { display: none !important; }
 
-  /* BOOT COVER — hides everything until Firebase decides */
+  /* BOOT COVER */
   #boot-check {
     position: fixed; inset: 0;
     background: var(--bg);
@@ -82,7 +74,6 @@
   #boot-check.gone { opacity: 0; pointer-events: none; }
   .boot-text {
     color: var(--accent);
-    font-family: var(--font-mono);
     font-size: 12px; letter-spacing: 4px;
     text-transform: uppercase;
     text-shadow: 0 0 10px var(--accent-glow);
@@ -90,8 +81,7 @@
   .boot-dots { display: flex; gap: 8px; }
   .boot-dots span {
     width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent);
-    opacity: 0.3;
+    background: var(--accent); opacity: 0.3;
     animation: bootPulse 1.2s infinite;
   }
   .boot-dots span:nth-child(2) { animation-delay: 0.2s; }
@@ -180,69 +170,95 @@
     border-right: 1px solid var(--accent-border);
     flex-shrink: 0;
   }
-  @media (min-width: 860px) { .sidebar-pane { width: 370px; } }
+  @media (min-width: 860px) { .sidebar-pane { width: 340px; } }
 
   .home-topbar {
-    padding: 12px 16px;
+    padding: 12px 14px;
     display: flex; align-items: center; justify-content: space-between;
     border-bottom: 1px solid var(--accent-border);
-    background: #06090d;
   }
-  .home-user-meta { display: flex; flex-direction: column; gap: 2px; }
-  .home-display-name { color: var(--accent); font-weight: 600; font-size: 12.5px; }
-  .home-username { color: var(--dim); font-size: 10.5px; }
-  .topbar-actions { display: flex; gap: 10px; }
+  .home-user-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .home-display-name { color: var(--accent); font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .home-username { color: var(--dim); font-size: 10px; }
+  .topbar-actions { display: flex; gap: 8px; flex-shrink: 0; }
   .btn-icon-raw {
     background: transparent; border: 1px solid var(--accent-border);
     color: var(--accent); font-family: var(--font-mono);
-    font-size: 11px; padding: 5px 8px; cursor: pointer;
+    font-size: 10px; padding: 4px 8px; cursor: pointer;
+    letter-spacing: 1px;
   }
-  .btn-icon-raw:hover { background: rgba(0, 255, 136, 0.12); }
+  .btn-icon-raw:hover { background: rgba(0, 255, 136, 0.1); }
 
   .search-row {
-    padding: 10px 14px; display: flex; gap: 8px;
+    padding: 8px 14px; display: flex; gap: 6px;
     border-bottom: 1px dotted var(--dim-subtle);
-    background: var(--bg-secondary);
   }
   .search-input-field {
     flex: 1; min-width: 0; background: transparent;
     border: 1px solid var(--accent-border);
     padding: 7px 10px; color: var(--accent);
-    font-family: var(--font-mono); font-size: 11.5px; outline: none;
+    font-family: var(--font-mono); font-size: 11px; outline: none;
   }
   .search-input-field::placeholder { color: var(--dim); }
   .btn-find-green {
-    padding: 7px 14px; background: var(--accent); color: #05070a;
-    border: 1px solid var(--accent);
-    font-family: var(--font-mono); font-weight: 700; font-size: 11px;
-    cursor: pointer;
+    padding: 7px 12px; background: var(--accent); color: #05070a;
+    border: 0;
+    font-family: var(--font-mono); font-weight: 700; font-size: 10.5px;
+    letter-spacing: 1px; cursor: pointer;
   }
 
-  .chat-list-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+  /* CHAT LIST — flat Reddit DM style */
+  .chat-list-scroll { flex: 1; overflow-y: auto; }
   .chat-row {
-    min-height: 52px; padding: 10px 40px 10px 14px;
-    display: flex; justify-content: space-between; align-items: flex-start;
-    border-bottom: 1px dotted var(--accent-border);
+    padding: 10px 14px 10px 14px;
+    display: flex; align-items: flex-start;
+    gap: 10px;
+    border-bottom: 1px solid rgba(58, 92, 72, 0.15);
     cursor: pointer; position: relative;
+    transition: background 0.1s;
   }
-  .chat-row:hover { background: rgba(0, 255, 136, 0.04); }
-  .chat-row.active { background: rgba(0, 255, 136, 0.09); border-left: 2px solid var(--accent); }
-  .chat-row-left { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-  .chat-row-line1 { font-size: 12px; font-weight: 700; color: #f1f7f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 54px; }
-  .chat-row-line2 { font-size: 10px; color: var(--dim); }
-  .chat-row-line3 { font-size: 11px; color: var(--dim-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .chat-row-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; padding-right: 22px; }
-  .chat-row-time { font-size: 9.5px; color: var(--dim); }
-  .chat-unread-pill { font-size: 9px; font-weight: 700; background: var(--accent); color: #05070a; padding: 1px 6px; border-radius: 2px; }
+  .chat-row:hover { background: rgba(0, 255, 136, 0.03); }
+  .chat-row.active { background: rgba(0, 255, 136, 0.06); }
+  .chat-row.active::before {
+    content: ""; position: absolute; left: 0; top: 6px; bottom: 6px;
+    width: 2px; background: var(--accent);
+  }
+
+  .chat-row-main { flex: 1; min-width: 0; }
+  .chat-row-line1 {
+    font-size: 12.5px; font-weight: 600; color: var(--text-primary);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .chat-row-line1 .handle {
+    font-size: 10px; font-weight: 400; color: var(--dim);
+    white-space: nowrap;
+  }
+  .chat-row-line3 {
+    font-size: 11.5px; color: var(--dim-text); margin-top: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    line-height: 1.35;
+  }
+
+  .chat-row-side {
+    display: flex; flex-direction: column; align-items: flex-end;
+    gap: 4px; flex-shrink: 0; min-width: 42px;
+  }
+  .chat-row-time { font-size: 9.5px; color: var(--dim); white-space: nowrap; }
+  .chat-unread-pill {
+    font-size: 9px; font-weight: 700;
+    background: var(--accent); color: #05070a;
+    padding: 1px 6px; border-radius: 8px;
+    min-width: 16px; text-align: center;
+  }
   .chat-row-menu-btn {
-    position: absolute; top: 50%; right: 4px; transform: translateY(-50%);
     background: transparent; border: 0; color: var(--dim);
-    font-family: var(--font-mono); font-size: 16px; padding: 4px 8px; cursor: pointer;
-    z-index: 3;
+    font-family: var(--font-mono); font-size: 15px; padding: 0 2px; cursor: pointer;
+    line-height: 1; margin-top: 2px;
   }
   .chat-row-menu-btn:hover { color: var(--error); }
   .chat-row-menu-popup {
-    position: absolute; top: 30px; right: 8px;
+    position: absolute; top: 32px; right: 10px;
     background: #06090d; border: 1px solid var(--accent-border);
     z-index: 50; min-width: 130px;
   }
@@ -253,9 +269,14 @@
   }
   .chat-row-menu-popup button:hover { background: rgba(255, 42, 74, 0.1); color: var(--error); }
 
-  .empty-channels-state { padding: 50px 20px; text-align: center; color: var(--dim); line-height: 1.8; font-size: 11.5px; }
-  .empty-channels-symbol { font-size: 26px; color: var(--dim); margin-bottom: 10px; display: block; }
+  .empty-channels-state {
+    padding: 60px 20px; text-align: center;
+    color: var(--dim); font-size: 11px;
+    line-height: 1.8; letter-spacing: 0.5px;
+  }
+  .empty-channels-symbol { font-size: 24px; color: var(--dim); display: block; margin-bottom: 10px; }
 
+  /* CHAT SCREEN */
   .chat-screen-pane { flex: 1; height: 100%; display: flex; flex-direction: column; min-height: 0; }
   @media (max-width: 859px) {
     .workspace-container.show-chat .sidebar-pane { display: none; }
@@ -264,95 +285,92 @@
   .chat-topbar {
     padding: 10px 14px; display: flex; align-items: center; gap: 10px;
     border-bottom: 1px solid var(--accent-border);
-    background: #06090d; flex-shrink: 0;
+    flex-shrink: 0;
   }
   .btn-back-arrow {
-    background: transparent; border: 1px solid var(--accent-border);
-    color: var(--accent); font-family: var(--font-mono); font-size: 14px;
-    padding: 3px 8px; cursor: pointer;
+    background: transparent; border: 0;
+    color: var(--accent); font-family: var(--font-mono); font-size: 20px;
+    padding: 0 4px; cursor: pointer; line-height: 1;
   }
   @media (min-width: 860px) { .btn-back-arrow { display: none; } }
-  .chat-target-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-  .chat-target-line1 { display: flex; align-items: center; gap: 8px; }
+  .chat-target-meta { flex: 1; min-width: 0; }
   .chat-target-name { color: var(--accent); font-weight: 700; font-size: 12.5px; }
-  .chat-target-username { color: var(--dim); font-size: 10px; }
-  .chat-target-status { font-size: 10px; color: var(--dim); height: 14px; }
-  .chat-target-status.typing { color: var(--accent); font-weight: 600; }
+  .chat-target-username { color: var(--dim); font-size: 10px; margin-left: 6px; }
+  .chat-target-status { font-size: 10px; color: var(--dim); margin-top: 1px; height: 13px; }
+  .chat-target-status.typing { color: var(--accent); }
 
-  /* MESSAGES — flex-end so empty state sits at bottom, chat grows up */
+  /* MESSAGES — flat, minimal, bottom-justified */
   .messages-viewport {
     flex: 1; min-height: 0; overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 16px 14px;
+    padding: 14px 16px;
     display: flex; flex-direction: column;
-    justify-content: flex-end;   /* <-- messages stack from bottom */
-    gap: 12px;
+    justify-content: flex-end;
+    gap: 10px;
   }
-  .msg-wrapper { display: flex; flex-direction: column; max-width: 82%; flex-shrink: 0; }
-  .msg-wrapper.own { align-self: flex-end; align-items: flex-end; }
-  .msg-wrapper.own .msg-inner { border-left: 1px solid var(--accent); padding: 4px 10px; background: rgba(0, 255, 136, 0.035); color: var(--accent); }
-  .msg-wrapper.received { align-self: flex-start; align-items: flex-start; }
-  .msg-wrapper.received .msg-inner { border-left: 1px solid var(--dim); padding: 4px 10px; background: rgba(58, 92, 72, 0.06); color: var(--text-received); }
-  .msg-text-content { font-size: 12.5px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
-  .msg-meta-footer { display: flex; align-items: center; justify-content: flex-end; gap: 6px; margin-top: 3px; font-size: 9.5px; color: var(--dim); }
-  .read-dot { letter-spacing: 1px; font-size: 12px; }
+  .msg-wrapper {
+    display: flex; flex-direction: column;
+    max-width: 82%;
+    flex-shrink: 0;
+  }
+  .msg-wrapper.own { align-self: flex-end; }
+  .msg-wrapper.received { align-self: flex-start; }
+
+  .msg-inner {
+    padding: 2px 8px;
+    line-height: 1.45;
+  }
+  .msg-wrapper.own .msg-inner { border-left: 1px solid var(--accent); color: var(--accent); }
+  .msg-wrapper.received .msg-inner { border-left: 1px solid var(--dim); color: var(--text-received); }
+
+  .msg-text-content {
+    font-size: 12.5px;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .msg-meta-footer {
+    display: flex; align-items: center; justify-content: flex-end;
+    gap: 5px; margin-top: 2px;
+    font-size: 9px; color: var(--dim);
+  }
+  .read-dot { letter-spacing: 1px; font-size: 11px; line-height: 1; }
   .read-dot.unseen { color: var(--dim); }
-  .read-dot.seen { color: var(--accent); text-shadow: 0 0 6px var(--accent-glow); }
+  .read-dot.seen { color: var(--accent); }
 
-  /* bottom disclaimer inside chat */
-  .chat-disclaimer {
-    flex-shrink: 0;
-    padding: 10px 14px;
-    font-size: 9px;
-    color: var(--dim);
-    letter-spacing: 0.3px;
-    line-height: 1.55;
-    text-align: center;
-    border-top: 1px dotted var(--dim-subtle);
-    background: var(--bg);
-  }
-  .chat-disclaimer b { color: var(--dim-text); font-weight: 500; }
-
+  /* COMPOSER — single line, minimal */
   .chat-composer-section {
-    padding: 10px 14px 12px;
+    padding: 8px 12px 10px;
     border-top: 1px solid var(--accent-border);
-    background: #06090d;
-    display: flex; flex-direction: column; gap: 8px;
     flex-shrink: 0;
-  }
-  .composer-input-row { display: flex; align-items: flex-end; gap: 10px; }
-  .composer-textarea-wrap {
-    flex: 1; position: relative;
-    border: 1px solid var(--accent-border);
-    background: rgba(5, 7, 10, 0.9);
-    padding: 8px 10px;
+    display: flex; align-items: flex-end; gap: 8px;
   }
   .composer-textarea {
-    width: 100%; min-height: 24px; max-height: 100px;
-    background: transparent; border: 0; outline: none;
-    color: var(--text-primary); font-family: var(--font-mono);
-    font-size: 12px; resize: none; caret-color: var(--accent);
+    flex: 1; min-width: 0;
+    background: transparent;
+    border: 1px solid var(--accent-border);
+    padding: 9px 12px;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    resize: none; outline: none;
+    max-height: 90px;
+    line-height: 1.4;
+    caret-color: var(--accent);
+    border-radius: 18px;
   }
+  .composer-textarea:focus { border-color: var(--accent); }
   .composer-textarea::placeholder { color: var(--dim); }
-  .composer-subline { display: flex; justify-content: flex-end; margin-top: 4px; }
-  .composer-char-count { font-size: 9.5px; color: var(--dim); }
-
-  /* SEND BUTTON — solid circle with arrow, no border */
   .btn-send-circular {
-    width: 40px; height: 40px; border-radius: 50%;
+    width: 36px; height: 36px; border-radius: 50%;
     background: var(--accent); color: #05070a;
-    border: none;
+    border: 0;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; flex-shrink: 0;
-    box-shadow: 0 0 12px var(--accent-glow);
-    transition: transform 0.12s ease, filter 0.12s ease;
+    transition: transform 0.12s ease;
   }
-  .btn-send-circular:active { transform: scale(0.94); filter: brightness(0.92); }
-  .btn-send-circular svg {
-    width: 18px; height: 18px;
-    fill: #05070a;
-  }
+  .btn-send-circular:active { transform: scale(0.94); }
+  .btn-send-circular svg { width: 16px; height: 16px; fill: #05070a; }
 
+  /* MODAL */
   .modal-backdrop {
     position: absolute; inset: 0;
     background: rgba(5, 7, 10, 0.85);
@@ -362,30 +380,30 @@
   }
   .modal-backdrop.open { display: flex; }
   .search-modal-box {
-    width: 100%; max-width: 380px;
+    width: 100%; max-width: 360px;
     background: #06090d;
     border: 1px solid var(--accent);
-    padding: 16px;
-    display: flex; flex-direction: column; gap: 12px;
+    padding: 14px;
   }
   .search-modal-header {
-    display: flex; justify-content: space-between;
-    border-bottom: 1px dotted var(--accent-border);
-    padding-bottom: 8px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--accent-border);
+    padding-bottom: 8px; margin-bottom: 10px;
   }
-  .search-modal-title { color: var(--accent); font-size: 11.5px; letter-spacing: 1.5px; }
-  .btn-modal-close { background: transparent; border: 0; color: var(--dim); font-size: 13px; cursor: pointer; }
-  .search-result-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 4px; }
+  .search-modal-title { color: var(--accent); font-size: 10.5px; letter-spacing: 2px; }
+  .btn-modal-close { background: transparent; border: 0; color: var(--dim); font-size: 14px; cursor: pointer; }
+  .search-result-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
   .search-result-info { display: flex; flex-direction: column; gap: 2px; }
-  .search-result-name { color: #fff; font-size: 12px; font-weight: 700; }
-  .search-result-user { color: var(--dim); font-size: 10px; }
+  .search-result-name { color: var(--text-primary); font-size: 12.5px; font-weight: 600; }
+  .search-result-user { color: var(--dim); font-size: 10.5px; }
   .btn-open-result {
     background: var(--accent); color: #05070a;
-    border: 1px solid var(--accent);
+    border: 0;
     font-family: var(--font-mono); font-weight: 700; font-size: 10.5px;
-    padding: 5px 12px; cursor: pointer;
+    letter-spacing: 1px; padding: 6px 14px; cursor: pointer;
   }
 
+  /* NEW MESSAGE BANNER */
   .slide-notice-banner {
     position: absolute; top: 0; left: 0; right: 0;
     padding: 8px 14px;
@@ -410,24 +428,19 @@
     transition: opacity 0.2s;
   }
   .toast-indicator.show { opacity: 1; }
-
-  .chat-screen-pane .terminal-disclaimer-wrap { display: none; }
 </style>
 </head>
 <body>
 
-<!-- BOOT — covers everything until Firebase decides -->
 <div id="boot-check">
   <div class="boot-text">INITIALIZING</div>
   <div class="boot-dots"><span></span><span></span><span></span></div>
 </div>
 
-<div class="scanline-layer"></div>
-
 <div class="app-container">
   <div class="terminal-frame">
 
-    <!-- LOGIN — hidden by default; only shown when Firebase confirms logged out -->
+    <!-- LOGIN -->
     <div class="screen hidden" id="screen-login">
       <div></div>
       <div class="login-box">
@@ -453,9 +466,9 @@
         <div class="slide-notice-left">
           <span style="color:var(--accent);">⚡</span>
           <span class="slide-notice-sender" id="banner-sender">@operative</span>:
-          <span class="slide-notice-preview" id="banner-preview">Encrypted message received</span>
+          <span class="slide-notice-preview" id="banner-preview">New message</span>
         </div>
-        <button class="btn-icon-raw" id="banner-open-btn" style="padding:2px 6px; font-size:9.5px;">VIEW</button>
+        <button class="btn-icon-raw" id="banner-open-btn" style="padding:2px 6px; font-size:9px;">VIEW</button>
       </div>
 
       <div class="workspace-container" id="workspace-layout">
@@ -475,42 +488,27 @@
             <button class="btn-find-green" id="btn-search-exec">FIND</button>
           </div>
           <div class="chat-list-scroll" id="chat-list-container"></div>
-          <footer class="terminal-disclaimer-wrap">
-            <p class="disclaimer-text">This platform is for research and developer communication. Any illegal activity is solely the responsibility of the individual user. The owner and platform take no liability.</p>
-            <div class="disclaimer-handle-box" id="home-disclaimer-handle">@—</div>
-          </footer>
         </aside>
 
         <main class="chat-screen-pane" id="chat-pane">
           <header class="chat-topbar">
-            <button class="btn-back-arrow" id="btn-chat-back">‹ BACK</button>
+            <button class="btn-back-arrow" id="btn-chat-back">‹</button>
             <div class="chat-target-meta">
-              <div class="chat-target-line1">
+              <div>
                 <span class="chat-target-name" id="peer-display-name">Select Channel</span>
                 <span class="chat-target-username" id="peer-username">@peer_id</span>
               </div>
-              <div class="chat-target-status" id="peer-status-line">encrypted tunnel offline</div>
+              <div class="chat-target-status" id="peer-status-line">offline</div>
             </div>
           </header>
+
           <div class="messages-viewport" id="chat-messages-stream"></div>
-          <!-- disclaimer at bottom of chat -->
-          <div class="chat-disclaimer">
-            <b>notice:</b> all messages are user-generated. any illegal, harmful, or malicious
-            activity is solely the responsibility of the sender. the platform owner assumes
-            no liability for user content or actions.
-          </div>
+
           <div class="chat-composer-section">
-            <div class="composer-input-row">
-              <div class="composer-textarea-wrap">
-                <textarea id="composer-text-input" class="composer-textarea" rows="1" maxlength="700" placeholder="type transmission (max 700)..."></textarea>
-                <div class="composer-subline">
-                  <span class="composer-char-count" id="composer-char-count">0 / 700</span>
-                </div>
-              </div>
-              <button class="btn-send-circular" id="btn-send-message" title="Send">
-                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-              </button>
-            </div>
+            <textarea id="composer-text-input" class="composer-textarea" rows="1" maxlength="700" placeholder="message..."></textarea>
+            <button class="btn-send-circular" id="btn-send-message" title="Send">
+              <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
           </div>
         </main>
       </div>
@@ -720,11 +718,9 @@ onAuthStateChanged(auth, async (user) => {
     $("my-display-name").textContent = dname;
     $("my-username").textContent = `@${uname}`;
     $("login-disclaimer-handle").textContent = `@${uname}`;
-    $("home-disclaimer-handle").textContent = `@${uname}`;
 
     updateDoc(doc(db, "users", user.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
 
-    // show workspace BEFORE hiding login screen — swap atomically
     $("screen-workspace").classList.remove("hidden");
     $("screen-login").classList.add("hidden");
 
@@ -755,7 +751,7 @@ async function performUserSearch() {
 
   const modal = $("search-modal");
   const content = $("search-modal-content");
-  content.innerHTML = `<div style="color:var(--dim);font-size:11.5px;padding:8px 0;">Searching...</div>`;
+  content.innerHTML = `<div style="color:var(--dim);font-size:11px;padding:6px 0;">Searching...</div>`;
   modal.classList.add("open");
 
   try {
@@ -771,7 +767,7 @@ async function performUserSearch() {
       if (!uSnap.empty) { otherUid = uSnap.docs[0].id; otherData = uSnap.docs[0].data(); }
     }
     if (!otherUid || !otherData) {
-      content.innerHTML = `<div style="color:var(--error);font-size:11.5px;padding:8px 0;">NO RECORD FOR @${escapeHtml(q)}</div>`;
+      content.innerHTML = `<div style="color:var(--error);font-size:11px;padding:6px 0;">NO RECORD FOR @${escapeHtml(q)}</div>`;
       return;
     }
     removeDeleted(currentUser.uid, otherUid);
@@ -791,7 +787,7 @@ async function performUserSearch() {
     });
   } catch (err) {
     console.error(err);
-    content.innerHTML = `<div style="color:var(--error);font-size:11.5px;padding:8px 0;">QUERY ERROR</div>`;
+    content.innerHTML = `<div style="color:var(--error);font-size:11px;padding:6px 0;">QUERY ERROR</div>`;
   }
 }
 
@@ -807,8 +803,13 @@ async function openChatWith(peerUid, peerProfile) {
   $("peer-status-line").textContent = `@${activePeer.username}`;
   $("peer-status-line").className = "chat-target-status";
   $("composer-text-input").value = "";
-  updateCharCount();
   $("workspace-layout").classList.add("show-chat");
+
+  // Clear old messages + typing subs first
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+  if (unsubTypingStatus) { unsubTypingStatus(); unsubTypingStatus = null; }
+  const vp = $("chat-messages-stream");
+  if (vp) vp.innerHTML = "";
 
   const chatRef = doc(db, "chats", activeChatId);
   try {
@@ -824,12 +825,14 @@ async function openChatWith(peerUid, peerProfile) {
   subscribePeerTypingAndStatus(activeChatId, peerUid);
   markConversationSeen(activeChatId);
   document.querySelectorAll(".chat-row").forEach(r => r.classList.toggle("active", r.dataset.uid === peerUid));
-  // NOTE: no auto-focus here — user must tap composer to open keyboard
+  // no auto-focus, keyboard stays closed
 }
 
 $("btn-chat-back").addEventListener("click", () => {
   $("workspace-layout").classList.remove("show-chat");
   sessionStorage.removeItem("yuki_active_peer");
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+  if (unsubTypingStatus) { unsubTypingStatus(); unsubTypingStatus = null; }
 });
 
 function subscribeChatRoster() {
@@ -883,16 +886,18 @@ function renderChatList() {
     row.className = "chat-row" + (isActive ? " active" : "");
     row.dataset.uid = item.otherUid;
     row.innerHTML = `
-      <div class="chat-row-left">
-        <div class="chat-row-line1">${escapeHtml(p.display || p.username || "Operator")}</div>
-        <div class="chat-row-line2">@${escapeHtml(p.username || "id")}</div>
+      <div class="chat-row-main">
+        <div class="chat-row-line1">
+          <span>${escapeHtml(p.display || p.username || "Operator")}</span>
+          <span class="handle">@${escapeHtml(p.username || "id")}</span>
+        </div>
         <div class="chat-row-line3">${escapeHtml(d.lastMsg || "channel initialized")}</div>
       </div>
-      <div class="chat-row-right">
+      <div class="chat-row-side">
         <div class="chat-row-time">${escapeHtml(formatTime(d.lastMsgAt || d.touchAt))}</div>
         ${unreadCount > 0 ? `<div class="chat-unread-pill">${unreadCount > 9 ? "9+" : unreadCount}</div>` : ""}
+        <button class="chat-row-menu-btn" data-uid="${escapeHtml(item.otherUid)}">⋮</button>
       </div>
-      <button class="chat-row-menu-btn" data-uid="${escapeHtml(item.otherUid)}">⋮</button>
     `;
     row.addEventListener("click", (ev) => {
       if (ev.target.classList.contains("chat-row-menu-btn")) return;
@@ -923,7 +928,7 @@ function showRowMenu(rowEl, otherUid) {
       $("workspace-layout").classList.remove("show-chat");
       $("peer-display-name").textContent = "Select Channel";
       $("peer-username").textContent = "@peer_id";
-      $("peer-status-line").textContent = "encrypted tunnel offline";
+      $("peer-status-line").textContent = "offline";
       $("chat-messages-stream").innerHTML = "";
     }
     localChannels = localChannels.filter(c => c.otherUid !== otherUid);
@@ -939,6 +944,9 @@ function showRowMenu(rowEl, otherUid) {
 
 function subscribeMessages(chatId) {
   if (unsubMessages) unsubMessages();
+  // clear viewport immediately so old chat never flashes
+  const vp = $("chat-messages-stream");
+  if (vp) vp.innerHTML = "";
   const msgsRef = collection(db, "chats", chatId, "messages");
   const q = query(msgsRef, orderBy("at", "asc"), limit(250));
   unsubMessages = onSnapshot(q, (snap) => {
@@ -946,10 +954,7 @@ function subscribeMessages(chatId) {
     if (!viewport) return;
     const isAtBottom = viewport.scrollHeight - viewport.scrollTop - viewport.clientHeight < 120;
     viewport.innerHTML = "";
-    if (snap.empty) {
-      // no messages → just leave empty (bottom-justified by flex-end)
-      return;
-    }
+    if (snap.empty) return;
     snap.forEach((docSnap) => {
       const m = docSnap.data();
       const isMine = m.by === currentUser.uid;
@@ -976,7 +981,7 @@ function subscribePeerTypingAndStatus(chatId, otherUid) {
     const d = snap.data();
     const statusLine = $("peer-status-line");
     if (d.typing && d.typing[otherUid] === true) {
-      statusLine.textContent = "⚡ typing transmission...";
+      statusLine.textContent = "typing...";
       statusLine.className = "chat-target-status typing";
       return;
     }
@@ -1006,10 +1011,8 @@ async function transmitMessage() {
   const text = input.value.trim();
   if (!text || !currentUser || !activeChatId || !activePeer) return;
   input.value = "";
-  updateCharCount();
   input.style.height = "auto";
-  // keep keyboard open — refocus composer
-  input.focus();
+  input.focus(); // keep keyboard open
 
   const payload = { text, by: currentUser.uid, at: serverTimestamp(), seen: false };
   try {
@@ -1033,15 +1036,9 @@ $("composer-text-input").addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); transmitMessage(); }
 });
 
-function updateCharCount() {
-  const count = $("composer-text-input")?.value.length || 0;
-  const el = $("composer-char-count");
-  if (el) el.textContent = `${count} / 700`;
-}
 $("composer-text-input").addEventListener("input", (e) => {
   e.target.style.height = "auto";
   e.target.style.height = Math.min(e.target.scrollHeight, 90) + "px";
-  updateCharCount();
   broadcastTyping();
 });
 
@@ -1068,7 +1065,7 @@ function checkForNewMessagePopup() {
     if (unread > 0 && activePeer?.uid !== c.otherUid) {
       if (Date.now() - lastPopupTime < 3000) return;
       lastPopupTime = Date.now();
-      showIncomingBanner(c.profile?.username || "operator", c.data.lastMsg || "encrypted message", c.otherUid, c.profile);
+      showIncomingBanner(c.profile?.username || "operator", c.data.lastMsg || "new message", c.otherUid, c.profile);
       return;
     }
   }
