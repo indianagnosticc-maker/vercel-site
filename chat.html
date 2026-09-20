@@ -364,13 +364,14 @@
     background: rgba(3, 7, 13, 0.65);
     display: none; align-items: center; justify-content: center;
     opacity: 0; transition: opacity 0.2s;
-    backdrop-filter: blur(3px);
+    backdrop-filter: blur(3px); pointer-events: none;
   }
-  .modal-backdrop.open { display: flex; opacity: 1; }
+  .modal-backdrop.open { display: flex; opacity: 1; pointer-events: auto; }
   .search-modal-box {
     background: #080e18; border: 1px solid var(--panel-border);
     border-radius: 6px; max-width: 420px; width: 92%;
     max-height: 80vh; overflow-y: auto; box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    pointer-events: auto;
   }
   .search-modal-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -379,8 +380,8 @@
   }
   .search-modal-title { color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
   .btn-modal-close {
-    background: transparent; border: 0; color: var(--dim); font-size: 16px;
-    cursor: pointer; padding: 0; line-height: 1;
+    background: transparent; border: 0; color: var(--dim); font-size: 14px;
+    cursor: pointer; padding: 2px 4px; line-height: 1; flex-shrink: 0;
   }
   .btn-modal-close:hover { color: var(--red); }
   #search-modal-content { padding: 12px 16px; }
@@ -569,20 +570,20 @@ function playSfx(type) {
       osc.type = 'sine';
       osc.frequency.setValueAtTime(1200, t);
       osc.frequency.exponentialRampToValueAtTime(600, t + 0.04);
-      g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+      g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
       osc.connect(g); g.connect(ctx.destination); osc.start(t); osc.stop(t + 0.05);
     } else if (type === 'receive') {
       [880, 1320].forEach((freq, idx) => {
         const osc = ctx.createOscillator(), g = ctx.createGain();
         osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, t + idx * 0.06);
-        g.gain.setValueAtTime(0.05, t + idx * 0.06); g.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.06 + 0.12);
+        g.gain.setValueAtTime(0.10, t + idx * 0.06); g.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.06 + 0.12);
         osc.connect(g); g.connect(ctx.destination); osc.start(t + idx * 0.06); osc.stop(t + idx * 0.06 + 0.13);
       });
     } else if (type === 'click') {
       const osc = ctx.createOscillator(), g = ctx.createGain();
       osc.type = 'sine'; osc.frequency.setValueAtTime(1500, t);
       osc.frequency.exponentialRampToValueAtTime(800, t + 0.03);
-      g.gain.setValueAtTime(0.04, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+      g.gain.setValueAtTime(0.08, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
       osc.connect(g); g.connect(ctx.destination); osc.start(t); osc.stop(t + 0.035);
     }
   } catch (err) {}
@@ -847,61 +848,118 @@ onAuthStateChanged(auth, async (user) => {
   hideBoot();
 });
 
-$("btn-peer-search").addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); performUserSearch(); });
+$("btn-peer-search").addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openSearchModal(); });
 $("search-peer-input").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); performUserSearch(); } });
-$("btn-close-search-modal").addEventListener("click", () => $("search-modal").classList.remove("open"));
+$("btn-close-search-modal").addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  $("search-modal").classList.remove("open");
+});
 $("search-modal").addEventListener("click", (e) => {
   if (e.target === $("search-modal")) {
+    e.stopPropagation();
     $("search-modal").classList.remove("open");
   }
 });
 const searchModalBox = document.querySelector(".search-modal-box");
 if (searchModalBox) {
-  searchModalBox.addEventListener("click", (e) => e.stopPropagation());
+  searchModalBox.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
 }
 
-async function performUserSearch() {
-  const q = $("search-peer-input").value.trim().toLowerCase().replace(/^@/, "");
-  if (!q || !currentUser || !currentProfile) return;
-  if (q === currentProfile.username.toLowerCase()) { showToast("CANNOT QUERY YOUR OWN ID"); return; }
+function openSearchModal() {
   const modal = $("search-modal");
   const content = $("search-modal-content");
-  content.innerHTML = `<div style="color:var(--dim);font-size:11px;padding:6px 0;">searching...</div>`;
+  content.innerHTML = `
+    <div style="padding:12px 0;">
+      <input type="text" id="modal-search-input" placeholder="Enter username to search..." style="width:100%;padding:8px 10px;background:#03070d;border:1px solid var(--green-dim);color:var(--green);font-family:var(--font-mono);font-size:11px;border-radius:3px;outline:none;" />
+    </div>
+    <div id="modal-search-results" style="margin-top:10px;"></div>
+  `;
   modal.classList.add("open");
+  const searchInput = $("modal-search-input");
+  if (searchInput) {
+    setTimeout(() => searchInput.focus(), 100);
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        performUserSearchModal(searchInput.value);
+      }
+    });
+    searchInput.addEventListener("input", (e) => {
+      if (e.target.value.trim().length > 0) {
+        performUserSearchModal(e.target.value);
+      }
+    });
+  }
+}
+
+async function performUserSearchModal(q) {
+  const searchQ = q.trim().toLowerCase().replace(/^@/, "");
+  if (!searchQ) {
+    $("modal-search-results").innerHTML = "";
+    return;
+  }
+  if (!currentUser || !currentProfile) return;
+  if (searchQ === currentProfile.username.toLowerCase()) {
+    $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">Cannot message yourself</div>`;
+    return;
+  }
   try {
     let otherUid = null, otherData = null;
-    const uDoc = await getDoc(doc(db, "usernames", q));
+    const uDoc = await getDoc(doc(db, "usernames", searchQ));
     if (uDoc.exists()) {
       otherUid = uDoc.data().uid;
       const uSnap = await getDoc(doc(db, "users", otherUid));
       if (uSnap.exists()) otherData = uSnap.data();
     } else {
-      const qU = query(collection(db, "users"), where("username", "==", q), limit(1));
+      const qU = query(collection(db, "users"), where("username", "==", searchQ), limit(1));
       const uSnap = await getDocs(qU);
       if (!uSnap.empty) { otherUid = uSnap.docs[0].id; otherData = uSnap.docs[0].data(); }
     }
     if (!otherUid || !otherData) {
-      content.innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">no record for @${escapeHtml(q)}</div>`;
+      $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">No user found: @${escapeHtml(searchQ)}</div>`;
       return;
     }
     removeDeleted(currentUser.uid, otherUid);
-    content.innerHTML = `
+    $("modal-search-results").innerHTML = `
       <div class="search-result-row">
         <div class="search-result-info">
           <div class="search-result-name">${escapeHtml(otherData.display || otherData.username)}</div>
           <div class="search-result-user">@${escapeHtml(otherData.username)}</div>
         </div>
-        <button class="btn-open-result" id="btn-open-peer">OPEN</button>
+        <button class="btn-open-result" id="btn-open-peer" type="button">OPEN</button>
       </div>`;
-    $("btn-open-peer").addEventListener("click", () => {
-      modal.classList.remove("open");
-      $("search-peer-input").value = "";
-      openChatWith(otherUid, otherData);
-    });
+    const openBtn = $("btn-open-peer");
+    if (openBtn) {
+      openBtn.onclick = null;
+      openBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        $("search-modal").classList.remove("open");
+        $("modal-search-input").value = "";
+        openChatWith(otherUid, otherData);
+      });
+    }
   } catch (e) {
     console.error(e);
-    content.innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">query error</div>`;
+    $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">Search error</div>`;
   }
+}
+
+async function performUserSearch() {
+  const q = $("search-peer-input").value.trim().toLowerCase().replace(/^@/, "");
+  if (!q) { openSearchModal(); return; }
+  if (!currentUser || !currentProfile) return;
+  openSearchModal();
+  setTimeout(() => {
+    const modalInput = $("modal-search-input");
+    if (modalInput) {
+      modalInput.value = q;
+      performUserSearchModal(q);
+    }
+  }, 100);
 }
 
 function openYukiBot() {
@@ -924,7 +982,7 @@ function openYukiBot() {
   if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
 
   subscribeMessages(activeChatId);
-  renderRoster();
+setTimeout(renderRoster, 0);
 }
 
 function openChatWith(peerUid, peerProfile) {
@@ -1291,11 +1349,11 @@ function renderRoster() {
       <button class="roster-menu-btn" data-uid="${escapeHtml(item.otherUid)}">⋮</button>
     `;
     row.addEventListener("click", (ev) => {
-      if (ev.target.classList.contains("roster-menu-btn")) return;
-      if (ev.target.closest(".roster-menu-popup")) return;
-      playSfx('click');
-      openChatWith(item.otherUid, p);
-    });
+  if (ev.target.classList.contains("roster-menu-btn")) return;
+  if (ev.target.closest(".roster-menu-popup")) return;
+  playSfx('click');
+  openChatWith(item.otherUid, p);
+});
     row.querySelector(".roster-menu-btn").addEventListener("click", (ev) => {
       ev.stopPropagation();
       showRosterMenu(row, item.otherUid);
