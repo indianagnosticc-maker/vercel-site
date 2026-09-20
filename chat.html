@@ -360,175 +360,169 @@
 
   /* Modal */
   .modal-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(3, 7, 13, 0.85);
-    z-index: 200; display: none;
-    align-items: center; justify-content: center;
-    padding: 16px;
+    position: fixed; inset: 0; z-index: 600;
+    background: rgba(3, 7, 13, 0.65);
+    display: none; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+    backdrop-filter: blur(3px);
   }
-  .modal-backdrop.open { display: flex; }
+  .modal-backdrop.open { display: flex; opacity: 1; }
   .search-modal-box {
-    width: 100%; max-width: 380px;
-    background: #060b12; border: 1px solid var(--green-dim);
-    padding: 14px; border-radius: 4px;
+    background: #080e18; border: 1px solid var(--panel-border);
+    border-radius: 6px; max-width: 420px; width: 92%;
+    max-height: 80vh; overflow-y: auto; box-shadow: 0 16px 48px rgba(0,0,0,0.5);
   }
-  .search-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--line); padding-bottom: 8px; margin-bottom: 10px; }
-  .search-modal-title { color: var(--green); font-size: 10.5px; letter-spacing: 2px; }
-  .btn-modal-close { background: transparent; border: 0; color: var(--dim); font-size: 14px; cursor: pointer; }
-  .search-result-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; gap: 10px; }
-  .search-result-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-  .search-result-name { color: var(--txt); font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .search-result-user { color: var(--green); font-size: 10.5px; }
+  .search-modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border-bottom: 1px solid var(--panel-border);
+    background: rgba(8, 14, 24, 0.95); flex-shrink: 0;
+  }
+  .search-modal-title { color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; }
+  .btn-modal-close {
+    background: transparent; border: 0; color: var(--dim); font-size: 16px;
+    cursor: pointer; padding: 0; line-height: 1;
+  }
+  .btn-modal-close:hover { color: var(--red); }
+  #search-modal-content { padding: 12px 16px; }
+  .search-result-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px; background: rgba(0,255,136,0.04); border: 1px solid rgba(0,255,136,0.2);
+    border-radius: 4px; gap: 10px;
+  }
+  .search-result-info { flex: 1; min-width: 0; text-align: left; }
+  .search-result-name { color: var(--txt); font-weight: 700; font-size: 11.5px; margin-bottom: 2px; }
+  .search-result-user { color: var(--dim); font-size: 10px; }
   .btn-open-result {
-    background: var(--green); color: #011409; border: 0; border-radius: 3px;
-    font-family: var(--font-mono); font-weight: 700; font-size: 10.5px;
-    letter-spacing: 1px; padding: 6px 14px; cursor: pointer;
+    background: var(--green); color: #001a04; border: 0; border-radius: 3px;
+    font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+    padding: 5px 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  }
+  .btn-open-result:hover { opacity: 0.9; }
+
+  /* Sidebar toggle mobile */
+  .sidebar-hidden { transform: translateX(-100%); }
+  @media (max-width: 768px) {
+    .sidebar { position: absolute; top: 0; left: 0; z-index: 11; width: 76vw; max-width: 300px; }
+    .btn-toggle-roster { display: inline-flex; }
   }
 
+  /* Incoming message banner */
   .slide-notice {
-    position: absolute; top: 0; left: 0; right: 0;
-    padding: 8px 14px;
-    background: rgba(6, 12, 9, 0.98);
+    position: fixed; top: 0; left: 0; right: 0; z-index: 400;
+    background: linear-gradient(135deg, rgba(0,255,136,0.2) 0%, rgba(0,255,136,0.08) 100%);
     border-bottom: 1px solid var(--green);
-    display: flex; align-items: center; justify-content: space-between;
-    font-size: 11px; z-index: 90;
-    transform: translateY(-100%);
-    transition: transform 0.25s ease;
-    cursor: pointer; gap: 8px;
+    padding: 8px 16px max(8px, env(safe-area-inset-top, 8px));
+    color: var(--txt); font-size: 10.5px;
+    display: flex; align-items: center; gap: 8px;
+    transform: translateY(-200%); transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    cursor: pointer;
   }
   .slide-notice.visible { transform: translateY(0); }
-  .slide-notice-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
-  .slide-notice-sender { color: var(--green); font-weight: 700; }
-  .slide-notice-preview { color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .slide-notice-left { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+  .slide-notice-sender { color: var(--green); font-weight: 700; flex-shrink: 0; }
+  .slide-notice-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); }
 
+  /* Toast */
   .toast-indicator {
-    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
-    background: #060b12; border: 1px solid var(--green-dim);
-    color: var(--green); padding: 6px 14px; font-size: 10.5px;
-    z-index: 500; opacity: 0; pointer-events: none;
-    transition: opacity 0.2s; border-radius: 3px;
+    position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 20px)); left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: rgba(0, 255, 136, 0.15); border: 1px solid var(--green);
+    color: var(--green); padding: 8px 16px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; z-index: 401; pointer-events: none;
+    transition: transform 0.2s;
   }
-  .toast-indicator.show { opacity: 1; }
-
-  @media (max-width: 768px) {
-    .hud-bar { padding: max(6px, env(safe-area-inset-top, 6px)) 10px 6px; gap: 6px; }
-    .hud-stats { display: none; }
-    .hud-left { font-size: 10px; }
-    .ctrl-btn { padding: 3px 6px; font-size: 9.5px; }
-    .workspace { position: relative; }
-    .sidebar {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      z-index: 50; transform: translateX(0);
-      background: rgba(3, 7, 13, 0.98);
-    }
-    .sidebar.sidebar-hidden { transform: translateX(-100%); pointer-events: none; }
-    .btn-toggle-roster { display: inline-flex; }
-    .chat-stream { padding: 10px 12px; }
-    .msg-row { max-width: 90%; }
-  }
+  .toast-indicator.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 <canvas id="matrix-rain"></canvas>
-
-<div id="boot-cover">
-  <div class="boot-title">INITIALIZING COMM TERMINAL</div>
-  <div class="boot-dots"><span></span><span></span><span></span></div>
-</div>
-
-<div id="login-screen">
-  <div class="login-box">
-    <h1 class="login-title">YUKI</h1>
-    <div class="login-sub">classified comm protocol</div>
-    <div class="login-fields">
-      <input type="email" id="auth-email" class="login-field" placeholder="operator email" autocomplete="off"/>
-      <input type="password" id="auth-password" class="login-field" placeholder="security key" autocomplete="off"/>
-    </div>
-    <button class="login-btn" id="btn-auth-submit">SIGN IN</button>
-    <button class="login-toggle" id="btn-toggle-auth">Don't have an account? <span>Sign up</span></button>
-    <div class="login-error" id="auth-error"></div>
-  </div>
-  <div class="login-disclaimer">
-    <b>notice:</b> this terminal is for research and developer communication. any illegal or malicious activity is solely the responsibility of the individual user. the platform owner takes no liability.
-  </div>
-</div>
-
 <div class="app-wrap">
-  <header class="hud-bar">
+  <div class="hud-bar" id="hud-bar">
     <div class="hud-left">
-      <span class="live-dot"></span>
-      <span>COMM TERMINAL</span>
+      <div class="live-dot" id="peer-live-dot"></div>
+      <span id="system-status">TERMINAL ONLINE</span>
     </div>
     <div class="hud-stats">
-      <span>SEC: <b>ENCRYPTED</b></span>
-      <span>PEERS: <b id="peer-count">0</b></span>
-      <span>NODE: <b>SHARD-COMM-01</b></span>
+      <span>SYS <b id="peer-count">1</b></span>
     </div>
     <div class="hud-controls">
-      <button class="ctrl-btn active" id="btn-sound-toggle"><span>SFX:</span> <span id="sfx-status">ON</span></button>
-      <button class="ctrl-btn active" id="btn-matrix-toggle"><span>MATRIX:</span> <span id="matrix-status">ON</span></button>
-      <a class="ctrl-btn back-osint-btn" href="index.html" title="OSINT Hub"><span>‹ OSINT KERNEL</span></a>
+      <button class="ctrl-btn active" id="btn-sound-toggle">SFX <span id="sfx-status">ON</span></button>
+      <button class="ctrl-btn active" id="btn-matrix-toggle">MATRIX <span id="matrix-status">ON</span></button>
+      <a href="https://claude.ai/projects/5673d3f9-23ea-4b38-bccc-84849d56b5a9" target="_blank" class="ctrl-btn back-osint-btn">◀ OSINT KERNEL</a>
     </div>
-  </header>
+  </div>
+
+  <div id="boot-cover">
+    <div class="boot-title">YUKI // TERMINAL</div>
+    <div class="boot-dots">
+      <span></span> <span></span> <span></span>
+    </div>
+  </div>
+
+  <div id="login-screen" class="show">
+    <div class="login-box">
+      <div class="login-title">YUKI</div>
+      <div class="login-sub">// neural terminal access</div>
+      <div class="login-fields">
+        <input class="login-field" id="auth-email" type="email" placeholder="Email address" autocomplete="email" />
+        <input class="login-field" id="auth-password" type="password" placeholder="Security key" autocomplete="current-password" />
+      </div>
+      <button class="login-btn" id="btn-auth-submit">SIGN IN</button>
+      <div class="login-error" id="auth-error"></div>
+      <button class="login-toggle" id="btn-toggle-auth">Don't have an account? <span>Sign up</span></button>
+    </div>
+    <div class="login-disclaimer">Secure neural interface. Communications are sandboxed within Firestore shards and monitored for security protocol compliance. By accessing this terminal, you acknowledge all usage is logged and retained per SECURITY POLICY.</div>
+  </div>
 
   <div class="workspace">
-    <aside class="sidebar" id="sidebar-roster">
+    <div class="sidebar" id="sidebar-roster">
       <div class="sidebar-head">
         <div class="user-badge">
-          <span class="user-name" id="me-display">OPERATOR</span>
-          <span class="user-id" id="me-uid">@—</span>
+          <div class="user-name" id="me-display">OPERATIVE</div>
+          <div class="user-id" id="me-uid">@operative</div>
         </div>
-        <div style="display: flex; gap: 6px;">
-          <button class="copy-btn" id="btn-copy-id">COPY ID</button>
-          <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;" title="Close">✕</button>
-        </div>
+        <button class="copy-btn" id="btn-copy-id">COPY</button>
       </div>
       <div class="search-box">
-        <input class="search-inp" id="search-peer-input" placeholder="find handle"/>
-        <button class="search-btn" id="btn-peer-search">QUERY</button>
+        <input class="search-inp" id="search-peer-input" type="text" placeholder="@username" />
+        <button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
       </div>
-      <div class="roster-list" id="roster-list-body"></div>
-    </aside>
+      <div class="roster-list">
+        <div class="roster-list-body" id="roster-list-body"></div>
+      </div>
+    </div>
 
-    <main class="chat-pane">
+    <main class="chat-pane" id="chat-pane">
       <div class="chat-subhead">
         <div class="chat-subhead-left">
-          <button class="btn-toggle-roster" id="btn-mobile-roster-toggle"><span>‹ CHATS</span></button>
-          <div>
-            <div class="target-title" id="active-chat-title-wrap">
-              <span class="live-dot" id="peer-live-dot" style="background:var(--pink);box-shadow:0 0 6px var(--pink)"></span>
-              <span id="active-chat-title">YUKI [AI COMPANION]</span>
-            </div>
-            <div class="target-sub" id="active-chat-sub">secure neural websocket active</div>
+          <button class="btn-toggle-roster" id="btn-mobile-roster-toggle">☰ ROSTER</button>
+          <div id="active-chat-title-wrap">
+            <div class="target-title" id="active-chat-title">TERMINAL READY</div>
+            <div class="target-sub" id="active-chat-sub">awaiting user input</div>
           </div>
         </div>
       </div>
 
       <div class="chat-stream" id="chat-stream">
         <div class="legal-disclaimer">
-          <div class="legal-disclaimer-header">
-            <span>⚠️ [ SYSTEM ADVISORY // LEGAL COMPLIANCE NOTICE ]</span>
-            <span style="font-size:9.5px;color:var(--amber);">STRICT AUDIT</span>
-          </div>
-          <p>
-            <b>SECURITY & COMPLIANCE DIRECTIVE:</b> This terminal is engineered for authorized research, developer utility, and educational exchange.
-            <b>Conducting or soliciting illegal activities, cyber offenses, harassment, or malicious operations is strictly prohibited.</b>
-            Users bear <b>sole individual legal responsibility</b> for all transmitted data. The platform owner, developers, and operators assume <b>zero liability</b> for misuse. Unlawful actions are subject to applicable legal sanctions and cyber regulations.
-          </p>
+          <div class="legal-disclaimer-header">⚠ OPERATIONAL SECURITY NOTICE</div>
+          <p>This is a private, encrypted channel. All communications are logged and retained for security auditing. Do not transmit sensitive personal information, credentials, or classified material. Use this terminal only for intended operational purposes. Unauthorized access is prohibited. By continuing, you agree to all terms of service and security policies.</p>
         </div>
       </div>
 
-      <div class="composer-pane">
+      <div class="composer-pane" id="composer-pane">
         <div class="composer-status-bar">
-          <span>INPUT STREAM • MARKDOWN &amp; CODE ENABLED</span>
-          <span class="word-counter" id="word-counter-display">0 / 5,000 words</span>
+          <div id="word-counter-display" class="word-counter">0 / 5,000 words</div>
         </div>
-        <form autocomplete="off" class="composer-form" id="chat-form">
+        <form class="composer-form" id="chat-form">
           <span class="prefix-prompt">❯</span>
-          <textarea class="msg-textarea" id="chat-textarea" placeholder="Type transmission... (Enter to send)" rows="1"></textarea>
+          <textarea class="msg-textarea" id="chat-textarea" placeholder="Transmit message..."></textarea>
           <button class="send-btn" id="btn-send" type="submit">SEND ❯</button>
         </form>
       </div>
+
+      <button class="btn-close-sidebar-mobile" id="btn-close-sidebar-mobile" style="display:none;position:absolute;top:10px;right:14px;background:transparent;border:1px solid var(--cyan-dim);color:var(--cyan);font-size:20px;padding:4px 8px;cursor:pointer;font-family:monospace;z-index:12;">✕</button>
     </main>
   </div>
 </div>
@@ -701,11 +695,9 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove("show"), 2000);
 }
 
-/* YUKI BOT — special virtual peer */
 const YUKI_BOT_UID = "__yuki_ai__";
 const YUKI_BOT_PROFILE = { username: "yuki_ai", display: "YUKI [AI COMPANION]" };
 
-/* STATE */
 let currentUser = null;
 let currentProfile = null;
 let activePeer = null;
@@ -759,7 +751,6 @@ function clearChatMessagesOnly() {
   stream.querySelectorAll(".msg-row, .empty-chat-state").forEach(el => el.remove());
 }
 
-/* AUTH */
 $("btn-toggle-auth").addEventListener("click", () => {
   isSignUpMode = !isSignUpMode;
   $("auth-error").textContent = "";
@@ -848,8 +839,6 @@ onAuthStateChanged(auth, async (user) => {
     updateDoc(doc(db, "users", user.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
     $("login-screen").classList.remove("show");
     subscribeChatRoster();
-
-    // open YUKI bot on login
     openYukiBot();
   } catch (e) {
     console.error(e);
@@ -858,15 +847,18 @@ onAuthStateChanged(auth, async (user) => {
   hideBoot();
 });
 
-/* SEARCH — modal only, no auto-open */
-$("btn-peer-search").addEventListener("click", performUserSearch);
-$("search-peer-input").addEventListener("keydown", e => { if (e.key === "Enter") performUserSearch(); });
+$("btn-peer-search").addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); performUserSearch(); });
+$("search-peer-input").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); performUserSearch(); } });
 $("btn-close-search-modal").addEventListener("click", () => $("search-modal").classList.remove("open"));
 $("search-modal").addEventListener("click", (e) => {
   if (e.target === $("search-modal")) {
     $("search-modal").classList.remove("open");
   }
 });
+const searchModalBox = document.querySelector(".search-modal-box");
+if (searchModalBox) {
+  searchModalBox.addEventListener("click", (e) => e.stopPropagation());
+}
 
 async function performUserSearch() {
   const q = $("search-peer-input").value.trim().toLowerCase().replace(/^@/, "");
@@ -892,6 +884,7 @@ async function performUserSearch() {
       content.innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">no record for @${escapeHtml(q)}</div>`;
       return;
     }
+    removeDeleted(currentUser.uid, otherUid);
     content.innerHTML = `
       <div class="search-result-row">
         <div class="search-result-info">
@@ -911,17 +904,16 @@ async function performUserSearch() {
   }
 }
 
-/* YUKI BOT */
 function openYukiBot() {
   if (!currentUser) return;
   if (unsubMessages) { unsubMessages(); unsubMessages = null; }
   if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
 
+  clearChatMessagesOnly();
+
   activePeer = { uid: YUKI_BOT_UID, username: "yuki_ai", display: "YUKI [AI COMPANION]", isYuki: true };
   activeChatId = computeChatId(currentUser.uid, YUKI_BOT_UID);
   sessionStorage.setItem("yuki_active_peer", YUKI_BOT_UID);
-
-  clearChatMessagesOnly();
 
   $("active-chat-title").textContent = "YUKI [AI COMPANION]";
   $("active-chat-title-wrap").classList.add("yuki");
@@ -935,12 +927,13 @@ function openYukiBot() {
   renderRoster();
 }
 
-/* OPEN REAL USER CHAT */
 function openChatWith(peerUid, peerProfile) {
   if (!currentUser || !peerUid) return;
 
   if (unsubMessages) { unsubMessages(); unsubMessages = null; }
   if (unsubPeerStatus) { unsubPeerStatus(); unsubPeerStatus = null; }
+
+  clearChatMessagesOnly();
 
   removeDeleted(currentUser.uid, peerUid);
 
@@ -959,8 +952,6 @@ function openChatWith(peerUid, peerProfile) {
   };
   activeChatId = computeChatId(currentUser.uid, peerUid);
   sessionStorage.setItem("yuki_active_peer", peerUid);
-
-  clearChatMessagesOnly();
 
   $("active-chat-title").textContent = activePeer.display;
   $("active-chat-title-wrap").classList.remove("yuki");
@@ -998,7 +989,6 @@ function openChatWith(peerUid, peerProfile) {
   }
 }
 
-/* SUBSCRIBE MESSAGES */
 function subscribeMessages(chatId) {
   if (unsubMessages) { unsubMessages(); unsubMessages = null; }
 
@@ -1122,7 +1112,6 @@ async function markSeen(chatId) {
   } catch(e){}
 }
 
-/* SEND MESSAGE */
 async function transmitMessage() {
   const ta = $("chat-textarea");
   const text = ta.value.trim();
@@ -1147,7 +1136,6 @@ async function transmitMessage() {
     }, { merge: true });
     playSfx('send');
 
-    // Yuki bot auto-reply
     if (activePeer.isYuki) {
       setTimeout(async () => {
         try {
@@ -1215,7 +1203,6 @@ async function broadcastTyping() {
   } catch(e){}
 }
 
-/* CHAT ROSTER */
 function subscribeChatRoster() {
   if (unsubChatRoster) unsubChatRoster();
   if (!currentUser) return;
@@ -1258,7 +1245,6 @@ function renderRoster() {
   if (!c) return;
   c.innerHTML = "";
 
-  // Yuki pinned at top
   const yukiRow = document.createElement("div");
   const yukiActive = activePeer?.isYuki;
   yukiRow.className = "roster-item" + (yukiActive ? " active" : "");
