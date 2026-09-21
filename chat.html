@@ -414,81 +414,6 @@
     transition: transform 0.2s;
   }
   .toast-indicator.show { transform: translateX(-50%) translateY(0); }
-
-  /* ===== BUG #2 FIX: Themed Logout / Delete Confirm Modal ===== */
-  .confirm-modal-box {
-    background: #080e18;
-    border: 1px solid var(--panel-border);
-    border-radius: 6px;
-    max-width: 400px;
-    width: 92%;
-    box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 30px rgba(255,45,85,0.15);
-    pointer-events: auto;
-    animation: confirmModalIn 0.22s cubic-bezier(0.16,1,0.3,1);
-    overflow: hidden;
-  }
-  @keyframes confirmModalIn {
-    from { opacity: 0; transform: scale(0.94) translateY(10px); }
-    to   { opacity: 1; transform: scale(1) translateY(0); }
-  }
-  .confirm-modal-header {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--panel-border);
-    background: rgba(255, 45, 85, 0.06);
-  }
-  .confirm-modal-title {
-    color: var(--red);
-    font-size: 11px; font-weight: 700; letter-spacing: 2px;
-    text-transform: uppercase;
-    text-shadow: 0 0 8px var(--red-glow);
-  }
-  .confirm-modal-body { padding: 18px 16px 10px; }
-  .confirm-modal-text {
-    color: var(--txt); font-size: 12.5px; line-height: 1.55; margin-bottom: 8px;
-  }
-  .confirm-modal-sub {
-    color: var(--dim); font-size: 10.5px; line-height: 1.55; letter-spacing: 0.3px;
-  }
-  .confirm-modal-actions {
-    display: flex; gap: 8px; padding: 14px 16px 16px;
-    border-top: 1px solid var(--panel-border);
-    background: rgba(0,0,0,0.2);
-  }
-  .btn-confirm-cancel,
-  .btn-confirm-danger {
-    flex: 1;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    padding: 10px 14px;
-    cursor: pointer;
-    border-radius: 3px;
-    transition: all 0.18s ease;
-    text-transform: uppercase;
-  }
-  .btn-confirm-cancel {
-    background: transparent;
-    border: 1px solid var(--line);
-    color: var(--dim);
-  }
-  .btn-confirm-cancel:hover {
-    color: var(--txt);
-    border-color: var(--dim);
-    background: rgba(255,255,255,0.04);
-  }
-  .btn-confirm-danger {
-    background: var(--red);
-    border: 1px solid var(--red);
-    color: #1a0006;
-    box-shadow: 0 0 12px var(--red-glow);
-  }
-  .btn-confirm-danger:hover {
-    box-shadow: 0 0 20px var(--red-glow);
-    filter: brightness(1.1);
-  }
-  .btn-confirm-danger:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
@@ -542,7 +467,7 @@
         <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
       </div>
       <div class="search-box">
-        <input class="search-inp" id="search-peer-input" type="text" placeholder="click query" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
+        <input class="search-inp" id="search-peer-input" type="text" placeholder="click query" />
         <button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
       </div>
       <div class="logout-row">
@@ -595,24 +520,6 @@
   </div>
 </div>
 
-<!-- ===== BUG #2 FIX: Confirm Modal (Logout / Delete) ===== -->
-<div class="modal-backdrop" id="confirm-modal">
-  <div class="confirm-modal-box">
-    <div class="confirm-modal-header">
-      <span class="confirm-modal-title" id="confirm-modal-title">⏻ CONFIRM ACTION</span>
-      <button class="btn-modal-close" id="btn-close-confirm-modal">✕</button>
-    </div>
-    <div class="confirm-modal-body">
-      <p class="confirm-modal-text" id="confirm-modal-text">Are you sure?</p>
-      <p class="confirm-modal-sub" id="confirm-modal-sub">This action cannot be undone.</p>
-    </div>
-    <div class="confirm-modal-actions">
-      <button class="btn-confirm-cancel" id="btn-confirm-cancel">CANCEL</button>
-      <button class="btn-confirm-danger" id="btn-confirm-ok">CONFIRM</button>
-    </div>
-  </div>
-</div>
-
 <div class="slide-notice" id="incoming-banner">
   <div class="slide-notice-left">
     <span style="color:var(--green);">⚡</span>
@@ -642,12 +549,17 @@
     if (rafId) cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(() => {
       if (!composer || !vv) return;
+
+      // Keyboard height = diff between layout viewport and visual viewport
       const keyboardHeight = Math.max(0, baseHeight - vv.height);
+
+      // Also account for page offsetTop (iOS scrolls page when keyboard opens)
       const offsetTop = vv.offsetTop || 0;
 
       if (keyboardHeight > 80) {
         composer.style.transform = `translateY(-${keyboardHeight - offsetTop}px)`;
         composer.style.transition = 'transform 0.12s ease-out';
+        // Auto-scroll chat to bottom after keyboard opens
         setTimeout(() => {
           if (stream) stream.scrollTop = stream.scrollHeight;
         }, 150);
@@ -658,6 +570,7 @@
     });
   }
 
+  // Recompute base height when keyboard is closed
   function refreshBase() {
     if (!vv) return;
     const kh = Math.max(0, window.innerHeight - vv.height);
@@ -687,35 +600,6 @@
     setTimeout(() => { baseHeight = window.innerHeight; applyKeyboardOffset(); }, 300);
   });
 })();
-
-/* ================================================================
-   BUG #2 FIX: Global Confirm Helper (Themed Modal)
-   ================================================================ */
-let _confirmResolver = null;
-function themedConfirm(opts, cb) {
-  const o = opts || {};
-  const modal = document.getElementById('confirm-modal');
-  document.getElementById('confirm-modal-title').textContent = o.title || '⏻ CONFIRM ACTION';
-  document.getElementById('confirm-modal-text').textContent = o.text || 'Are you sure?';
-  document.getElementById('confirm-modal-sub').textContent = o.sub || 'This action cannot be undone.';
-  const okBtn = document.getElementById('btn-confirm-ok');
-  okBtn.textContent = o.okText || 'CONFIRM';
-  _confirmResolver = cb;
-  modal.classList.add('open');
-}
-function _resolveConfirm(result) {
-  const modal = document.getElementById('confirm-modal');
-  modal.classList.remove('open');
-  const cb = _confirmResolver;
-  _confirmResolver = null;
-  if (typeof cb === 'function') cb(result);
-}
-document.getElementById('btn-confirm-cancel').addEventListener('click', () => _resolveConfirm(false));
-document.getElementById('btn-confirm-ok').addEventListener('click', () => _resolveConfirm(true));
-document.getElementById('btn-close-confirm-modal').addEventListener('click', () => _resolveConfirm(false));
-document.getElementById('confirm-modal').addEventListener('click', (e) => {
-  if (e.target === document.getElementById('confirm-modal')) _resolveConfirm(false);
-});
 
 /* ================================================================
    EXISTING LOGIC (UNCHANGED)
@@ -868,6 +752,7 @@ function showToast(msg) {
 }
 
 const YUKI_BOT_UID = "__yuki_ai__";
+const YUKI_BOT_PROFILE = { username: "yuki_ai", display: "YUKI [AI COMPANION]" };
 let yukiChatHistory = [];
 
 let currentUser = null;
@@ -881,14 +766,12 @@ let unsubChatRoster = null;
 let typingBeaconTimer = null;
 let lastTypingTime = 0;
 let localChannels = [];
-let markSeenTimer = null;
 
 function formatTime(ts) {
   if (!ts) return "";
   const d = ts.toDate ? ts.toDate() : new Date(ts);
   const s = Math.floor((Date.now() - d.getTime()) / 1000);
-  if (s < 10) return "just now";
-  if (s < 60) return s + "s";
+  if (s < 60) return "now";
   if (s < 3600) return Math.floor(s/60) + "m";
   if (s < 86400) return Math.floor(s/3600) + "h";
   return d.toLocaleDateString([], { month: "short", day: "numeric" });
@@ -911,24 +794,6 @@ function removeDeleted(uid, o) {
   localStorage.setItem("yuki_deleted_" + uid, JSON.stringify(getDeleted(uid).filter(x => x !== o)));
 }
 function isDeleted(uid, o) { return getDeleted(uid).includes(o); }
-
-/* ===== BUG #7 + #19 + #20 FIX: Yuki history persistence ===== */
-function yukiHistoryKey() {
-  return currentUser ? "yuki_history_" + currentUser.uid : "yuki_history_anon";
-}
-function loadYukiHistory() {
-  try {
-    yukiChatHistory = JSON.parse(sessionStorage.getItem(yukiHistoryKey()) || "[]");
-    if (!Array.isArray(yukiChatHistory)) yukiChatHistory = [];
-  } catch(e) { yukiChatHistory = []; }
-}
-function saveYukiHistory() {
-  try { sessionStorage.setItem(yukiHistoryKey(), JSON.stringify(yukiChatHistory.slice(-20))); } catch(e){}
-}
-function clearYukiHistory() {
-  yukiChatHistory = [];
-  try { sessionStorage.removeItem(yukiHistoryKey()); } catch(e){}
-}
 
 function hideBoot() {
   const b = $("boot-cover");
@@ -1005,24 +870,14 @@ $("btn-copy-id").addEventListener("click", function() {
   playSfx('click');
 });
 
-/* ========== LOGOUT (BUG #2 FIX: themed modal) ========== */
-$("btn-logout").addEventListener("click", () => {
+/* ========== LOGOUT ========== */
+$("btn-logout").addEventListener("click", async () => {
   if (!currentUser) return;
-  themedConfirm({
-    title: "⏻ TERMINATE SESSION",
-    text: "Are you sure you want to log out from this terminal?",
-    sub: "All active neural connections will be severed. You can sign back in anytime.",
-    okText: "⏻ LOGOUT"
-  }, async (ok) => {
-    if (!ok) return;
-    playSfx('click');
-    try {
-      await updateDoc(doc(db, "users", currentUser.uid), { lastSeen: serverTimestamp() });
-    } catch(e){}
-    clearYukiHistory();
-    await signOut(auth);
-  });
-  playSfx('click');
+  if (!confirm("Logout from this terminal?")) return;
+  try {
+    await updateDoc(doc(db, "users", currentUser.uid), { lastSeen: serverTimestamp() });
+  } catch(e){}
+  await signOut(auth);
 });
 
 /* ========== AUTH OBSERVER ========== */
@@ -1054,18 +909,7 @@ onAuthStateChanged(auth, async (user) => {
     updateDoc(doc(db, "users", user.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
     $("login-screen").classList.remove("show");
     subscribeChatRoster();
-    /* BUG #8 FIX: restore last peer if any */
-    const lastPeer = sessionStorage.getItem("yuki_active_peer");
-    if (lastPeer && lastPeer !== YUKI_BOT_UID) {
-      // Will restore after roster loads; for now open Yuki
-      openYukiBot();
-      setTimeout(() => {
-        const found = localChannels.find(c => c.otherUid === lastPeer);
-        if (found) openChatWith(lastPeer, found.profile);
-      }, 900);
-    } else {
-      openYukiBot();
-    }
+    openYukiBot();
   } catch (e) {
     console.error("Profile load error:", e);
     $("login-screen").classList.add("show");
@@ -1174,14 +1018,13 @@ async function performUserSearchModal(q) {
   }
 }
 
-/* ========== YUKI BOT (BUG #1 + #7 FIX) ========== */
+/* ========== YUKI BOT ========== */
 function openYukiBot() {
   if (!currentUser) return;
   if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
   if (unsubPeerStatus) { try { unsubPeerStatus(); } catch(e){} unsubPeerStatus = null; }
 
   clearChatMessagesOnly();
-  loadYukiHistory();
 
   activePeer = { uid: YUKI_BOT_UID, username: "yuki_ai", display: "YUKI [AI COMPANION]", isYuki: true };
   activeChatId = computeChatId(currentUser.uid, YUKI_BOT_UID);
@@ -1194,10 +1037,6 @@ function openYukiBot() {
   $("peer-live-dot").style.boxShadow = "0 0 6px var(--pink)";
 
   if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
-
-  /* BUG #1 FIX: reset word counter when switching to Yuki */
-  $("chat-textarea").value = "";
-  updateWordCounter();
 
   subscribeMessages(activeChatId);
   setTimeout(renderRoster, 0);
@@ -1240,7 +1079,7 @@ function openChatWith(peerUid, peerProfile) {
 
   subscribeMessages(activeChatId);
   subscribePeerStatus(activeChatId, peerUid);
-  scheduleMarkSeen(activeChatId);
+  markSeen(activeChatId);
   renderRoster();
 
   const chatRef = doc(db, "chats", activeChatId);
@@ -1329,7 +1168,7 @@ function subscribeMessages(chatId) {
     streamEl.appendChild(fragment);
 
     if (wasAtBottom) streamEl.scrollTop = streamEl.scrollHeight;
-    scheduleMarkSeen(chatId);
+    markSeen(chatId);
   }, (err) => {
     console.error("Messages subscription error:", err);
   });
@@ -1379,34 +1218,25 @@ function subscribePeerStatus(chatId, otherUid) {
   });
 }
 
-/* ========== MARK SEEN (BUG #16 FIX: debounced) ========== */
-function scheduleMarkSeen(chatId) {
-  if (markSeenTimer) clearTimeout(markSeenTimer);
-  markSeenTimer = setTimeout(() => { markSeen(chatId); }, 500);
-}
+/* ========== MARK SEEN ========== */
 async function markSeen(chatId) {
   if (!chatId || !currentUser) return;
   if (activePeer?.isYuki) return;
   try {
-    await updateDoc(doc(db, "chats", chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(()=>{});
+    updateDoc(doc(db, "chats", chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(()=>{});
     const qU = query(collection(db, "chats", chatId, "messages"), where("by", "!=", currentUser.uid), where("seen", "==", false), limit(50));
     const snap = await getDocs(qU);
-    for (const d of snap.docs) {
+    snap.forEach(d => {
       updateDoc(d.ref, { seen: true }).catch(()=>{});
-    }
+    });
   } catch(e){}
 }
 
-/* ========== SEND MESSAGE (BUG #14 FIX: word limit check) ========== */
+/* ========== SEND MESSAGE ========== */
 async function transmitMessage() {
   const ta = $("chat-textarea");
   const text = ta.value.trim();
   if (!text || !currentUser || !activeChatId || !activePeer) return;
-  /* BUG #14 FIX: enforce word limit even via Enter key */
-  if (countWords(text) > 5000) {
-    showToast("WORD LIMIT EXCEEDED");
-    return;
-  }
   ta.value = "";
   ta.style.height = "auto";
   updateWordCounter();
@@ -1428,11 +1258,9 @@ async function transmitMessage() {
     playSfx('send');
 
     if (activePeer.isYuki) {
-      /* BUG #6 FIX: better error handling for /api/yuki */
       setTimeout(async () => {
         try {
           let reply = "…";
-          let apiOk = false;
           try {
             const r = await fetch("/api/yuki", {
               method: "POST",
@@ -1440,27 +1268,20 @@ async function transmitMessage() {
               body: JSON.stringify({ message: text, history: yukiChatHistory })
             });
             if (r.ok) {
-              apiOk = true;
               const data = await r.json();
               reply = data.reply || data.response || data.message || data.text || data.result || "…";
               if (typeof reply !== "string") reply = JSON.stringify(reply);
             } else {
-              console.error("Yuki API status:", r.status);
-              if (r.status === 404) reply = "Yuki API not deployed at /api/yuki. Contact admin.";
-              else if (r.status === 500) reply = "Yuki neural core error. Retry transmission.";
-              else reply = "Neural link unstable. Retry transmission.";
+              reply = "Neural link unstable. Retry transmission.";
             }
           } catch (fetchErr) {
             console.error("Yuki API error:", fetchErr);
-            reply = "Neural link offline. Check your connection.";
+            reply = "Neural link unstable. Retry transmission.";
           }
 
-          if (apiOk) {
-            yukiChatHistory.push({ role: "user", content: text });
-            yukiChatHistory.push({ role: "assistant", content: reply });
-            yukiChatHistory = yukiChatHistory.slice(-20);
-            saveYukiHistory();
-          }
+          yukiChatHistory.push({ role: "user", content: text });
+          yukiChatHistory.push({ role: "assistant", content: reply });
+          yukiChatHistory = yukiChatHistory.slice(-20);
 
           await addDoc(collection(db, "chats", activeChatId, "messages"), {
             text: reply, by: YUKI_BOT_UID, at: serverTimestamp(), seen: true
@@ -1492,10 +1313,8 @@ function countWords(str) {
 }
 function updateWordCounter() {
   const ta = $("chat-textarea");
-  if (!ta) return;
   const words = countWords(ta.value);
   const el = $("word-counter-display");
-  if (!el) return;
   el.textContent = `${words.toLocaleString()} / 5,000 words`;
   if (words > 5000) { el.className = "word-counter over"; $("btn-send").disabled = true; }
   else if (words > 4500) { el.className = "word-counter warn"; $("btn-send").disabled = false; }
@@ -1627,32 +1446,24 @@ function renderRoster() {
   }
 }
 
-/* BUG #2 FIX: delete chat uses themed modal */
 function showRosterMenu(rowEl, otherUid) {
   document.querySelectorAll(".roster-menu-popup").forEach(x => x.remove());
   const pop = document.createElement("div");
   pop.className = "roster-menu-popup";
   pop.innerHTML = `<button data-act="delete">Delete chat</button>`;
   rowEl.appendChild(pop);
-  pop.querySelector('[data-act="delete"]').addEventListener("click", (ev) => {
+  pop.querySelector('[data-act="delete"]').addEventListener("click", async (ev) => {
     ev.stopPropagation();
+    if (!confirm("Delete this chat?")) return;
+    addDeleted(currentUser.uid, otherUid);
+    if (activePeer?.uid === otherUid) {
+      activePeer = null; activeChatId = null;
+      sessionStorage.removeItem("yuki_active_peer");
+      openYukiBot();
+    }
+    localChannels = localChannels.filter(x => x.otherUid !== otherUid);
+    renderRoster();
     pop.remove();
-    themedConfirm({
-      title: "🗑 DELETE CHANNEL",
-      text: "Delete this chat from your roster?",
-      sub: "The conversation will be hidden from your side. The other party still keeps their copy.",
-      okText: "DELETE"
-    }, (ok) => {
-      if (!ok) return;
-      addDeleted(currentUser.uid, otherUid);
-      if (activePeer?.uid === otherUid) {
-        activePeer = null; activeChatId = null;
-        sessionStorage.removeItem("yuki_active_peer");
-        openYukiBot();
-      }
-      localChannels = localChannels.filter(x => x.otherUid !== otherUid);
-      renderRoster();
-    });
   });
   setTimeout(() => {
     document.addEventListener("click", function close(e) {
