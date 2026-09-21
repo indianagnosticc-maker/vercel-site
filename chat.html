@@ -63,7 +63,7 @@
     background: var(--bg);
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    gap: 14px; transition: opacity 0.35s ease;
+    gap: 14px; transition: opacity 0.25s ease;
   }
   #boot-cover.gone { opacity: 0; pointer-events: none; }
   .boot-title {
@@ -172,7 +172,7 @@
   .workspace { flex: 1; min-height: 0; display: flex; width: 100%; position: relative; overflow: hidden; }
   .sidebar {
     width: 320px; height: 100%; border-right: 1px solid var(--panel-border);
-    background: rgba(6, 11, 18, 0.95); backdrop-filter: blur(10px);
+    background: rgba(6, 11, 18, 0.85); backdrop-filter: blur(10px);
     display: flex; flex-direction: column; flex-shrink: 0;
     z-index: 10; transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
@@ -224,17 +224,15 @@
   .roster-snippet { color: var(--dim); font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .roster-menu-btn {
     background: transparent; border: 0; color: var(--dim);
-    font-family: var(--font-mono); font-size: 14px; padding: 4px 6px; cursor: pointer;
+    font-family: var(--font-mono); font-size: 14px; padding: 0 4px; cursor: pointer;
     line-height: 1; flex-shrink: 0;
   }
   .roster-menu-btn:hover { color: var(--red); }
   .roster-menu-popup {
     position: absolute; top: 34px; right: 8px;
     background: #060b12; border: 1px solid var(--line);
-    z-index: 150; min-width: 130px; display: none;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.8);
+    z-index: 50; min-width: 130px;
   }
-  .roster-menu-popup.open { display: block; }
   .roster-menu-popup button {
     width: 100%; padding: 8px 12px; background: transparent; border: 0;
     color: var(--txt); font-family: var(--font-mono); font-size: 11px;
@@ -347,23 +345,18 @@
     padding: 8px 16px; cursor: pointer; flex-shrink: 0;
   }
   .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-  
   .modal-backdrop {
     position: fixed; inset: 0; z-index: 600;
-    background: rgba(3, 7, 13, 0.75);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.2s ease;
-    backdrop-filter: blur(4px);
+    background: rgba(3, 7, 13, 0.65);
+    display: none; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+    backdrop-filter: blur(3px); pointer-events: none;
   }
-  .modal-backdrop.open {
-    opacity: 1;
-    pointer-events: auto;
-  }
+  .modal-backdrop.open { display: flex; opacity: 1; pointer-events: auto; }
   .search-modal-box {
     background: #080e18; border: 1px solid var(--panel-border);
     border-radius: 6px; max-width: 420px; width: 92%;
-    max-height: 80vh; overflow-y: auto; box-shadow: 0 16px 48px rgba(0,0,0,0.8);
+    max-height: 80vh; overflow-y: auto; box-shadow: 0 16px 48px rgba(0,0,0,0.5);
     pointer-events: auto;
   }
   .search-modal-header {
@@ -377,7 +370,7 @@
     cursor: pointer; padding: 2px 4px; line-height: 1; flex-shrink: 0;
   }
   .btn-modal-close:hover { color: var(--red); }
-  #search-modal-content { padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+  #search-modal-content { padding: 12px 16px; }
   .search-result-row {
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 12px; background: rgba(0,255,136,0.04); border: 1px solid rgba(0,255,136,0.2);
@@ -389,183 +382,203 @@
   .btn-open-result {
     background: var(--green); color: #001a04; border: 0; border-radius: 3px;
     font-family: var(--font-mono); font-size: 10px; font-weight: 700;
-    padding: 6px 12px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+    padding: 5px 12px; cursor: pointer; white-space: nowrap; flex-shrink: 0;
   }
-  .btn-open-result:hover { background: #00ffaa; box-shadow: 0 0 10px var(--green-glow); }
-
+  .btn-open-result:hover { opacity: 0.9; }
+  .sidebar-hidden { transform: translateX(-100%); }
   @media (max-width: 768px) {
+    .sidebar { position: absolute; top: 0; left: 0; z-index: 11; width: 76vw; max-width: 300px; }
     .btn-toggle-roster { display: inline-flex; }
-    .sidebar {
-      position: absolute; left: 0; top: 0; bottom: 0;
-      transform: translateX(-100%);
-      width: 85%; max-width: 320px;
-      box-shadow: 8px 0 24px rgba(0,0,0,0.8);
-    }
-    .sidebar.open { transform: translateX(0); }
-    .msg-row { max-width: 92%; }
   }
+  .slide-notice {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 400;
+    background: linear-gradient(135deg, rgba(0,255,136,0.2) 0%, rgba(0,255,136,0.08) 100%);
+    border-bottom: 1px solid var(--green);
+    padding: 8px 16px max(8px, env(safe-area-inset-top, 8px));
+    color: var(--txt); font-size: 10.5px;
+    display: flex; align-items: center; gap: 8px;
+    transform: translateY(-200%); transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+    cursor: pointer;
+  }
+  .slide-notice.visible { transform: translateY(0); }
+  .slide-notice-left { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
+  .slide-notice-sender { color: var(--green); font-weight: 700; flex-shrink: 0; }
+  .slide-notice-preview { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); }
+  .toast-indicator {
+    position: fixed; bottom: max(20px, env(safe-area-inset-bottom, 20px)); left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: rgba(0, 255, 136, 0.15); border: 1px solid var(--green);
+    color: var(--green); padding: 8px 16px; border-radius: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1.5px;
+    text-transform: uppercase; z-index: 401; pointer-events: none;
+    transition: transform 0.2s;
+  }
+  .toast-indicator.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== BUG #2 FIX: Themed Logout / Delete Confirm Modal ===== */
+  .confirm-modal-box {
+    background: #080e18;
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    max-width: 400px;
+    width: 92%;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 30px rgba(255,45,85,0.15);
+    pointer-events: auto;
+    animation: confirmModalIn 0.22s cubic-bezier(0.16,1,0.3,1);
+    overflow: hidden;
+  }
+  @keyframes confirmModalIn {
+    from { opacity: 0; transform: scale(0.94) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .confirm-modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--panel-border);
+    background: rgba(255, 45, 85, 0.06);
+  }
+  .confirm-modal-title {
+    color: var(--red);
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px var(--red-glow);
+  }
+  .confirm-modal-body { padding: 18px 16px 10px; }
+  .confirm-modal-text {
+    color: var(--txt); font-size: 12.5px; line-height: 1.55; margin-bottom: 8px;
+  }
+  .confirm-modal-sub {
+    color: var(--dim); font-size: 10.5px; line-height: 1.55; letter-spacing: 0.3px;
+  }
+  .confirm-modal-actions {
+    display: flex; gap: 8px; padding: 14px 16px 16px;
+    border-top: 1px solid var(--panel-border);
+    background: rgba(0,0,0,0.2);
+  }
+  .btn-confirm-cancel,
+  .btn-confirm-danger {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.18s ease;
+    text-transform: uppercase;
+  }
+  .btn-confirm-cancel {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--dim);
+  }
+  .btn-confirm-cancel:hover {
+    color: var(--txt);
+    border-color: var(--dim);
+    background: rgba(255,255,255,0.04);
+  }
+  .btn-confirm-danger {
+    background: var(--red);
+    border: 1px solid var(--red);
+    color: #1a0006;
+    box-shadow: 0 0 12px var(--red-glow);
+  }
+  .btn-confirm-danger:hover {
+    box-shadow: 0 0 20px var(--red-glow);
+    filter: brightness(1.1);
+  }
+  .btn-confirm-danger:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
-
 <canvas id="matrix-rain"></canvas>
-
-<div id="boot-cover">
-  <div class="boot-title">INITIALIZING SECURE LINK...</div>
-  <div class="boot-dots">
-    <span></span><span></span><span></span>
-  </div>
-</div>
-
-<div id="login-screen">
-  <div class="login-box">
-    <div class="login-title" id="auth-main-title">NODE//AUTH</div>
-    <div class="login-sub" id="auth-sub-title">CYBER • OSINT TERMINAL ACCESS</div>
-    <div class="login-fields">
-      <input type="text" id="login-username" class="login-field" placeholder="CODENAME / ALIAS" autocomplete="off" value="OPERATOR_01"/>
-      <input type="password" id="login-key" class="login-field" placeholder="PASSPHRASE KEY" value="••••••••••••"/>
-    </div>
-    <button type="button" id="btn-login-submit" class="login-btn">DECRYPT & CONNECT</button>
-    <div id="login-err-msg" class="login-error"></div>
-    <button type="button" class="login-toggle" id="btn-auth-toggle">NEW OPERATIVE? <span id="auth-toggle-label">INITIALIZE KEYPAIR</span></button>
-  </div>
-  <div class="login-disclaimer">
-    AUTHORIZED OSINT NODE // E2E ENCRYPTED SHA-256 HANDSHAKE // <b>LEVEL 4 ACCESS REQUIRED</b>
-  </div>
-</div>
-
 <div class="app-wrap">
-  <header class="hud-bar">
+  <div class="hud-bar" id="hud-bar">
     <div class="hud-left">
-      <div class="live-dot"></div>
-      <span>OSINT://NODE_SYS.NET</span>
+      <div class="live-dot" id="peer-live-dot"></div>
+      <span id="system-status">TERMINAL ONLINE</span>
     </div>
     <div class="hud-stats">
-      <span>PING: <b>18ms</b></span>
-      <span>CIPHER: <b>AES-GCM-256</b></span>
-      <span>TARGETS: <b id="stat-active-targets">2 ACTIVE</b></span>
+      <span>SYS <b id="peer-count">1</b></span>
     </div>
     <div class="hud-controls">
-      <button type="button" class="ctrl-btn active" id="btn-matrix-toggle">RAIN: ON</button>
-      <a href="#osint-back" class="ctrl-btn back-osint-btn">BACK TO RECON</a>
+      <button class="ctrl-btn active" id="btn-sound-toggle">SFX <span id="sfx-status">ON</span></button>
+      <button class="ctrl-btn active" id="btn-matrix-toggle">MATRIX <span id="matrix-status">ON</span></button>
+      <a href="/index.html" class="ctrl-btn back-osint-btn">◀ OSINT KERNEL</a>
     </div>
-  </header>
+  </div>
+
+  <div id="boot-cover">
+    <div class="boot-title">YUKI // TERMINAL</div>
+    <div class="boot-dots">
+      <span></span> <span></span> <span></span>
+    </div>
+  </div>
+
+  <div id="login-screen" class="show">
+    <div class="login-box">
+      <div class="login-title">YUKI</div>
+      <div class="login-sub">// neural terminal access</div>
+      <div class="login-fields">
+        <input class="login-field" id="auth-email" type="email" placeholder="Email address" autocomplete="email" />
+        <input class="login-field" id="auth-password" type="password" placeholder="Security key" autocomplete="current-password" />
+      </div>
+      <button class="login-btn" id="btn-auth-submit">SIGN IN</button>
+      <div class="login-error" id="auth-error"></div>
+      <button class="login-toggle" id="btn-toggle-auth">Don't have an account? <span>Sign up</span></button>
+    </div>
+    <div class="login-disclaimer">Secure neural interface. Communications are sandboxed within Firestore shards and monitored for security protocol compliance. By accessing this terminal, you acknowledge all usage is logged and retained per SECURITY POLICY.</div>
+  </div>
 
   <div class="workspace">
-    <aside class="sidebar" id="app-sidebar">
+    <div class="sidebar" id="sidebar-roster">
       <div class="sidebar-head">
         <div class="user-badge">
-          <span class="user-name" id="user-display-name">OPERATOR_01</span>
-          <span class="user-id">NODE ID: #889-ALPHA</span>
+          <div class="user-name" id="me-display">OPERATIVE</div>
+          <div class="user-id" id="me-uid">@operative</div>
         </div>
-        <button type="button" class="copy-btn" id="btn-copy-id">COPY</button>
+        <button class="copy-btn" id="btn-copy-id">COPY</button>
+        <button class="copy-btn" id="btn-close-sidebar-mobile" style="display:none;">✕</button>
       </div>
-      
       <div class="search-box">
-        <input type="text" id="sidebar-search-inp" class="search-inp" placeholder="QUERY CODENAME / IP..."/>
-        <button type="button" class="search-btn" id="btn-execute-search">RUN</button>
+        <input class="search-inp" id="search-peer-input" type="text" placeholder="click query" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
+        <button class="search-btn" id="btn-peer-search" type="button">QUERY</button>
       </div>
-
       <div class="logout-row">
-        <button type="button" class="logout-btn" id="btn-logout">TERMINATE LINK</button>
+        <button class="logout-btn" id="btn-logout" type="button">⏻ LOGOUT</button>
       </div>
-
-      <div class="roster-list" id="target-roster-list">
-        <div class="roster-item active" data-target="YUKI_SPECTRE" data-role="Target // Analyst" data-pink="true">
-          <div class="roster-avatar yuki">YS</div>
-          <div class="roster-info">
-            <div class="roster-top">
-              <span class="roster-title pink">YUKI SPECTRE</span>
-              <span class="roster-time">12:04</span>
-            </div>
-            <div class="roster-snippet">Subnet hash verified. Logs attached.</div>
-          </div>
-          <button type="button" class="roster-menu-btn">⋮</button>
-          <div class="roster-menu-popup">
-            <button type="button" class="menu-action" data-act="purge">PURGE STREAM</button>
-            <button type="button" class="menu-action" data-act="trace">TRACE HOP</button>
-          </div>
-        </div>
-
-        <div class="roster-item" data-target="GHOST_NET_08" data-role="Shadow Relay // Onion">
-          <div class="roster-avatar">GN</div>
-          <div class="roster-info">
-            <div class="roster-top">
-              <span class="roster-title">GHOST_NET_08</span>
-              <span class="roster-time">10:48</span>
-            </div>
-            <div class="roster-snippet">Tunnel established through port 9050.</div>
-          </div>
-          <button type="button" class="roster-menu-btn">⋮</button>
-          <div class="roster-menu-popup">
-            <button type="button" class="menu-action" data-act="purge">PURGE STREAM</button>
-            <button type="button" class="menu-action" data-act="trace">TRACE HOP</button>
-          </div>
-        </div>
+      <div class="roster-list">
+        <div class="roster-list-body" id="roster-list-body"></div>
       </div>
-    </aside>
+    </div>
 
-    <main class="chat-pane">
+    <main class="chat-pane" id="chat-pane">
       <div class="chat-subhead">
         <div class="chat-subhead-left">
-          <button type="button" class="btn-toggle-roster" id="btn-open-roster">☰ TARGETS</button>
-          <div class="target-details">
-            <div class="target-title yuki" id="active-target-title">
-              <span>●</span> YUKI_SPECTRE
-            </div>
-            <div class="target-sub" id="active-target-sub">TARGET // ANALYST // E2E VERIFIED</div>
+          <button class="btn-toggle-roster" id="btn-mobile-roster-toggle">☰ ROSTER</button>
+          <div id="active-chat-title-wrap">
+            <div class="target-title" id="active-chat-title">TERMINAL READY</div>
+            <div class="target-sub" id="active-chat-sub">awaiting user input</div>
           </div>
         </div>
       </div>
 
-      <div class="chat-stream" id="chat-messages-container">
+      <div class="chat-stream" id="chat-stream">
         <div class="legal-disclaimer">
-          <div class="legal-disclaimer-header">
-            <span>TERMINAL USAGE NOTICE</span>
-            <span>EVAL ONLY</span>
-          </div>
-          <p>This terminal operates under strictly simulated OSINT protocol headers. All transmission data is ephemeral and cached locally.</p>
-        </div>
-
-        <div class="msg-row peer">
-          <div class="msg-bubble">
-            Target cluster analyzed. Found an exposed configuration manifest:
-            <div class="code-container">
-              <div class="code-head">
-                <span>DNS_RECON_SNIPPET.SH</span>
-                <button type="button" class="copy-code-btn">COPY CODE</button>
-              </div>
-              <pre class="code-body">dig +nocmd +noall +answer target-domain.osint any
-nmap -Pn -sV -p 80,443,8080 --script ssl-enum-ciphers</pre>
-            </div>
-            Let me know once you ingest the telemetry.
-          </div>
-          <div class="msg-meta">
-            <span>12:02 PM</span>
-            <span class="receipt seen">✓✓</span>
-          </div>
-        </div>
-
-        <div class="msg-row me">
-          <div class="msg-bubble">
-            Telemetry ingested into the pipeline. Cross-referencing autonomous systems now.
-          </div>
-          <div class="msg-meta">
-            <span>12:04 PM</span>
-            <span class="receipt seen">✓✓</span>
-          </div>
+          <div class="legal-disclaimer-header">⚠ OPERATIONAL SECURITY NOTICE</div>
+          <p>This is a private, encrypted channel. All communications are logged and retained for security auditing. Do not transmit sensitive personal information, credentials, or classified material. Use this terminal only for intended operational purposes. Unauthorized access is prohibited. By continuing, you agree to all terms of service and security policies.</p>
         </div>
       </div>
 
-      <div class="composer-pane">
+      <div class="composer-pane" id="composer-pane">
         <div class="composer-status-bar">
-          <span>CONSOLE READY • MARKDOWN/CODE ENABLED</span>
-          <span class="word-counter" id="char-counter">0 / 2000</span>
+          <div id="word-counter-display" class="word-counter">0 / 5,000 words</div>
         </div>
         <form class="composer-form" id="chat-form">
-          <span class="prefix-prompt">&gt;</span>
-          <textarea id="composer-input" class="msg-textarea" rows="1" maxlength="2000" placeholder="Inject packet or shell command... (Shift+Enter for newline)"></textarea>
-          <button type="submit" class="send-btn" id="btn-send">TRANSMIT</button>
+          <span class="prefix-prompt">❯</span>
+          <textarea class="msg-textarea" id="chat-textarea" placeholder="Transmit message..." autocomplete="off" autocorrect="off" autocapitalize="sentences" spellcheck="false" inputmode="text"></textarea>
+          <button class="send-btn" id="btn-send" type="submit">SEND ❯</button>
         </form>
       </div>
     </main>
@@ -575,278 +588,1103 @@ nmap -Pn -sV -p 80,443,8080 --script ssl-enum-ciphers</pre>
 <div class="modal-backdrop" id="search-modal">
   <div class="search-modal-box">
     <div class="search-modal-header">
-      <span class="search-modal-title">OSINT TARGET DIRECTORY</span>
-      <button type="button" class="btn-modal-close" id="btn-close-modal">✕</button>
+      <span class="search-modal-title">QUERY RESULT</span>
+      <button class="btn-modal-close" id="btn-close-search-modal">✕</button>
     </div>
-    <div id="search-modal-content">
-      <div class="search-result-row">
-        <div class="search-result-info">
-          <div class="search-result-name">KUBERNETES_CLUSTER_HONEYPOT</div>
-          <div class="search-result-user">IP: 198.51.100.42 • STATUS: ACTIVE</div>
-        </div>
-        <button type="button" class="btn-open-result" data-attach="HONEYPOT_42">HOOK</button>
-      </div>
-      <div class="search-result-row">
-        <div class="search-result-info">
-          <div class="search-result-name">NEURAL_SHADOW_SYS</div>
-          <div class="search-result-user">IP: 203.0.113.19 • STATUS: ENCRYPTED</div>
-        </div>
-        <button type="button" class="btn-open-result" data-attach="NEURAL_SHADOW">HOOK</button>
-      </div>
+    <div id="search-modal-content"></div>
+  </div>
+</div>
+
+<!-- ===== BUG #2 FIX: Confirm Modal (Logout / Delete) ===== -->
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="confirm-modal-box">
+    <div class="confirm-modal-header">
+      <span class="confirm-modal-title" id="confirm-modal-title">⏻ CONFIRM ACTION</span>
+      <button class="btn-modal-close" id="btn-close-confirm-modal">✕</button>
+    </div>
+    <div class="confirm-modal-body">
+      <p class="confirm-modal-text" id="confirm-modal-text">Are you sure?</p>
+      <p class="confirm-modal-sub" id="confirm-modal-sub">This action cannot be undone.</p>
+    </div>
+    <div class="confirm-modal-actions">
+      <button class="btn-confirm-cancel" id="btn-confirm-cancel">CANCEL</button>
+      <button class="btn-confirm-danger" id="btn-confirm-ok">CONFIRM</button>
     </div>
   </div>
 </div>
 
+<div class="slide-notice" id="incoming-banner">
+  <div class="slide-notice-left">
+    <span style="color:var(--green);">⚡</span>
+    <span class="slide-notice-sender" id="banner-sender">@—</span>:
+    <span class="slide-notice-preview" id="banner-preview">new message</span>
+  </div>
+</div>
+
+<div class="toast-indicator" id="terminal-toast">COPIED</div>
+
 <script>
-  // 1. Matrix Rain Background (Fixed resize desync)
-  const canvas = document.getElementById('matrix-rain');
-  const ctx = canvas.getContext('2d');
-  const chars = '0123456789ABCDEFHIJKLMNOPQRSTUVWXYZ@#$%&*+-/<>~';
-  const fontSize = 13;
-  let drops = [];
+/* ================================================================
+   KEYBOARD FIX (Android + iOS) — VisualViewport based
+   ================================================================ */
+(function initKeyboardFix() {
+  if (!window.visualViewport) return;
 
-  function initMatrix() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    const columns = Math.floor(canvas.width / fontSize);
-    drops = Array(columns).fill(1);
-  }
-  window.addEventListener('resize', initMatrix);
-  initMatrix();
+  const vv = window.visualViewport;
+  const composer = document.getElementById('composer-pane');
+  const stream = document.getElementById('chat-stream');
+  const ta = document.getElementById('chat-textarea');
 
-  function drawMatrix() {
-    ctx.fillStyle = 'rgba(3, 7, 13, 0.08)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#00ff88';
-    ctx.font = `${fontSize}px monospace`;
+  let baseHeight = window.innerHeight;
+  let rafId = null;
 
-    for (let i = 0; i < drops.length; i++) {
-      const text = chars.charAt(Math.floor(Math.random() * chars.length));
-      ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+  function applyKeyboardOffset() {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      if (!composer || !vv) return;
+      const keyboardHeight = Math.max(0, baseHeight - vv.height);
+      const offsetTop = vv.offsetTop || 0;
 
-      if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-        drops[i] = 0;
+      if (keyboardHeight > 80) {
+        composer.style.transform = `translateY(-${keyboardHeight - offsetTop}px)`;
+        composer.style.transition = 'transform 0.12s ease-out';
+        setTimeout(() => {
+          if (stream) stream.scrollTop = stream.scrollHeight;
+        }, 150);
+      } else {
+        composer.style.transform = 'translateY(0)';
+        composer.style.transition = 'transform 0.15s ease-out';
       }
-      drops[i]++;
-    }
-    requestAnimationFrame(drawMatrix);
+    });
   }
-  drawMatrix();
 
-  // 2. Boot Screen Sequence
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      document.getElementById('boot-cover').classList.add('gone');
-    }, 650);
+  function refreshBase() {
+    if (!vv) return;
+    const kh = Math.max(0, window.innerHeight - vv.height);
+    if (kh < 80) baseHeight = window.innerHeight;
+    applyKeyboardOffset();
+  }
+
+  vv.addEventListener('resize', applyKeyboardOffset);
+  vv.addEventListener('scroll', applyKeyboardOffset);
+
+  if (ta) {
+    ta.addEventListener('focus', () => {
+      baseHeight = window.innerHeight;
+      setTimeout(applyKeyboardOffset, 300);
+      setTimeout(applyKeyboardOffset, 500);
+    });
+    ta.addEventListener('blur', () => {
+      setTimeout(() => {
+        composer.style.transform = 'translateY(0)';
+        baseHeight = window.innerHeight;
+      }, 100);
+    });
+  }
+
+  window.addEventListener('resize', refreshBase);
+  window.addEventListener('orientationchange', () => {
+    setTimeout(() => { baseHeight = window.innerHeight; applyKeyboardOffset(); }, 300);
   });
+})();
 
-  // 3. HUD Controls
-  const btnMatrix = document.getElementById('btn-matrix-toggle');
-  btnMatrix.addEventListener('click', () => {
-    canvas.classList.toggle('disabled');
-    const isOff = canvas.classList.contains('disabled');
-    btnMatrix.textContent = isOff ? 'RAIN: OFF' : 'RAIN: ON';
-    btnMatrix.classList.toggle('active', !isOff);
+/* ================================================================
+   BUG #2 FIX: Global Confirm Helper (Themed Modal)
+   ================================================================ */
+let _confirmResolver = null;
+function themedConfirm(opts, cb) {
+  const o = opts || {};
+  const modal = document.getElementById('confirm-modal');
+  document.getElementById('confirm-modal-title').textContent = o.title || '⏻ CONFIRM ACTION';
+  document.getElementById('confirm-modal-text').textContent = o.text || 'Are you sure?';
+  document.getElementById('confirm-modal-sub').textContent = o.sub || 'This action cannot be undone.';
+  const okBtn = document.getElementById('btn-confirm-ok');
+  okBtn.textContent = o.okText || 'CONFIRM';
+  _confirmResolver = cb;
+  modal.classList.add('open');
+}
+function _resolveConfirm(result) {
+  const modal = document.getElementById('confirm-modal');
+  modal.classList.remove('open');
+  const cb = _confirmResolver;
+  _confirmResolver = null;
+  if (typeof cb === 'function') cb(result);
+}
+document.getElementById('btn-confirm-cancel').addEventListener('click', () => _resolveConfirm(false));
+document.getElementById('btn-confirm-ok').addEventListener('click', () => _resolveConfirm(true));
+document.getElementById('btn-close-confirm-modal').addEventListener('click', () => _resolveConfirm(false));
+document.getElementById('confirm-modal').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('confirm-modal')) _resolveConfirm(false);
+});
+
+/* ================================================================
+   EXISTING LOGIC (UNCHANGED)
+   ================================================================ */
+let soundEnabled = true;
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playSfx(type) {
+  if (!soundEnabled) return;
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  try {
+    if (type === 'send') {
+      const osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1200, t);
+      osc.frequency.exponentialRampToValueAtTime(600, t + 0.04);
+      g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+      osc.connect(g); g.connect(ctx.destination); osc.start(t); osc.stop(t + 0.05);
+    } else if (type === 'receive') {
+      [880, 1320].forEach((freq, idx) => {
+        const osc = ctx.createOscillator(), g = ctx.createGain();
+        osc.type = 'triangle'; osc.frequency.setValueAtTime(freq, t + idx * 0.06);
+        g.gain.setValueAtTime(0.10, t + idx * 0.06); g.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.06 + 0.12);
+        osc.connect(g); g.connect(ctx.destination); osc.start(t + idx * 0.06); osc.stop(t + idx * 0.06 + 0.13);
+      });
+    } else if (type === 'click') {
+      const osc = ctx.createOscillator(), g = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.setValueAtTime(1500, t);
+      osc.frequency.exponentialRampToValueAtTime(800, t + 0.03);
+      g.gain.setValueAtTime(0.08, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+      osc.connect(g); g.connect(ctx.destination); osc.start(t); osc.stop(t + 0.035);
+    }
+  } catch (err) {}
+}
+window.addEventListener('pointerdown', () => getAudioCtx(), { once: true });
+window.addEventListener('keydown', () => getAudioCtx(), { once: true });
+
+let rainActive = true;
+const canvas = document.getElementById('matrix-rain');
+const ctx2d = canvas.getContext('2d');
+const chars = "0123456789ABCDEF01アイウエオカキクケコサシスセソタツテ!@#$%^&*<>[]{}";
+const charArr = chars.split('');
+const fontSize = 13;
+let columns = 0, drops = [];
+function resizeRain() {
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  columns = Math.floor(canvas.width / fontSize); drops = [];
+  for (let i = 0; i < columns; i++) drops[i] = Math.floor(Math.random() * -40);
+}
+window.addEventListener('resize', resizeRain); resizeRain();
+let lastFrame = 0;
+function renderRain(time) {
+  requestAnimationFrame(renderRain);
+  if (!rainActive) return;
+  if (time - lastFrame < 33) return;
+  lastFrame = time;
+  ctx2d.fillStyle = 'rgba(3, 7, 13, 0.08)';
+  ctx2d.fillRect(0, 0, canvas.width, canvas.height);
+  ctx2d.font = fontSize + 'px ui-monospace, monospace';
+  for (let i = 0; i < drops.length; i++) {
+    const text = charArr[Math.floor(Math.random() * charArr.length)];
+    const x = i * fontSize, y = drops[i] * fontSize;
+    ctx2d.fillStyle = Math.random() > 0.9 ? '#eafff1' : '#00ff88';
+    ctx2d.fillText(text, x, y);
+    if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  }
+}
+requestAnimationFrame(renderRain);
+
+const btnSound = document.getElementById('btn-sound-toggle');
+const sfxStatus = document.getElementById('sfx-status');
+btnSound.addEventListener('click', () => {
+  soundEnabled = !soundEnabled;
+  btnSound.classList.toggle('active', soundEnabled);
+  sfxStatus.textContent = soundEnabled ? 'ON' : 'OFF';
+  playSfx('click');
+});
+const btnRain = document.getElementById('btn-matrix-toggle');
+const matrixStatus = document.getElementById('matrix-status');
+btnRain.addEventListener('click', () => {
+  rainActive = !rainActive;
+  btnRain.classList.toggle('active', rainActive);
+  matrixStatus.textContent = rainActive ? 'ON' : 'OFF';
+  canvas.classList.toggle('disabled', !rainActive);
+  playSfx('click');
+});
+
+const sidebar = document.getElementById('sidebar-roster');
+const btnRosterToggle = document.getElementById('btn-mobile-roster-toggle');
+const btnCloseSidebarMobile = document.getElementById('btn-close-sidebar-mobile');
+function syncSidebarForMobile() {
+  if (window.innerWidth <= 768) {
+    sidebar.classList.add('sidebar-hidden');
+    btnCloseSidebarMobile.style.display = 'inline-block';
+  } else {
+    sidebar.classList.remove('sidebar-hidden');
+    btnCloseSidebarMobile.style.display = 'none';
+  }
+}
+window.addEventListener('resize', syncSidebarForMobile);
+syncSidebarForMobile();
+btnRosterToggle.addEventListener('click', () => { sidebar.classList.remove('sidebar-hidden'); playSfx('click'); });
+btnCloseSidebarMobile.addEventListener('click', () => { sidebar.classList.add('sidebar-hidden'); playSfx('click'); });
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection,
+  query, where, orderBy, limit, onSnapshot, serverTimestamp, getDocs, increment
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDZWHHSGkbdN5NLRdBKwecHHf7m2yu5cAk",
+  authDomain: "yuki-820b3.firebaseapp.com",
+  projectId: "yuki-820b3",
+  storageBucket: "yuki-820b3.firebasestorage.app",
+  messagingSenderId: "1055284096143",
+  appId: "1:1055284096143:web:f9463859371eb606db14fa"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+setPersistence(auth, browserLocalPersistence).catch(()=>{});
+
+const $ = (id) => document.getElementById(id);
+function escapeHtml(s) {
+  return String(s ?? "").replace(/[&<>"']/g, (c) => (
+    {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]
+  ));
+}
+function showToast(msg) {
+  const t = $("terminal-toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2000);
+}
+
+const YUKI_BOT_UID = "__yuki_ai__";
+let yukiChatHistory = [];
+
+let currentUser = null;
+let currentProfile = null;
+let activePeer = null;
+let activeChatId = null;
+let isSignUpMode = false;
+let unsubMessages = null;
+let unsubPeerStatus = null;
+let unsubChatRoster = null;
+let typingBeaconTimer = null;
+let lastTypingTime = 0;
+let localChannels = [];
+let markSeenTimer = null;
+
+function formatTime(ts) {
+  if (!ts) return "";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const s = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (s < 10) return "just now";
+  if (s < 60) return s + "s";
+  if (s < 3600) return Math.floor(s/60) + "m";
+  if (s < 86400) return Math.floor(s/3600) + "h";
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+function formatClock(ts) {
+  if (!ts) return "";
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
+}
+function computeChatId(a, b) { return [a, b].sort().join("__"); }
+
+function getDeleted(uid) {
+  try { return JSON.parse(localStorage.getItem("yuki_deleted_" + uid) || "[]"); } catch(e){ return []; }
+}
+function addDeleted(uid, o) {
+  const l = getDeleted(uid);
+  if (!l.includes(o)) { l.push(o); localStorage.setItem("yuki_deleted_" + uid, JSON.stringify(l)); }
+}
+function removeDeleted(uid, o) {
+  localStorage.setItem("yuki_deleted_" + uid, JSON.stringify(getDeleted(uid).filter(x => x !== o)));
+}
+function isDeleted(uid, o) { return getDeleted(uid).includes(o); }
+
+/* ===== BUG #7 + #19 + #20 FIX: Yuki history persistence ===== */
+function yukiHistoryKey() {
+  return currentUser ? "yuki_history_" + currentUser.uid : "yuki_history_anon";
+}
+function loadYukiHistory() {
+  try {
+    yukiChatHistory = JSON.parse(sessionStorage.getItem(yukiHistoryKey()) || "[]");
+    if (!Array.isArray(yukiChatHistory)) yukiChatHistory = [];
+  } catch(e) { yukiChatHistory = []; }
+}
+function saveYukiHistory() {
+  try { sessionStorage.setItem(yukiHistoryKey(), JSON.stringify(yukiChatHistory.slice(-20))); } catch(e){}
+}
+function clearYukiHistory() {
+  yukiChatHistory = [];
+  try { sessionStorage.removeItem(yukiHistoryKey()); } catch(e){}
+}
+
+function hideBoot() {
+  const b = $("boot-cover");
+  if (!b) return;
+  b.classList.add("gone");
+  setTimeout(() => { if (b.parentNode) b.remove(); }, 300);
+}
+
+function clearChatMessagesOnly() {
+  const stream = $("chat-stream");
+  if (!stream) return;
+  stream.querySelectorAll(".msg-row, .empty-chat-state").forEach(el => el.remove());
+}
+
+/* ========== AUTH ========== */
+$("btn-toggle-auth").addEventListener("click", () => {
+  isSignUpMode = !isSignUpMode;
+  $("auth-error").textContent = "";
+  if (isSignUpMode) {
+    $("btn-auth-submit").textContent = "REGISTER IDENTITY";
+    $("btn-toggle-auth").innerHTML = "Already registered? <span>Sign in</span>";
+  } else {
+    $("btn-auth-submit").textContent = "SIGN IN";
+    $("btn-toggle-auth").innerHTML = "Don't have an account? <span>Sign up</span>";
+  }
+});
+
+$("btn-auth-submit").addEventListener("click", handleAuthSubmit);
+$("auth-password").addEventListener("keydown", e => { if (e.key === "Enter") handleAuthSubmit(); });
+
+async function handleAuthSubmit() {
+  const email = $("auth-email").value.trim().toLowerCase();
+  const password = $("auth-password").value;
+  const errEl = $("auth-error");
+  errEl.textContent = "";
+  if (!email || !password) { errEl.textContent = "invalid email or password"; return; }
+  if (password.length < 6) { errEl.textContent = "key must be at least 6 characters"; return; }
+  const btn = $("btn-auth-submit");
+  btn.disabled = true;
+  try {
+    if (isSignUpMode) {
+      const handleCandidate = email.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "_").slice(0, 15) || "operator";
+      let handle = handleCandidate.toLowerCase();
+      for (let i = 0; i < 5; i++) {
+        const hDoc = await getDoc(doc(db, "usernames", handle));
+        if (!hDoc.exists()) break;
+        handle = handleCandidate.toLowerCase() + "_" + Math.floor(Math.random() * 99);
+      }
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const np = {
+        username: handle, display: handle.toUpperCase() + "_UNIT",
+        email: email, createdAt: serverTimestamp(), lastSeen: serverTimestamp()
+      };
+      await setDoc(doc(db, "users", cred.user.uid), np);
+      await setDoc(doc(db, "usernames", handle), { uid: cred.user.uid });
+    } else {
+      await signInWithEmailAndPassword(auth, email, password);
+    }
+  } catch (err) {
+    console.error(err);
+    errEl.textContent = "invalid email or password";
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ========== COPY ID ========== */
+$("btn-copy-id").addEventListener("click", function() {
+  if (!currentProfile) return;
+  navigator.clipboard.writeText(currentProfile.username).catch(()=>{});
+  const orig = this.textContent;
+  this.textContent = "COPIED";
+  setTimeout(() => this.textContent = orig, 1500);
+  playSfx('click');
+});
+
+/* ========== LOGOUT (BUG #2 FIX: themed modal) ========== */
+$("btn-logout").addEventListener("click", () => {
+  if (!currentUser) return;
+  themedConfirm({
+    title: "⏻ TERMINATE SESSION",
+    text: "Are you sure you want to log out from this terminal?",
+    sub: "All active neural connections will be severed. You can sign back in anytime.",
+    okText: "⏻ LOGOUT"
+  }, async (ok) => {
+    if (!ok) return;
+    playSfx('click');
+    try {
+      await updateDoc(doc(db, "users", currentUser.uid), { lastSeen: serverTimestamp() });
+    } catch(e){}
+    clearYukiHistory();
+    await signOut(auth);
   });
+  playSfx('click');
+});
 
-  // 4. Sidebar & Roster Selection + Menu Fixes
-  const sidebar = document.getElementById('app-sidebar');
-  const btnToggleRoster = document.getElementById('btn-open-roster');
-  btnToggleRoster.addEventListener('click', () => {
-    sidebar.classList.toggle('open');
-  });
+/* ========== AUTH OBSERVER ========== */
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    currentUser = null; currentProfile = null;
+    $("login-screen").classList.add("show");
+    if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
+    if (unsubPeerStatus) { try { unsubPeerStatus(); } catch(e){} unsubPeerStatus = null; }
+    if (unsubChatRoster) { try { unsubChatRoster(); } catch(e){} unsubChatRoster = null; }
+    hideBoot();
+    return;
+  }
+  currentUser = user;
+  try {
+    const uDoc = await getDoc(doc(db, "users", user.uid));
+    if (uDoc.exists()) currentProfile = uDoc.data();
+    else {
+      const defaultHandle = (user.email ? user.email.split("@")[0] : "operator").replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
+      currentProfile = {
+        username: defaultHandle, display: defaultHandle.toUpperCase() + "_UNIT",
+        email: user.email || "", createdAt: serverTimestamp(), lastSeen: serverTimestamp()
+      };
+      await setDoc(doc(db, "users", user.uid), currentProfile, { merge: true });
+      await setDoc(doc(db, "usernames", defaultHandle), { uid: user.uid }, { merge: true });
+    }
+    $("me-display").textContent = currentProfile.display || currentProfile.username;
+    $("me-uid").textContent = "@" + currentProfile.username;
+    updateDoc(doc(db, "users", user.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
+    $("login-screen").classList.remove("show");
+    subscribeChatRoster();
+    /* BUG #8 FIX: restore last peer if any */
+    const lastPeer = sessionStorage.getItem("yuki_active_peer");
+    if (lastPeer && lastPeer !== YUKI_BOT_UID) {
+      // Will restore after roster loads; for now open Yuki
+      openYukiBot();
+      setTimeout(() => {
+        const found = localChannels.find(c => c.otherUid === lastPeer);
+        if (found) openChatWith(lastPeer, found.profile);
+      }, 900);
+    } else {
+      openYukiBot();
+    }
+  } catch (e) {
+    console.error("Profile load error:", e);
+    $("login-screen").classList.add("show");
+  }
+  hideBoot();
+});
 
-  // Roster switching
-  document.getElementById('target-roster-list').addEventListener('click', (e) => {
-    const item = e.target.closest('.roster-item');
-    if (!item) return;
+/* ========== SEARCH ========== */
+$("btn-peer-search").addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); openSearchModal(); });
+$("search-peer-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); openSearchModal(); }
+});
+$("btn-close-search-modal").addEventListener("click", (e) => {
+  e.preventDefault(); e.stopPropagation();
+  $("search-modal").classList.remove("open");
+});
+$("search-modal").addEventListener("click", (e) => {
+  if (e.target === $("search-modal")) {
+    e.stopPropagation();
+    $("search-modal").classList.remove("open");
+  }
+});
+const searchModalBox = document.querySelector(".search-modal-box");
+if (searchModalBox) {
+  searchModalBox.addEventListener("click", (e) => { e.stopPropagation(); });
+}
 
-    // Handle 3-dots button click
-    const menuBtn = e.target.closest('.roster-menu-btn');
-    if (menuBtn) {
-      e.stopPropagation();
-      const popup = item.querySelector('.roster-menu-popup');
-      const isAlreadyOpen = popup.classList.contains('open');
-      document.querySelectorAll('.roster-menu-popup').forEach(p => p.classList.remove('open'));
-      if (!isAlreadyOpen) popup.classList.add('open');
+function openSearchModal() {
+  const modal = $("search-modal");
+  const content = $("search-modal-content");
+  const prefill = $("search-peer-input").value.trim().replace(/^@/, "");
+  content.innerHTML = `
+    <div style="padding:8px 0;">
+      <input type="text" id="modal-search-input" placeholder="Enter username to search..." value="${escapeHtml(prefill)}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" style="width:100%;padding:8px 10px;background:#03070d;border:1px solid var(--green-dim);color:var(--green);font-family:var(--font-mono);font-size:11px;border-radius:3px;outline:none;" />
+    </div>
+    <div id="modal-search-results" style="margin-top:10px;"></div>
+  `;
+  modal.classList.add("open");
+  const searchInput = $("modal-search-input");
+  if (searchInput) {
+    setTimeout(() => searchInput.focus(), 100);
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        performUserSearchModal(searchInput.value);
+      }
+    });
+    let debounceTimer = null;
+    searchInput.addEventListener("input", (e) => {
+      clearTimeout(debounceTimer);
+      const v = e.target.value.trim();
+      if (v.length < 2) { $("modal-search-results").innerHTML = ""; return; }
+      debounceTimer = setTimeout(() => performUserSearchModal(v), 400);
+    });
+    if (prefill && prefill.length >= 2) {
+      performUserSearchModal(prefill);
+    }
+  }
+}
+
+async function performUserSearchModal(q) {
+  const searchQ = q.trim().toLowerCase().replace(/^@/, "");
+  if (!searchQ) { $("modal-search-results").innerHTML = ""; return; }
+  if (!currentUser || !currentProfile) return;
+  if (searchQ === currentProfile.username.toLowerCase()) {
+    $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">Cannot message yourself</div>`;
+    return;
+  }
+  try {
+    let otherUid = null, otherData = null;
+    const uDoc = await getDoc(doc(db, "usernames", searchQ));
+    if (uDoc.exists()) {
+      otherUid = uDoc.data().uid;
+      const uSnap = await getDoc(doc(db, "users", otherUid));
+      if (uSnap.exists()) otherData = uSnap.data();
+    } else {
+      const qU = query(collection(db, "users"), where("username", "==", searchQ), limit(1));
+      const uSnap = await getDocs(qU);
+      if (!uSnap.empty) { otherUid = uSnap.docs[0].id; otherData = uSnap.docs[0].data(); }
+    }
+    if (!otherUid || !otherData) {
+      $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">No user found: @${escapeHtml(searchQ)}</div>`;
+      return;
+    }
+    removeDeleted(currentUser.uid, otherUid);
+    $("modal-search-results").innerHTML = `
+      <div class="search-result-row">
+        <div class="search-result-info">
+          <div class="search-result-name">${escapeHtml(otherData.display || otherData.username)}</div>
+          <div class="search-result-user">@${escapeHtml(otherData.username)}</div>
+        </div>
+        <button class="btn-open-result" id="btn-open-peer" type="button">OPEN</button>
+      </div>`;
+    const openBtn = $("btn-open-peer");
+    if (openBtn) {
+      openBtn.onclick = (e) => {
+        e.preventDefault(); e.stopPropagation();
+        $("search-modal").classList.remove("open");
+        $("search-peer-input").value = "";
+        openChatWith(otherUid, otherData);
+      };
+    }
+  } catch (e) {
+    console.error(e);
+    $("modal-search-results").innerHTML = `<div style="color:var(--red);font-size:11px;padding:6px 0;">Search error</div>`;
+  }
+}
+
+/* ========== YUKI BOT (BUG #1 + #7 FIX) ========== */
+function openYukiBot() {
+  if (!currentUser) return;
+  if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
+  if (unsubPeerStatus) { try { unsubPeerStatus(); } catch(e){} unsubPeerStatus = null; }
+
+  clearChatMessagesOnly();
+  loadYukiHistory();
+
+  activePeer = { uid: YUKI_BOT_UID, username: "yuki_ai", display: "YUKI [AI COMPANION]", isYuki: true };
+  activeChatId = computeChatId(currentUser.uid, YUKI_BOT_UID);
+  sessionStorage.setItem("yuki_active_peer", YUKI_BOT_UID);
+
+  $("active-chat-title").textContent = "YUKI [AI COMPANION]";
+  $("active-chat-title-wrap").classList.add("yuki");
+  $("active-chat-sub").textContent = "secure neural websocket active";
+  $("peer-live-dot").style.background = "var(--pink)";
+  $("peer-live-dot").style.boxShadow = "0 0 6px var(--pink)";
+
+  if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
+
+  /* BUG #1 FIX: reset word counter when switching to Yuki */
+  $("chat-textarea").value = "";
+  updateWordCounter();
+
+  subscribeMessages(activeChatId);
+  setTimeout(renderRoster, 0);
+}
+
+/* ========== OPEN CHAT WITH USER ========== */
+function openChatWith(peerUid, peerProfile) {
+  if (!currentUser || !peerUid) return;
+
+  if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
+  if (unsubPeerStatus) { try { unsubPeerStatus(); } catch(e){} unsubPeerStatus = null; }
+
+  clearChatMessagesOnly();
+
+  removeDeleted(currentUser.uid, peerUid);
+
+  let cachedProfile = peerProfile;
+  if (!cachedProfile) {
+    const found = localChannels.find(c => c.otherUid === peerUid);
+    if (found && found.profile) cachedProfile = found.profile;
+  }
+
+  activePeer = {
+    uid: peerUid,
+    username: cachedProfile?.username || "operator",
+    display: cachedProfile?.display || cachedProfile?.username || "Operator"
+  };
+  activeChatId = computeChatId(currentUser.uid, peerUid);
+  sessionStorage.setItem("yuki_active_peer", peerUid);
+
+  $("active-chat-title").textContent = activePeer.display;
+  $("active-chat-title-wrap").classList.remove("yuki");
+  $("active-chat-sub").textContent = "@" + activePeer.username;
+  $("peer-live-dot").style.background = "var(--green)";
+  $("peer-live-dot").style.boxShadow = "0 0 6px var(--green)";
+  $("chat-textarea").value = "";
+  updateWordCounter();
+
+  if (window.innerWidth <= 768) sidebar.classList.add("sidebar-hidden");
+
+  subscribeMessages(activeChatId);
+  subscribePeerStatus(activeChatId, peerUid);
+  scheduleMarkSeen(activeChatId);
+  renderRoster();
+
+  const chatRef = doc(db, "chats", activeChatId);
+  setDoc(chatRef, {
+    users: [currentUser.uid, peerUid],
+    [`participants.${currentUser.uid}`]: true,
+    [`participants.${peerUid}`]: true,
+    touchAt: serverTimestamp()
+  }, { merge: true }).catch(()=>{});
+
+  if (!cachedProfile || !cachedProfile.username) {
+    getDoc(doc(db, "users", peerUid)).then(uSnap => {
+      if (uSnap.exists() && activePeer && activePeer.uid === peerUid) {
+        const d = uSnap.data();
+        activePeer.username = d.username || activePeer.username;
+        activePeer.display = d.display || d.username || activePeer.display;
+        $("active-chat-title").textContent = activePeer.display;
+        $("active-chat-sub").textContent = "@" + activePeer.username;
+      }
+    }).catch(()=>{});
+  }
+}
+
+/* ========== MESSAGES ========== */
+function subscribeMessages(chatId) {
+  if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
+
+  const stream = $("chat-stream");
+  if (!stream) return;
+
+  const currentActiveChatId = chatId;
+  const ref = collection(db, "chats", chatId, "messages");
+  const q = query(ref, orderBy("at", "asc"), limit(300));
+
+  unsubMessages = onSnapshot(q, (snap) => {
+    if (activeChatId !== currentActiveChatId) return;
+
+    const streamEl = $("chat-stream");
+    if (!streamEl) return;
+
+    clearChatMessagesOnly();
+
+    const wasAtBottom = streamEl.scrollHeight - streamEl.scrollTop - streamEl.clientHeight < 150;
+
+    if (snap.empty) {
+      if (activePeer?.isYuki) {
+        const intro = document.createElement("div");
+        intro.className = "msg-row peer";
+        intro.innerHTML = `
+          <div class="msg-bubble">Greetings, Operator. Neural telemetry channel synchronized. You can transmit queries, code fragments, or tactical directives directly. All records are processed through secure sandboxed shards.</div>
+          <div class="msg-meta"><span>${formatClock(new Date())}</span></div>
+        `;
+        streamEl.appendChild(intro);
+      } else {
+        const empty = document.createElement("div");
+        empty.className = "empty-chat-state";
+        empty.innerHTML = `<b>◇</b>secure channel initialized<br>send a message to begin`;
+        streamEl.appendChild(empty);
+      }
       return;
     }
 
-    // Handle menu action buttons
-    const actionBtn = e.target.closest('.menu-action');
-    if (actionBtn) {
-      e.stopPropagation();
-      const act = actionBtn.dataset.act;
-      const targetName = item.dataset.target;
-      if (act === 'purge') {
-        const stream = document.getElementById('chat-messages-container');
-        stream.innerHTML = `
-          <div class="legal-disclaimer">
-            <div class="legal-disclaimer-header">
-              <span>STREAM PURGED</span>
-              <span>LOCAL DISK</span>
-            </div>
-            <p>Transmission history cleared for <b>${targetName}</b>.</p>
-          </div>`;
-      } else if (act === 'trace') {
-        alert(`Tracing hops to ${targetName}... TTL: 64 | Gateway: 10.0.8.1`);
+    const fragment = document.createDocumentFragment();
+    snap.forEach(d => {
+      const m = d.data();
+      const isMine = m.by === currentUser.uid;
+      const row = document.createElement("div");
+      row.className = `msg-row ${isMine ? "me" : "peer"}`;
+      row.dataset.id = d.id;
+      let receipt = "";
+      if (isMine) {
+        receipt = m.seen === true
+          ? `<span class="receipt seen">••</span>`
+          : `<span class="receipt">•</span>`;
       }
-      actionBtn.closest('.roster-menu-popup').classList.remove('open');
+      const senderLabel = activePeer?.isYuki ? "YUKI [AI]" : (activePeer?.username || "peer");
+      row.innerHTML = `
+        ${!isMine ? `<div style="font-size:9px;color:${activePeer?.isYuki ? 'var(--pink)' : 'var(--dim)'};letter-spacing:1.5px;margin-bottom:3px;font-weight:700;">${activePeer?.isYuki ? '◆ YUKI [NEURAL CORE]' : '◆ ' + escapeHtml(senderLabel).toUpperCase()}</div>` : ''}
+        <div class="msg-bubble">${formatMessageContent(m.text || "")}</div>
+        <div class="msg-meta">
+          <span>${formatClock(m.at)}</span>
+          ${receipt}
+        </div>`;
+      fragment.appendChild(row);
+    });
+    streamEl.appendChild(fragment);
+
+    if (wasAtBottom) streamEl.scrollTop = streamEl.scrollHeight;
+    scheduleMarkSeen(chatId);
+  }, (err) => {
+    console.error("Messages subscription error:", err);
+  });
+}
+
+function formatMessageContent(raw) {
+  let text = String(raw ?? "").replace(/[&<>"']/g, c => (
+    {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]
+  ));
+  text = text.replace(/```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g, (match, lang, code) => {
+    const l = lang ? lang.toUpperCase() : 'CODE';
+    return `<div class="code-container">
+      <div class="code-head"><span>${l}</span><button class="copy-code-btn" onclick="navigator.clipboard.writeText(this.closest('.code-container').querySelector('.code-body').innerText); this.textContent='COPIED'; setTimeout(()=>this.textContent='COPY',1500);">COPY</button></div>
+      <pre class="code-body">${code.trim()}</pre>
+    </div>`;
+  });
+  text = text.replace(/`([^`]+)`/g, '<code style="background:rgba(0,255,136,0.1);color:var(--green);padding:1px 4px;border-radius:2px;">$1</code>');
+  return text.replace(/\n/g, '<br/>');
+}
+
+/* ========== PEER STATUS ========== */
+function subscribePeerStatus(chatId, otherUid) {
+  if (unsubPeerStatus) { try { unsubPeerStatus(); } catch(e){} unsubPeerStatus = null; }
+  if (otherUid === YUKI_BOT_UID) return;
+  const currentActiveChatId = chatId;
+  unsubPeerStatus = onSnapshot(doc(db, "chats", chatId), async (snap) => {
+    if (activeChatId !== currentActiveChatId || !snap.exists()) return;
+    const d = snap.data();
+    const statusEl = $("active-chat-sub");
+    if (d.typing && d.typing[otherUid] === true) {
+      statusEl.textContent = "typing...";
       return;
     }
-
-    // Normal item selection
-    document.querySelectorAll('.roster-item').forEach(r => r.classList.remove('active'));
-    item.classList.add('active');
-
-    const title = item.dataset.target;
-    const role = item.dataset.role || 'ACTIVE NODE';
-    const isPink = item.dataset.pink === 'true';
-
-    const targetTitleElem = document.getElementById('active-target-title');
-    targetTitleElem.innerHTML = `<span>●</span> ${title}`;
-    targetTitleElem.className = `target-title ${isPink ? 'yuki' : ''}`;
-    document.getElementById('active-target-sub').textContent = `${role.toUpperCase()} // E2E VERIFIED`;
-
-    if (window.innerWidth <= 768) sidebar.classList.remove('open');
-  });
-
-  // Close menus on outside click
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.roster-menu-popup') && !e.target.closest('.roster-menu-btn')) {
-      document.querySelectorAll('.roster-menu-popup').forEach(p => p.classList.remove('open'));
+    const found = localChannels.find(c => c.otherUid === otherUid);
+    if (found && found.profile && found.profile.username) {
+      const ud = found.profile;
+      statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
+      return;
     }
+    try {
+      const u = await getDoc(doc(db, "users", otherUid));
+      if (u.exists() && activeChatId === currentActiveChatId) {
+        const ud = u.data();
+        statusEl.textContent = ud.lastSeen ? `@${ud.username} · last active ${formatTime(ud.lastSeen)}` : "@" + ud.username;
+      }
+    } catch(e){}
   });
+}
 
-  // 5. Modal Search & Hook Target
-  const modal = document.getElementById('search-modal');
-  document.getElementById('btn-execute-search').addEventListener('click', () => {
-    modal.classList.add('open');
-  });
-  document.getElementById('btn-close-modal').addEventListener('click', () => {
-    modal.classList.remove('open');
-  });
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.classList.remove('open');
-  });
+/* ========== MARK SEEN (BUG #16 FIX: debounced) ========== */
+function scheduleMarkSeen(chatId) {
+  if (markSeenTimer) clearTimeout(markSeenTimer);
+  markSeenTimer = setTimeout(() => { markSeen(chatId); }, 500);
+}
+async function markSeen(chatId) {
+  if (!chatId || !currentUser) return;
+  if (activePeer?.isYuki) return;
+  try {
+    await updateDoc(doc(db, "chats", chatId), { [`unread.${currentUser.uid}`]: 0 }).catch(()=>{});
+    const qU = query(collection(db, "chats", chatId, "messages"), where("by", "!=", currentUser.uid), where("seen", "==", false), limit(50));
+    const snap = await getDocs(qU);
+    for (const d of snap.docs) {
+      updateDoc(d.ref, { seen: true }).catch(()=>{});
+    }
+  } catch(e){}
+}
 
-  document.querySelectorAll('.btn-open-result').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const attachId = btn.dataset.attach;
-      modal.classList.remove('open');
+/* ========== SEND MESSAGE (BUG #14 FIX: word limit check) ========== */
+async function transmitMessage() {
+  const ta = $("chat-textarea");
+  const text = ta.value.trim();
+  if (!text || !currentUser || !activeChatId || !activePeer) return;
+  /* BUG #14 FIX: enforce word limit even via Enter key */
+  if (countWords(text) > 5000) {
+    showToast("WORD LIMIT EXCEEDED");
+    return;
+  }
+  ta.value = "";
+  ta.style.height = "auto";
+  updateWordCounter();
+  ta.focus();
+  const payload = { text, by: currentUser.uid, at: serverTimestamp(), seen: false };
+  try {
+    await addDoc(collection(db, "chats", activeChatId, "messages"), payload);
+    await setDoc(doc(db, "chats", activeChatId), {
+      users: [currentUser.uid, activePeer.uid],
+      [`participants.${currentUser.uid}`]: true,
+      [`participants.${activePeer.uid}`]: true,
+      lastMsg: text.slice(0, 80),
+      lastMsgAt: serverTimestamp(),
+      lastMsgBy: currentUser.uid,
+      touchAt: serverTimestamp(),
+      unread: activePeer.isYuki ? {} : { [activePeer.uid]: increment(1), [currentUser.uid]: 0 },
+      typing: { [currentUser.uid]: false }
+    }, { merge: true });
+    playSfx('send');
 
-      const targetTitleElem = document.getElementById('active-target-title');
-      targetTitleElem.innerHTML = `<span>●</span> ${attachId}`;
-      targetTitleElem.className = 'target-title';
-      document.getElementById('active-target-sub').textContent = `DIRECT RECON // ATTACHED FEED`;
+    if (activePeer.isYuki) {
+      /* BUG #6 FIX: better error handling for /api/yuki */
+      setTimeout(async () => {
+        try {
+          let reply = "…";
+          let apiOk = false;
+          try {
+            const r = await fetch("/api/yuki", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ message: text, history: yukiChatHistory })
+            });
+            if (r.ok) {
+              apiOk = true;
+              const data = await r.json();
+              reply = data.reply || data.response || data.message || data.text || data.result || "…";
+              if (typeof reply !== "string") reply = JSON.stringify(reply);
+            } else {
+              console.error("Yuki API status:", r.status);
+              if (r.status === 404) reply = "Yuki API not deployed at /api/yuki. Contact admin.";
+              else if (r.status === 500) reply = "Yuki neural core error. Retry transmission.";
+              else reply = "Neural link unstable. Retry transmission.";
+            }
+          } catch (fetchErr) {
+            console.error("Yuki API error:", fetchErr);
+            reply = "Neural link offline. Check your connection.";
+          }
+
+          if (apiOk) {
+            yukiChatHistory.push({ role: "user", content: text });
+            yukiChatHistory.push({ role: "assistant", content: reply });
+            yukiChatHistory = yukiChatHistory.slice(-20);
+            saveYukiHistory();
+          }
+
+          await addDoc(collection(db, "chats", activeChatId, "messages"), {
+            text: reply, by: YUKI_BOT_UID, at: serverTimestamp(), seen: true
+          });
+          await setDoc(doc(db, "chats", activeChatId), {
+            lastMsg: reply.slice(0, 80),
+            lastMsgAt: serverTimestamp(),
+            lastMsgBy: YUKI_BOT_UID,
+            touchAt: serverTimestamp()
+          }, { merge: true });
+          playSfx('receive');
+        } catch(e){ console.error("Yuki reply error:", e); }
+      }, 700);
+    }
+  } catch (e) {
+    console.error("Transmit error:", e);
+    showToast("TRANSMISSION ERROR");
+  }
+}
+
+$("chat-form").addEventListener("submit", e => { e.preventDefault(); transmitMessage(); });
+$("chat-textarea").addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); transmitMessage(); }
+});
+
+function countWords(str) {
+  const m = str.trim().match(/\S+/g);
+  return m ? m.length : 0;
+}
+function updateWordCounter() {
+  const ta = $("chat-textarea");
+  if (!ta) return;
+  const words = countWords(ta.value);
+  const el = $("word-counter-display");
+  if (!el) return;
+  el.textContent = `${words.toLocaleString()} / 5,000 words`;
+  if (words > 5000) { el.className = "word-counter over"; $("btn-send").disabled = true; }
+  else if (words > 4500) { el.className = "word-counter warn"; $("btn-send").disabled = false; }
+  else { el.className = "word-counter"; $("btn-send").disabled = false; }
+}
+$("chat-textarea").addEventListener("input", e => {
+  e.target.style.height = "auto";
+  e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+  updateWordCounter();
+  broadcastTyping();
+});
+
+async function broadcastTyping() {
+  if (!currentUser || !activeChatId || activePeer?.isYuki) return;
+  const now = Date.now();
+  if (now - lastTypingTime < 2500) return;
+  lastTypingTime = now;
+  try {
+    await updateDoc(doc(db, "chats", activeChatId), { [`typing.${currentUser.uid}`]: true });
+    if (typingBeaconTimer) clearTimeout(typingBeaconTimer);
+    typingBeaconTimer = setTimeout(async () => {
+      try { await updateDoc(doc(db, "chats", activeChatId), { [`typing.${currentUser.uid}`]: false }); } catch(e){}
+    }, 3000);
+  } catch(e){}
+}
+
+/* ========== CHAT ROSTER ========== */
+function subscribeChatRoster() {
+  if (unsubChatRoster) { try { unsubChatRoster(); } catch(e){} unsubChatRoster = null; }
+  if (!currentUser) return;
+  const ref = collection(db, "chats");
+  const q = query(ref, where("users", "array-contains", currentUser.uid));
+  unsubChatRoster = onSnapshot(q, async (snap) => {
+    const list = [];
+    for (const d of snap.docs) {
+      const data = d.data();
+      const otherUid = data.users?.find(u => u !== currentUser.uid);
+      if (!otherUid) continue;
+      if (otherUid === YUKI_BOT_UID) continue;
+      if (isDeleted(currentUser.uid, otherUid)) continue;
+      list.push({ chatId: d.id, data, otherUid });
+    }
+    const hydrated = await Promise.all(list.map(async item => {
+      try {
+        const u = await getDoc(doc(db, "users", item.otherUid));
+        item.profile = u.exists() ? u.data() : { username: "operative", display: "Operative" };
+      } catch(e) { item.profile = { username: "operative", display: "Operative" }; }
+      return item;
+    }));
+    hydrated.sort((a, b) => {
+      const getMs = (it) => {
+        const ts = it.data.lastMsgAt || it.data.touchAt;
+        if (ts?.toMillis) return ts.toMillis();
+        if (typeof ts === "number") return ts;
+        return 0;
+      };
+      return getMs(b) - getMs(a);
+    });
+    localChannels = hydrated;
+    $("peer-count").textContent = (hydrated.length + 1);
+    renderRoster();
+    checkForNewMessagePopup();
+  }, (err) => {
+    console.error("Roster error:", err);
+  });
+}
+
+function renderRoster() {
+  const c = $("roster-list-body");
+  if (!c) return;
+  c.innerHTML = "";
+
+  const yukiRow = document.createElement("div");
+  const yukiActive = activePeer?.isYuki;
+  yukiRow.className = "roster-item" + (yukiActive ? " active" : "");
+  yukiRow.dataset.uid = YUKI_BOT_UID;
+  yukiRow.innerHTML = `
+    <div class="roster-avatar yuki">Y</div>
+    <div class="roster-info">
+      <div class="roster-top">
+        <span class="roster-title pink">YUKI [AI COMPANION]</span>
+        <span class="roster-time" style="color:var(--pink)">LIVE</span>
+      </div>
+      <div class="roster-snippet">Neural interactive intelligence channel</div>
+    </div>
+  `;
+  yukiRow.addEventListener("click", () => { playSfx('click'); openYukiBot(); });
+  c.appendChild(yukiRow);
+
+  if (localChannels.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-roster";
+    empty.innerHTML = `<b>◇</b>no other active channels<br>query a user above`;
+    c.appendChild(empty);
+    return;
+  }
+
+  for (const item of localChannels) {
+    const p = item.profile || {}, d = item.data || {};
+    const unread = (d.unread && d.unread[currentUser.uid]) || 0;
+    const isActive = activeChatId === item.chatId;
+    const initial = (p.display || p.username || "?").charAt(0).toUpperCase();
+    const row = document.createElement("div");
+    row.className = "roster-item" + (isActive ? " active" : "");
+    row.dataset.uid = item.otherUid;
+    row.innerHTML = `
+      <div class="roster-avatar">${escapeHtml(initial)}</div>
+      <div class="roster-info">
+        <div class="roster-top">
+          <span class="roster-title">${escapeHtml(p.display || p.username || "Operator")}</span>
+          <span class="roster-time">${escapeHtml(formatTime(d.lastMsgAt || d.touchAt))}</span>
+        </div>
+        <div class="roster-snippet">${escapeHtml(d.lastMsg || "channel initialized")}</div>
+      </div>
+      ${unread > 0 ? `<span style="background:var(--green);color:#00160a;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;">${unread > 9 ? "9+" : unread}</span>` : ""}
+      <button class="roster-menu-btn" data-uid="${escapeHtml(item.otherUid)}">⋮</button>
+    `;
+    row.addEventListener("click", (ev) => {
+      if (ev.target.classList.contains("roster-menu-btn")) return;
+      if (ev.target.closest(".roster-menu-popup")) return;
+      playSfx('click');
+      openChatWith(item.otherUid, p);
+    });
+    row.querySelector(".roster-menu-btn").addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      showRosterMenu(row, item.otherUid);
+    });
+    c.appendChild(row);
+  }
+}
+
+/* BUG #2 FIX: delete chat uses themed modal */
+function showRosterMenu(rowEl, otherUid) {
+  document.querySelectorAll(".roster-menu-popup").forEach(x => x.remove());
+  const pop = document.createElement("div");
+  pop.className = "roster-menu-popup";
+  pop.innerHTML = `<button data-act="delete">Delete chat</button>`;
+  rowEl.appendChild(pop);
+  pop.querySelector('[data-act="delete"]').addEventListener("click", (ev) => {
+    ev.stopPropagation();
+    pop.remove();
+    themedConfirm({
+      title: "🗑 DELETE CHANNEL",
+      text: "Delete this chat from your roster?",
+      sub: "The conversation will be hidden from your side. The other party still keeps their copy.",
+      okText: "DELETE"
+    }, (ok) => {
+      if (!ok) return;
+      addDeleted(currentUser.uid, otherUid);
+      if (activePeer?.uid === otherUid) {
+        activePeer = null; activeChatId = null;
+        sessionStorage.removeItem("yuki_active_peer");
+        openYukiBot();
+      }
+      localChannels = localChannels.filter(x => x.otherUid !== otherUid);
+      renderRoster();
     });
   });
+  setTimeout(() => {
+    document.addEventListener("click", function close(e) {
+      if (!pop.contains(e.target)) { pop.remove(); document.removeEventListener("click", close); }
+    });
+  }, 50);
+}
 
-  // 6. Composer, Character Counter, and Submitting
-  const chatForm = document.getElementById('chat-form');
-  const chatInput = document.getElementById('composer-input');
-  const charCounter = document.getElementById('char-counter');
-  const chatStream = document.getElementById('chat-messages-container');
-
-  chatInput.addEventListener('input', () => {
-    const len = chatInput.value.length;
-    charCounter.textContent = `${len} / 2000`;
-    charCounter.classList.toggle('warn', len > 1500 && len < 2000);
-    charCounter.classList.toggle('over', len >= 2000);
-
-    chatInput.style.height = 'auto';
-    chatInput.style.height = `${Math.min(chatInput.scrollHeight, 120)}px`;
-  });
-
-  chatInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      chatForm.dispatchEvent(new Event('submit'));
+let lastPopupTime = 0;
+function checkForNewMessagePopup() {
+  const me = currentUser?.uid;
+  if (!me) return;
+  for (const c of localChannels) {
+    const unread = (c.data?.unread && c.data.unread[me]) || 0;
+    if (unread > 0 && activePeer?.uid !== c.otherUid) {
+      if (Date.now() - lastPopupTime < 3000) return;
+      lastPopupTime = Date.now();
+      showTopBanner(c.profile?.username || "operator", c.data.lastMsg || "new message", c.otherUid, c.profile);
+      return;
     }
-  });
-
-  function escapeHTML(str) {
-    return str.replace(/[&<>'"]/g, 
-      tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-    );
   }
-
-  chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const val = chatInput.value.trim();
-    if (!val || val.length > 2000) return;
-
-    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const row = document.createElement('div');
-    row.className = 'msg-row me';
-    row.innerHTML = `
-      <div class="msg-bubble">${escapeHTML(val)}</div>
-      <div class="msg-meta">
-        <span>${timeStr}</span>
-        <span class="receipt">✓</span>
-      </div>
-    `;
-    chatStream.appendChild(row);
-    chatInput.value = '';
-    chatInput.style.height = 'auto';
-    charCounter.textContent = `0 / 2000`;
-    charCounter.className = 'word-counter';
-    chatStream.scrollTop = chatStream.scrollHeight;
-  });
-
-  // 7. Delegated Code Copy Handler
-  document.addEventListener('click', (e) => {
-    const copyBtn = e.target.closest('.copy-code-btn');
-    if (copyBtn) {
-      const pre = copyBtn.closest('.code-container').querySelector('pre');
-      navigator.clipboard.writeText(pre.innerText).then(() => {
-        const orig = copyBtn.textContent;
-        copyBtn.textContent = 'COPIED!';
-        setTimeout(() => copyBtn.textContent = orig, 1500);
-      });
-    }
-  });
-
-  // Copy Node ID
-  document.getElementById('btn-copy-id').addEventListener('click', () => {
-    navigator.clipboard.writeText('#889-ALPHA');
-    const btn = document.getElementById('btn-copy-id');
-    btn.textContent = 'COPIED';
-    setTimeout(() => btn.textContent = 'COPY', 1200);
-  });
-
-  // 8. Auth / Keypair Toggle Logic
-  let isRegisterMode = false;
-  const authTitle = document.getElementById('auth-main-title');
-  const authSub = document.getElementById('auth-sub-title');
-  const authSubmit = document.getElementById('btn-login-submit');
-  const authToggleLabel = document.getElementById('auth-toggle-label');
-
-  document.getElementById('btn-auth-toggle').addEventListener('click', () => {
-    isRegisterMode = !isRegisterMode;
-    if (isRegisterMode) {
-      authTitle.textContent = 'GEN//KEYPAIR';
-      authSub.textContent = 'NEW OPERATOR ENROLLMENT PROTOCOL';
-      authSubmit.textContent = 'GENERATE KEY & ENTER';
-      authToggleLabel.textContent = 'EXISTING NODE AUTH';
-    } else {
-      authTitle.textContent = 'NODE//AUTH';
-      authSub.textContent = 'CYBER • OSINT TERMINAL ACCESS';
-      authSubmit.textContent = 'DECRYPT & CONNECT';
-      authToggleLabel.textContent = 'INITIALIZE KEYPAIR';
-    }
-  });
-
-  document.getElementById('btn-logout').addEventListener('click', () => {
-    document.getElementById('login-screen').classList.add('show');
-  });
-  document.getElementById('btn-login-submit').addEventListener('click', () => {
-    const userInp = document.getElementById('login-username').value.trim();
-    if (userInp) {
-      document.getElementById('user-display-name').textContent = userInp.toUpperCase();
-    }
-    document.getElementById('login-screen').classList.remove('show');
-  });
+}
+let bannerTimer = null;
+function showTopBanner(handle, preview, peerUid, profile) {
+  const b = $("incoming-banner");
+  $("banner-sender").textContent = "@" + handle;
+  $("banner-preview").textContent = preview;
+  b.classList.add("visible");
+  b.onclick = () => { b.classList.remove("visible"); openChatWith(peerUid, profile); };
+  if (bannerTimer) clearTimeout(bannerTimer);
+  bannerTimer = setTimeout(() => b.classList.remove("visible"), 5000);
+}
 </script>
 </body>
 </html>
