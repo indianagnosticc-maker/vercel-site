@@ -549,17 +549,12 @@
     if (rafId) cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(() => {
       if (!composer || !vv) return;
-
-      // Keyboard height = diff between layout viewport and visual viewport
       const keyboardHeight = Math.max(0, baseHeight - vv.height);
-
-      // Also account for page offsetTop (iOS scrolls page when keyboard opens)
       const offsetTop = vv.offsetTop || 0;
 
       if (keyboardHeight > 80) {
         composer.style.transform = `translateY(-${keyboardHeight - offsetTop}px)`;
         composer.style.transition = 'transform 0.12s ease-out';
-        // Auto-scroll chat to bottom after keyboard opens
         setTimeout(() => {
           if (stream) stream.scrollTop = stream.scrollHeight;
         }, 150);
@@ -570,7 +565,6 @@
     });
   }
 
-  // Recompute base height when keyboard is closed
   function refreshBase() {
     if (!vv) return;
     const kh = Math.max(0, window.innerHeight - vv.height);
@@ -767,6 +761,11 @@ let typingBeaconTimer = null;
 let lastTypingTime = 0;
 let localChannels = [];
 
+/* ===== FLICKER FIX STATE ===== */
+let renderedChatId = null;          // which chatId is currently rendered
+let renderedMsgIds = new Set();     // set of message IDs already in DOM
+let renderedHasIntro = false;       // for Yuki's empty intro bubble
+
 function formatTime(ts) {
   if (!ts) return "";
   const d = ts.toDate ? ts.toDate() : new Date(ts);
@@ -802,10 +801,16 @@ function hideBoot() {
   setTimeout(() => { if (b.parentNode) b.remove(); }, 300);
 }
 
+/* ===== FLICKER FIX: clearDOM + reset flicker state (called on chat switch only) ===== */
 function clearChatMessagesOnly() {
   const stream = $("chat-stream");
   if (!stream) return;
   stream.querySelectorAll(".msg-row, .empty-chat-state").forEach(el => el.remove());
+}
+function resetFlickerStateForChat(chatId) {
+  renderedChatId = chatId;
+  renderedMsgIds = new Set();
+  renderedHasIntro = false;
 }
 
 /* ========== AUTH ========== */
@@ -1030,6 +1035,9 @@ function openYukiBot() {
   activeChatId = computeChatId(currentUser.uid, YUKI_BOT_UID);
   sessionStorage.setItem("yuki_active_peer", YUKI_BOT_UID);
 
+  /* FLICKER FIX: reset render state for this chat */
+  resetFlickerStateForChat(activeChatId);
+
   $("active-chat-title").textContent = "YUKI [AI COMPANION]";
   $("active-chat-title-wrap").classList.add("yuki");
   $("active-chat-sub").textContent = "secure neural websocket active";
@@ -1067,6 +1075,9 @@ function openChatWith(peerUid, peerProfile) {
   activeChatId = computeChatId(currentUser.uid, peerUid);
   sessionStorage.setItem("yuki_active_peer", peerUid);
 
+  /* FLICKER FIX: reset render state for this chat */
+  resetFlickerStateForChat(activeChatId);
+
   $("active-chat-title").textContent = activePeer.display;
   $("active-chat-title-wrap").classList.remove("yuki");
   $("active-chat-sub").textContent = "@" + activePeer.username;
@@ -1103,7 +1114,31 @@ function openChatWith(peerUid, peerProfile) {
   }
 }
 
-/* ========== MESSAGES ========== */
+/* ========== BUILD ONE MESSAGE ROW (helper, used by diff renderer) ========== */
+function buildMessageRow(d) {
+  const m = d.data();
+  const isMine = m.by === currentUser.uid;
+  const row = document.createElement("div");
+  row.className = `msg-row ${isMine ? "me" : "peer"}`;
+  row.dataset.id = d.id;
+  let receipt = "";
+  if (isMine) {
+    receipt = m.seen === true
+      ? `<span class="receipt seen">••</span>`
+      : `<span class="receipt">•</span>`;
+  }
+  const senderLabel = activePeer?.isYuki ? "YUKI [AI]" : (activePeer?.username || "peer");
+  row.innerHTML = `
+    ${!isMine ? `<div style="font-size:9px;color:${activePeer?.isYuki ? 'var(--pink)' : 'var(--dim)'};letter-spacing:1.5px;margin-bottom:3px;font-weight:700;">${activePeer?.isYuki ? '◆ YUKI [NEURAL CORE]' : '◆ ' + escapeHtml(senderLabel).toUpperCase()}</div>` : ''}
+    <div class="msg-bubble">${formatMessageContent(m.text || "")}</div>
+    <div class="msg-meta">
+      <span>${formatClock(m.at)}</span>
+      ${receipt}
+    </div>`;
+  return row;
+}
+
+/* ========== MESSAGES (FLICKER FIX: diff-based incremental render) ========== */
 function subscribeMessages(chatId) {
   if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
 
@@ -1120,52 +1155,73 @@ function subscribeMessages(chatId) {
     const streamEl = $("chat-stream");
     if (!streamEl) return;
 
-    clearChatMessagesOnly();
+    /* If chatId changed unexpectedly, reset state and full-render */
+    if (renderedChatId !== currentActiveChatId) {
+      clearChatMessagesOnly();
+      resetFlickerStateForChat(currentActiveChatId);
+    }
 
     const wasAtBottom = streamEl.scrollHeight - streamEl.scrollTop - streamEl.clientHeight < 150;
 
+    /* Empty chat → show intro/empty state (only once) */
     if (snap.empty) {
-      if (activePeer?.isYuki) {
-        const intro = document.createElement("div");
-        intro.className = "msg-row peer";
-        intro.innerHTML = `
-          <div class="msg-bubble">Greetings, Operator. Neural telemetry channel synchronized. You can transmit queries, code fragments, or tactical directives directly. All records are processed through secure sandboxed shards.</div>
-          <div class="msg-meta"><span>${formatClock(new Date())}</span></div>
-        `;
-        streamEl.appendChild(intro);
-      } else {
-        const empty = document.createElement("div");
-        empty.className = "empty-chat-state";
-        empty.innerHTML = `<b>◇</b>secure channel initialized<br>send a message to begin`;
-        streamEl.appendChild(empty);
+      if (!renderedHasIntro) {
+        if (activePeer?.isYuki) {
+          const intro = document.createElement("div");
+          intro.className = "msg-row peer";
+          intro.dataset.intro = "1";
+          intro.innerHTML = `
+            <div class="msg-bubble">Greetings, Operator. Neural telemetry channel synchronized. You can transmit queries, code fragments, or tactical directives directly. All records are processed through secure sandboxed shards.</div>
+            <div class="msg-meta"><span>${formatClock(new Date())}</span></div>
+          `;
+          streamEl.appendChild(intro);
+          renderedHasIntro = true;
+        } else {
+          const empty = document.createElement("div");
+          empty.className = "empty-chat-state";
+          empty.dataset.intro = "1";
+          empty.innerHTML = `<b>◇</b>secure channel initialized<br>send a message to begin`;
+          streamEl.appendChild(empty);
+          renderedHasIntro = true;
+        }
       }
       return;
     }
 
+    /* If first real message arrives, remove intro/empty placeholder */
+    if (renderedHasIntro) {
+      streamEl.querySelectorAll('[data-intro="1"]').forEach(el => el.remove());
+      renderedHasIntro = false;
+    }
+
+    /* Incremental diff append: only add NEW docs, only update changed ones */
     const fragment = document.createDocumentFragment();
+    let appended = 0;
+
     snap.forEach(d => {
-      const m = d.data();
-      const isMine = m.by === currentUser.uid;
-      const row = document.createElement("div");
-      row.className = `msg-row ${isMine ? "me" : "peer"}`;
-      row.dataset.id = d.id;
-      let receipt = "";
-      if (isMine) {
-        receipt = m.seen === true
-          ? `<span class="receipt seen">••</span>`
-          : `<span class="receipt">•</span>`;
+      const existing = streamEl.querySelector(`.msg-row[data-id="${CSS.escape(d.id)}"]`);
+      if (!existing) {
+        fragment.appendChild(buildMessageRow(d));
+        renderedMsgIds.add(d.id);
+        appended++;
+      } else {
+        /* Update receipt tick if 'seen' changed on my own message */
+        const m = d.data();
+        if (m.by === currentUser.uid) {
+          const receiptEl = existing.querySelector(".receipt");
+          if (receiptEl) {
+            const shouldSeen = m.seen === true;
+            const isSeen = receiptEl.classList.contains("seen");
+            if (shouldSeen !== isSeen) {
+              receiptEl.classList.toggle("seen", shouldSeen);
+              receiptEl.textContent = shouldSeen ? "••" : "•";
+            }
+          }
+        }
       }
-      const senderLabel = activePeer?.isYuki ? "YUKI [AI]" : (activePeer?.username || "peer");
-      row.innerHTML = `
-        ${!isMine ? `<div style="font-size:9px;color:${activePeer?.isYuki ? 'var(--pink)' : 'var(--dim)'};letter-spacing:1.5px;margin-bottom:3px;font-weight:700;">${activePeer?.isYuki ? '◆ YUKI [NEURAL CORE]' : '◆ ' + escapeHtml(senderLabel).toUpperCase()}</div>` : ''}
-        <div class="msg-bubble">${formatMessageContent(m.text || "")}</div>
-        <div class="msg-meta">
-          <span>${formatClock(m.at)}</span>
-          ${receipt}
-        </div>`;
-      fragment.appendChild(row);
     });
-    streamEl.appendChild(fragment);
+
+    if (appended > 0) streamEl.appendChild(fragment);
 
     if (wasAtBottom) streamEl.scrollTop = streamEl.scrollHeight;
     markSeen(chatId);
