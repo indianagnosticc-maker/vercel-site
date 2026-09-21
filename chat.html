@@ -414,6 +414,81 @@
     transition: transform 0.2s;
   }
   .toast-indicator.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== THEMED LOGOUT / CONFIRM MODAL ===== */
+  .confirm-modal-box {
+    background: #080e18;
+    border: 1px solid var(--panel-border);
+    border-radius: 6px;
+    max-width: 400px;
+    width: 92%;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 30px rgba(255,45,85,0.15);
+    pointer-events: auto;
+    animation: confirmModalIn 0.22s cubic-bezier(0.16,1,0.3,1);
+    overflow: hidden;
+  }
+  @keyframes confirmModalIn {
+    from { opacity: 0; transform: scale(0.94) translateY(10px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .confirm-modal-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--panel-border);
+    background: rgba(255, 45, 85, 0.06);
+  }
+  .confirm-modal-title {
+    color: var(--red);
+    font-size: 11px; font-weight: 700; letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px var(--red-glow);
+  }
+  .confirm-modal-body { padding: 18px 16px 10px; }
+  .confirm-modal-text {
+    color: var(--txt); font-size: 12.5px; line-height: 1.55; margin-bottom: 8px;
+  }
+  .confirm-modal-sub {
+    color: var(--dim); font-size: 10.5px; line-height: 1.55; letter-spacing: 0.3px;
+  }
+  .confirm-modal-actions {
+    display: flex; gap: 8px; padding: 14px 16px 16px;
+    border-top: 1px solid var(--panel-border);
+    background: rgba(0,0,0,0.2);
+  }
+  .btn-confirm-cancel,
+  .btn-confirm-danger {
+    flex: 1;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    padding: 10px 14px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.18s ease;
+    text-transform: uppercase;
+  }
+  .btn-confirm-cancel {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--dim);
+  }
+  .btn-confirm-cancel:hover {
+    color: var(--txt);
+    border-color: var(--dim);
+    background: rgba(255,255,255,0.04);
+  }
+  .btn-confirm-danger {
+    background: var(--red);
+    border: 1px solid var(--red);
+    color: #1a0006;
+    box-shadow: 0 0 12px var(--red-glow);
+  }
+  .btn-confirm-danger:hover {
+    box-shadow: 0 0 20px var(--red-glow);
+    filter: brightness(1.1);
+  }
+  .btn-confirm-danger:active { transform: scale(0.97); }
 </style>
 </head>
 <body>
@@ -517,6 +592,24 @@
       <button class="btn-modal-close" id="btn-close-search-modal">✕</button>
     </div>
     <div id="search-modal-content"></div>
+  </div>
+</div>
+
+<!-- ===== THEMED LOGOUT CONFIRM MODAL ===== -->
+<div class="modal-backdrop" id="confirm-modal">
+  <div class="confirm-modal-box">
+    <div class="confirm-modal-header">
+      <span class="confirm-modal-title" id="confirm-modal-title">⏻ TERMINATE SESSION</span>
+      <button class="btn-modal-close" id="btn-close-confirm-modal" type="button">✕</button>
+    </div>
+    <div class="confirm-modal-body">
+      <p class="confirm-modal-text" id="confirm-modal-text">Are you sure?</p>
+      <p class="confirm-modal-sub" id="confirm-modal-sub">This action cannot be undone.</p>
+    </div>
+    <div class="confirm-modal-actions">
+      <button class="btn-confirm-cancel" id="btn-confirm-cancel" type="button">CANCEL</button>
+      <button class="btn-confirm-danger" id="btn-confirm-ok" type="button">⏻ LOGOUT</button>
+    </div>
   </div>
 </div>
 
@@ -762,9 +855,9 @@ let lastTypingTime = 0;
 let localChannels = [];
 
 /* ===== FLICKER FIX STATE ===== */
-let renderedChatId = null;          // which chatId is currently rendered
-let renderedMsgIds = new Set();     // set of message IDs already in DOM
-let renderedHasIntro = false;       // for Yuki's empty intro bubble
+let renderedChatId = null;
+let renderedMsgIds = new Set();
+let renderedHasIntro = false;
 
 function formatTime(ts) {
   if (!ts) return "";
@@ -801,7 +894,6 @@ function hideBoot() {
   setTimeout(() => { if (b.parentNode) b.remove(); }, 300);
 }
 
-/* ===== FLICKER FIX: clearDOM + reset flicker state (called on chat switch only) ===== */
 function clearChatMessagesOnly() {
   const stream = $("chat-stream");
   if (!stream) return;
@@ -875,14 +967,46 @@ $("btn-copy-id").addEventListener("click", function() {
   playSfx('click');
 });
 
-/* ========== LOGOUT ========== */
-$("btn-logout").addEventListener("click", async () => {
+/* ========== LOGOUT (THEMED MODAL) ========== */
+function openConfirmModal(opts, cb) {
+  const modal = $("confirm-modal");
+  $("confirm-modal-title").textContent = opts.title || "⏻ CONFIRM";
+  $("confirm-modal-text").textContent = opts.text || "Are you sure?";
+  $("confirm-modal-sub").textContent = opts.sub || "This action cannot be undone.";
+  $("btn-confirm-ok").textContent = opts.okText || "CONFIRM";
+  modal.classList.add("open");
+  modal._callback = cb;
+}
+function closeConfirmModal(result) {
+  const modal = $("confirm-modal");
+  modal.classList.remove("open");
+  const cb = modal._callback;
+  modal._callback = null;
+  if (typeof cb === "function") cb(result);
+}
+$("btn-confirm-cancel").addEventListener("click", () => closeConfirmModal(false));
+$("btn-confirm-ok").addEventListener("click", () => closeConfirmModal(true));
+$("btn-close-confirm-modal").addEventListener("click", () => closeConfirmModal(false));
+$("confirm-modal").addEventListener("click", (e) => {
+  if (e.target === $("confirm-modal")) closeConfirmModal(false);
+});
+
+$("btn-logout").addEventListener("click", () => {
   if (!currentUser) return;
-  if (!confirm("Logout from this terminal?")) return;
-  try {
-    await updateDoc(doc(db, "users", currentUser.uid), { lastSeen: serverTimestamp() });
-  } catch(e){}
-  await signOut(auth);
+  openConfirmModal({
+    title: "⏻ TERMINATE SESSION",
+    text: "Are you sure you want to log out from this terminal?",
+    sub: "All active neural connections will be severed. You can sign back in anytime.",
+    okText: "⏻ LOGOUT"
+  }, async (ok) => {
+    if (!ok) return;
+    playSfx('click');
+    try {
+      await updateDoc(doc(db, "users", currentUser.uid), { lastSeen: serverTimestamp() });
+    } catch(e){}
+    await signOut(auth);
+  });
+  playSfx('click');
 });
 
 /* ========== AUTH OBSERVER ========== */
@@ -1035,7 +1159,6 @@ function openYukiBot() {
   activeChatId = computeChatId(currentUser.uid, YUKI_BOT_UID);
   sessionStorage.setItem("yuki_active_peer", YUKI_BOT_UID);
 
-  /* FLICKER FIX: reset render state for this chat */
   resetFlickerStateForChat(activeChatId);
 
   $("active-chat-title").textContent = "YUKI [AI COMPANION]";
@@ -1075,7 +1198,6 @@ function openChatWith(peerUid, peerProfile) {
   activeChatId = computeChatId(currentUser.uid, peerUid);
   sessionStorage.setItem("yuki_active_peer", peerUid);
 
-  /* FLICKER FIX: reset render state for this chat */
   resetFlickerStateForChat(activeChatId);
 
   $("active-chat-title").textContent = activePeer.display;
@@ -1114,7 +1236,7 @@ function openChatWith(peerUid, peerProfile) {
   }
 }
 
-/* ========== BUILD ONE MESSAGE ROW (helper, used by diff renderer) ========== */
+/* ========== BUILD ONE MESSAGE ROW ========== */
 function buildMessageRow(d) {
   const m = d.data();
   const isMine = m.by === currentUser.uid;
@@ -1124,8 +1246,8 @@ function buildMessageRow(d) {
   let receipt = "";
   if (isMine) {
     receipt = m.seen === true
-      ? `<span class="receipt seen">••</span>`
-      : `<span class="receipt">•</span>`;
+      ? `<span class="receipt seen">**</span>`
+      : `<span class="receipt">*</span>`;
   }
   const senderLabel = activePeer?.isYuki ? "YUKI [AI]" : (activePeer?.username || "peer");
   row.innerHTML = `
@@ -1138,7 +1260,7 @@ function buildMessageRow(d) {
   return row;
 }
 
-/* ========== MESSAGES (FLICKER FIX: diff-based incremental render) ========== */
+/* ========== MESSAGES (FLICKER-FREE INCREMENTAL RENDER) ========== */
 function subscribeMessages(chatId) {
   if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
 
@@ -1155,7 +1277,6 @@ function subscribeMessages(chatId) {
     const streamEl = $("chat-stream");
     if (!streamEl) return;
 
-    /* If chatId changed unexpectedly, reset state and full-render */
     if (renderedChatId !== currentActiveChatId) {
       clearChatMessagesOnly();
       resetFlickerStateForChat(currentActiveChatId);
@@ -1163,7 +1284,6 @@ function subscribeMessages(chatId) {
 
     const wasAtBottom = streamEl.scrollHeight - streamEl.scrollTop - streamEl.clientHeight < 150;
 
-    /* Empty chat → show intro/empty state (only once) */
     if (snap.empty) {
       if (!renderedHasIntro) {
         if (activePeer?.isYuki) {
@@ -1188,13 +1308,11 @@ function subscribeMessages(chatId) {
       return;
     }
 
-    /* If first real message arrives, remove intro/empty placeholder */
     if (renderedHasIntro) {
       streamEl.querySelectorAll('[data-intro="1"]').forEach(el => el.remove());
       renderedHasIntro = false;
     }
 
-    /* Incremental diff append: only add NEW docs, only update changed ones */
     const fragment = document.createDocumentFragment();
     let appended = 0;
 
@@ -1205,7 +1323,6 @@ function subscribeMessages(chatId) {
         renderedMsgIds.add(d.id);
         appended++;
       } else {
-        /* Update receipt tick if 'seen' changed on my own message */
         const m = d.data();
         if (m.by === currentUser.uid) {
           const receiptEl = existing.querySelector(".receipt");
@@ -1214,7 +1331,7 @@ function subscribeMessages(chatId) {
             const isSeen = receiptEl.classList.contains("seen");
             if (shouldSeen !== isSeen) {
               receiptEl.classList.toggle("seen", shouldSeen);
-              receiptEl.textContent = shouldSeen ? "••" : "•";
+              receiptEl.textContent = shouldSeen ? "**" : "*";
             }
           }
         }
