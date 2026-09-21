@@ -122,6 +122,7 @@
   .login-toggle { margin-top: 18px; font-size: 11px; color: var(--dim); cursor: pointer; background: transparent; border: 0; font-family: var(--font-mono); }
   .login-toggle span { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
   .login-error { min-height: 20px; margin-top: 14px; color: var(--red); text-shadow: 0 0 8px var(--red-glow); font-size: 11px; }
+  .login-info { min-height: 0; margin-top: 8px; color: var(--green); text-shadow: 0 0 8px var(--green-glow); font-size: 10.5px; line-height: 1.5; }
   .login-disclaimer {
     position: absolute; bottom: 0; left: 0; right: 0;
     padding: 12px 16px max(12px, env(safe-area-inset-bottom, 12px));
@@ -414,8 +415,6 @@
     transition: transform 0.2s;
   }
   .toast-indicator.show { transform: translateX(-50%) translateY(0); }
-
-  /* ===== THEMED LOGOUT / CONFIRM MODAL ===== */
   .confirm-modal-box {
     background: #080e18;
     border: 1px solid var(--panel-border);
@@ -526,7 +525,9 @@
       </div>
       <button class="login-btn" id="btn-auth-submit">SIGN IN</button>
       <div class="login-error" id="auth-error"></div>
+      <div class="login-info" id="auth-info"></div>
       <button class="login-toggle" id="btn-toggle-auth">Don't have an account? <span>Sign up</span></button>
+      <button class="login-toggle" id="btn-resend-verify" style="display:none;">Didn't get email? <span>Resend verification</span></button>
     </div>
     <div class="login-disclaimer">Secure neural interface. Communications are sandboxed within Firestore shards and monitored for security protocol compliance. By accessing this terminal, you acknowledge all usage is logged and retained per SECURITY POLICY.</div>
   </div>
@@ -595,7 +596,6 @@
   </div>
 </div>
 
-<!-- ===== THEMED LOGOUT CONFIRM MODAL ===== -->
 <div class="modal-backdrop" id="confirm-modal">
   <div class="confirm-modal-box">
     <div class="confirm-modal-header">
@@ -624,50 +624,38 @@
 <div class="toast-indicator" id="terminal-toast">COPIED</div>
 
 <script>
-/* ================================================================
-   KEYBOARD FIX (Android + iOS) — VisualViewport based
-   ================================================================ */
 (function initKeyboardFix() {
   if (!window.visualViewport) return;
-
   const vv = window.visualViewport;
   const composer = document.getElementById('composer-pane');
   const stream = document.getElementById('chat-stream');
   const ta = document.getElementById('chat-textarea');
-
   let baseHeight = window.innerHeight;
   let rafId = null;
-
   function applyKeyboardOffset() {
     if (rafId) cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(() => {
       if (!composer || !vv) return;
       const keyboardHeight = Math.max(0, baseHeight - vv.height);
       const offsetTop = vv.offsetTop || 0;
-
       if (keyboardHeight > 80) {
         composer.style.transform = `translateY(-${keyboardHeight - offsetTop}px)`;
         composer.style.transition = 'transform 0.12s ease-out';
-        setTimeout(() => {
-          if (stream) stream.scrollTop = stream.scrollHeight;
-        }, 150);
+        setTimeout(() => { if (stream) stream.scrollTop = stream.scrollHeight; }, 150);
       } else {
         composer.style.transform = 'translateY(0)';
         composer.style.transition = 'transform 0.15s ease-out';
       }
     });
   }
-
   function refreshBase() {
     if (!vv) return;
     const kh = Math.max(0, window.innerHeight - vv.height);
     if (kh < 80) baseHeight = window.innerHeight;
     applyKeyboardOffset();
   }
-
   vv.addEventListener('resize', applyKeyboardOffset);
   vv.addEventListener('scroll', applyKeyboardOffset);
-
   if (ta) {
     ta.addEventListener('focus', () => {
       baseHeight = window.innerHeight;
@@ -681,16 +669,12 @@
       }, 100);
     });
   }
-
   window.addEventListener('resize', refreshBase);
   window.addEventListener('orientationchange', () => {
     setTimeout(() => { baseHeight = window.innerHeight; applyKeyboardOffset(); }, 300);
   });
 })();
 
-/* ================================================================
-   EXISTING LOGIC (UNCHANGED)
-   ================================================================ */
 let soundEnabled = true;
 let audioCtx = null;
 function getAudioCtx() {
@@ -806,7 +790,8 @@ btnCloseSidebarMobile.addEventListener('click', () => { sidebar.classList.add('s
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
-  signOut, onAuthStateChanged, setPersistence, browserLocalPersistence
+  signOut, onAuthStateChanged, setPersistence, browserLocalPersistence,
+  sendEmailVerification
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, addDoc, collection,
@@ -839,7 +824,6 @@ function showToast(msg) {
 }
 
 const YUKI_BOT_UID = "__yuki_ai__";
-const YUKI_BOT_PROFILE = { username: "yuki_ai", display: "YUKI [AI COMPANION]" };
 let yukiChatHistory = [];
 
 let currentUser = null;
@@ -854,7 +838,6 @@ let typingBeaconTimer = null;
 let lastTypingTime = 0;
 let localChannels = [];
 
-/* ===== FLICKER FIX STATE ===== */
 let renderedChatId = null;
 let renderedMsgIds = new Set();
 let renderedHasIntro = false;
@@ -909,6 +892,8 @@ function resetFlickerStateForChat(chatId) {
 $("btn-toggle-auth").addEventListener("click", () => {
   isSignUpMode = !isSignUpMode;
   $("auth-error").textContent = "";
+  $("auth-info").textContent = "";
+  $("btn-resend-verify").style.display = "none";
   if (isSignUpMode) {
     $("btn-auth-submit").textContent = "REGISTER IDENTITY";
     $("btn-toggle-auth").innerHTML = "Already registered? <span>Sign in</span>";
@@ -925,7 +910,10 @@ async function handleAuthSubmit() {
   const email = $("auth-email").value.trim().toLowerCase();
   const password = $("auth-password").value;
   const errEl = $("auth-error");
+  const infoEl = $("auth-info");
   errEl.textContent = "";
+  infoEl.textContent = "";
+  $("btn-resend-verify").style.display = "none";
   if (!email || !password) { errEl.textContent = "invalid email or password"; return; }
   if (password.length < 6) { errEl.textContent = "key must be at least 6 characters"; return; }
   const btn = $("btn-auth-submit");
@@ -942,20 +930,75 @@ async function handleAuthSubmit() {
       const cred = await createUserWithEmailAndPassword(auth, email, password);
       const np = {
         username: handle, display: handle.toUpperCase() + "_UNIT",
-        email: email, createdAt: serverTimestamp(), lastSeen: serverTimestamp()
+        email: email, createdAt: serverTimestamp(), lastSeen: serverTimestamp(),
+        emailVerified: false
       };
       await setDoc(doc(db, "users", cred.user.uid), np);
       await setDoc(doc(db, "usernames", handle), { uid: cred.user.uid });
+
+      try {
+        await sendEmailVerification(cred.user);
+      } catch (verErr) {
+        console.error("Verification email error:", verErr);
+      }
+      infoEl.textContent = "Verification email sent. Check your inbox (and spam).";
+      await signOut(auth);
+      return;
     } else {
-      await signInWithEmailAndPassword(auth, email, password);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      if (!cred.user.emailVerified) {
+        errEl.textContent = "Please verify your email first. Check your inbox.";
+        $("btn-resend-verify").style.display = "block";
+        await signOut(auth);
+        return;
+      }
     }
   } catch (err) {
     console.error(err);
-    errEl.textContent = "invalid email or password";
+    if (err.code === "auth/email-already-in-use") {
+      errEl.textContent = "This email is already registered. Try signing in.";
+    } else if (err.code === "auth/invalid-email") {
+      errEl.textContent = "Invalid email address.";
+    } else if (err.code === "auth/weak-password") {
+      errEl.textContent = "Password too weak. Use 6+ characters.";
+    } else if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+      errEl.textContent = "Invalid email or password.";
+    } else {
+      errEl.textContent = "Something went wrong. Try again.";
+    }
   } finally {
     btn.disabled = false;
   }
 }
+
+/* ========== RESEND VERIFICATION ========== */
+$("btn-resend-verify").addEventListener("click", async () => {
+  const email = $("auth-email").value.trim().toLowerCase();
+  const password = $("auth-password").value;
+  const errEl = $("auth-error");
+  const infoEl = $("auth-info");
+  errEl.textContent = "";
+  infoEl.textContent = "";
+  if (!email || !password) {
+    errEl.textContent = "Enter your email and password, then tap resend.";
+    return;
+  }
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    if (cred.user.emailVerified) {
+      infoEl.textContent = "Your email is already verified. Just sign in.";
+      await signOut(auth);
+      $("btn-resend-verify").style.display = "none";
+      return;
+    }
+    await sendEmailVerification(cred.user);
+    infoEl.textContent = "Verification email resent. Check your inbox.";
+    await signOut(auth);
+  } catch (e) {
+    console.error(e);
+    errEl.textContent = "Could not resend. Check email and password.";
+  }
+});
 
 /* ========== COPY ID ========== */
 $("btn-copy-id").addEventListener("click", function() {
@@ -967,7 +1010,7 @@ $("btn-copy-id").addEventListener("click", function() {
   playSfx('click');
 });
 
-/* ========== LOGOUT (THEMED MODAL) ========== */
+/* ========== LOGOUT ========== */
 function openConfirmModal(opts, cb) {
   const modal = $("confirm-modal");
   $("confirm-modal-title").textContent = opts.title || "⏻ CONFIRM";
@@ -1020,6 +1063,15 @@ onAuthStateChanged(auth, async (user) => {
     hideBoot();
     return;
   }
+
+  if (!user.emailVerified) {
+    $("login-screen").classList.add("show");
+    $("auth-error").textContent = "Please verify your email first. Check your inbox.";
+    $("btn-resend-verify").style.display = "block";
+    hideBoot();
+    return;
+  }
+
   currentUser = user;
   try {
     const uDoc = await getDoc(doc(db, "users", user.uid));
@@ -1028,15 +1080,20 @@ onAuthStateChanged(auth, async (user) => {
       const defaultHandle = (user.email ? user.email.split("@")[0] : "operator").replace(/[^a-zA-Z0-9_]/g, "_").toLowerCase();
       currentProfile = {
         username: defaultHandle, display: defaultHandle.toUpperCase() + "_UNIT",
-        email: user.email || "", createdAt: serverTimestamp(), lastSeen: serverTimestamp()
+        email: user.email || "", createdAt: serverTimestamp(), lastSeen: serverTimestamp(),
+        emailVerified: true
       };
       await setDoc(doc(db, "users", user.uid), currentProfile, { merge: true });
       await setDoc(doc(db, "usernames", defaultHandle), { uid: user.uid }, { merge: true });
+    }
+    if (uDoc.exists() && uDoc.data().emailVerified !== true) {
+      updateDoc(doc(db, "users", user.uid), { emailVerified: true }).catch(()=>{});
     }
     $("me-display").textContent = currentProfile.display || currentProfile.username;
     $("me-uid").textContent = "@" + currentProfile.username;
     updateDoc(doc(db, "users", user.uid), { lastSeen: serverTimestamp() }).catch(()=>{});
     $("login-screen").classList.remove("show");
+    $("btn-resend-verify").style.display = "none";
     subscribeChatRoster();
     openYukiBot();
   } catch (e) {
@@ -1236,7 +1293,6 @@ function openChatWith(peerUid, peerProfile) {
   }
 }
 
-/* ========== BUILD ONE MESSAGE ROW ========== */
 function buildMessageRow(d) {
   const m = d.data();
   const isMine = m.by === currentUser.uid;
@@ -1260,7 +1316,6 @@ function buildMessageRow(d) {
   return row;
 }
 
-/* ========== MESSAGES (FLICKER-FREE INCREMENTAL RENDER) ========== */
 function subscribeMessages(chatId) {
   if (unsubMessages) { try { unsubMessages(); } catch(e){} unsubMessages = null; }
 
@@ -1362,7 +1417,6 @@ function formatMessageContent(raw) {
   return text.replace(/\n/g, '<br/>');
 }
 
-/* ========== PEER STATUS ========== */
 function subscribePeerStatus(chatId, otherUid) {
   if (unsubPeerStatus) { try { unsubPeerStatus(); } catch(e){} unsubPeerStatus = null; }
   if (otherUid === YUKI_BOT_UID) return;
@@ -1391,7 +1445,6 @@ function subscribePeerStatus(chatId, otherUid) {
   });
 }
 
-/* ========== MARK SEEN ========== */
 async function markSeen(chatId) {
   if (!chatId || !currentUser) return;
   if (activePeer?.isYuki) return;
@@ -1405,7 +1458,6 @@ async function markSeen(chatId) {
   } catch(e){}
 }
 
-/* ========== SEND MESSAGE ========== */
 async function transmitMessage() {
   const ta = $("chat-textarea");
   const text = ta.value.trim();
@@ -1514,7 +1566,6 @@ async function broadcastTyping() {
   } catch(e){}
 }
 
-/* ========== CHAT ROSTER ========== */
 function subscribeChatRoster() {
   if (unsubChatRoster) { try { unsubChatRoster(); } catch(e){} unsubChatRoster = null; }
   if (!currentUser) return;
