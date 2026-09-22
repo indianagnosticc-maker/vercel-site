@@ -1,525 +1,648 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+
+<html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1,maximum-scale=1" name="viewport"/>
 <title>CYBER//OSINT • TACTICAL TERMINAL</title>
 <style>
   :root{
-    --bg:#03070d; --panel:#080e18; --panel-border:#102235; --line:#132a42;
-    --green:#00ff88; --green-dim:#0a6b3d; --green-glow:rgba(0,255,136,.38);
-    --red:#ff2d55; --red-glow:rgba(255,45,85,.35);
-    --white:#ffffff; --txt:#c5e8d5; --dim:#4a7360;
-    --pink:#ff5bb5; --pink-dim:#8e2f69; --pink-glow:rgba(255,91,181,.35);
-    --cyan:#00e5ff; --cyan-dim:#0a6a82; --cyan-glow:rgba(0,229,255,.38);
-    --amber:#ffb703;
+    --bg-grad-start:#000000;
+    --bg-grad-end:#000000;
+    --bg:#000000;
+    --panel:#050505;
+    --panel-border:#141414;
+    --panel-border-focus:rgba(77,171,255,0.4);
+    --primary:#4dabff;
+    --primary-hover:#3b9bf0;
+    --primary-glow:rgba(77,171,255,0.25);
+    --cyan:#22d3ee;
+    --purple:#a78bfa;
+    --red:#ff4d6d;
+    --white:#e6f0ff;
+    --dim:#6b8299;
+    --dim-light:#9db2c7;
+    --card-bg:#050505;
+    --card-head-bg:rgba(77,171,255,0.05);
+    --card-border:#141414;
+    --drawer-bg:#050505;
+    --radius-sm:6px;
+    --radius-md:8px;
+    --radius-lg:12px;
+    --shadow-card:0 6px 24px rgba(0,0,0,0.5);
+    --topbar-line:rgba(77,171,255,0.28);
+    --body-glow:rgba(77,171,255,0.07);
+    --info-bg:rgba(77,171,255,0.04);
+    --info-border:rgba(77,171,255,0.15);
+    --info-text:#6b8299;
   }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{
-    margin:0;padding:0;background:var(--bg);color:var(--txt);
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
+  
+  body{
+    background-color:#000000;
+    background-image:radial-gradient(circle at 50% 25%, #000000 0%, #000000 100%);
+    background-attachment:fixed;
+    color:var(--white);
     font-family:ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
-    min-height:100vh;overflow-x:hidden;position:relative;
+    font-size:13.5px;
+    line-height:1.6;
+    min-height:100vh;
+    overflow-x:hidden;
+    position:relative;
   }
+
+  /* SVG Subtle Tactile Grain Overlay */
+  .noise-overlay{
+    position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:2;
+    opacity:0.032; mix-blend-mode:overlay;
+  }
+
+  /* Ambient radial glow */
+  body::before{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:1;
+    background:radial-gradient(circle at 50% 32%, var(--body-glow) 0%, transparent 65%);
+  }
+
+  /* Canvas Particles */
   #matrix-rain{
     position:fixed; inset:0; width:100%; height:100%;
-    z-index:1; pointer-events:none; opacity:0.22;
-    transition:opacity 0.4s cubic-bezier(0.16,1,0.3,1);
+    z-index:3; pointer-events:none; opacity:1;
+    transition:opacity 200ms ease;
   }
   #matrix-rain.disabled{ opacity:0; }
-  body::before{
-    content:""; position:fixed; inset:0; pointer-events:none; z-index:100;
-    background:
-      repeating-linear-gradient(0deg, rgba(0,255,136,.018) 0 1px, transparent 1px 3px),
-      radial-gradient(circle at 50% 12%, rgba(0,229,255,.06), transparent 70%);
-  }
-  body::after{
-    content:""; position:fixed; inset:0; pointer-events:none; z-index:99;
-    box-shadow:inset 0 0 120px rgba(0,0,0,0.88);
-  }
-  #boot-screen{
-    position:fixed; inset:0; z-index:9999; background:#020509;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    padding:20px; transition:opacity 0.5s cubic-bezier(0.16,1,0.3,1), transform 0.5s cubic-bezier(0.16,1,0.3,1);
-  }
-  #boot-screen.fade-out{ opacity:0; transform:scale(1.02); pointer-events:none; }
-  .boot-box{
-    width:100%; max-width:440px; border:1px solid var(--panel-border);
-    background:rgba(8,14,24,0.95); backdrop-filter:blur(14px);
-    border-radius:4px; padding:20px 24px; box-shadow:0 0 32px rgba(0,255,136,0.12);
-    position:relative; overflow:hidden;
-  }
-  .boot-box::before{
-    content:""; position:absolute; top:0; left:-100%; width:40%; height:1.5px;
-    background:linear-gradient(90deg, transparent, var(--green), transparent);
-    animation:sweep 1.8s infinite ease-in-out;
-  }
-  @keyframes sweep { 0%{left:-40%} 100%{left:140%} }
-  .boot-header{
-    display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
-    padding-bottom:10px; border-bottom:1px solid rgba(19,42,66,0.6);
-  }
-  .boot-badge{
-    font-size:10px; letter-spacing:2px; color:var(--green); font-weight:700;
-    display:flex; align-items:center; gap:6px;
-  }
-  .boot-ver{ font-size:9.5px; letter-spacing:1px; color:var(--dim); }
-  .boot-log{
-    font-size:11px; line-height:1.6; color:#5c8f73; height:82px; overflow:hidden;
-    background:#040810; border:1px solid #0d1b28; border-radius:3px; padding:8px 12px;
-    display:flex; flex-direction:column-reverse;
-  }
-  .boot-log div{ opacity:0; animation:logIn .15s forwards ease; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .boot-log div.hl{ color:var(--green); font-weight:600; text-shadow:0 0 4px var(--green-glow); }
-  .boot-progress-wrap{ margin-top:14px; }
-  .boot-bar{ height:2px; background:#0d1c2a; border-radius:2px; overflow:hidden; position:relative; }
-  .boot-fill{ height:100%; width:0%; background:var(--green); box-shadow:0 0 8px var(--green); transition:width .12s linear; }
-  .boot-meta{ display:flex; justify-content:space-between; font-size:9.5px; color:var(--dim); margin-top:6px; letter-spacing:1.5px; }
-  @keyframes logIn { to { opacity:1; } }
 
-  .wrap{
-    position:relative; z-index:2; max-width:760px; margin:0 auto;
-    padding:18px 16px 70px; min-height:100vh; display:flex; flex-direction:column;
-  }
-  .hud-top{
+  /* Top Bar */
+  .topbar{
+    position:relative; z-index:20;
+    width:100%; max-width:960px; margin:0 auto;
+    padding:16px 24px 14px;
     display:flex; justify-content:space-between; align-items:center;
-    background:rgba(8,14,24,0.7); border:1px solid var(--panel-border);
-    border-radius:4px; padding:8px 14px; margin-bottom:14px; font-size:11px;
-    letter-spacing:1px; backdrop-filter:blur(8px);
   }
-  .hud-left{ display:inline-flex; align-items:center; gap:8px; color:var(--green); }
+  .topbar-border{
+    width:100%; height:1px;
+    background:linear-gradient(90deg, transparent 0%, var(--topbar-line) 50%, transparent 100%);
+    box-shadow:0 1px 6px var(--primary-glow);
+    position:relative; z-index:20;
+  }
+  .brand{
+    display:flex; align-items:center; gap:8px;
+    font-size:11px; font-weight:600; letter-spacing:1.8px; color:var(--white);
+    text-transform:uppercase;
+  }
   .live-dot{
-    width:6px; height:6px; border-radius:50%; background:var(--green);
-    box-shadow:0 0 8px var(--green); animation:pulse-dot 1.8s infinite ease-in-out;
+    width:6px; height:6px; border-radius:50%; background:var(--primary);
+    box-shadow:0 0 8px var(--primary);
+    animation:pulse-dot 2.4s infinite cubic-bezier(0.4,0,0.6,1);
   }
-  @keyframes pulse-dot { 0%,100%{opacity:1; transform:scale(1)} 50%{opacity:.4; transform:scale(0.85)} }
-  .hud-stats{ display:flex; align-items:center; gap:16px; color:var(--dim); }
-  .hud-stats span b{ color:var(--txt); font-weight:normal; }
-  .hud-controls{ display:flex; align-items:center; gap:8px; }
-  .ctrl-btn{
-    background:rgba(19,42,66,0.3); border:1px solid var(--line); border-radius:3px;
-    color:var(--dim); font:inherit; font-size:10px; letter-spacing:1.2px;
-    padding:4px 9px; cursor:pointer; transition:all .18s ease; display:inline-flex; align-items:center; gap:5px;
-    box-shadow:none;
-  }
-  .ctrl-btn:hover{ color:var(--txt); border-color:var(--dim); background:rgba(255,255,255,0.04); }
-  .ctrl-btn.active{
-    color:var(--green); border-color:rgba(0,255,136,0.4); background:rgba(0,255,136,0.08);
-    text-shadow:0 0 6px var(--green-glow);
-  }
-  .chats-btn{
-    text-decoration:none;
-    color:var(--green);
-    border-color:rgba(0,255,136,0.55);
-    background:rgba(0,255,136,0.10);
-    text-shadow:0 0 8px var(--green-glow);
-    font-weight:700;
-    letter-spacing:2px;
-    animation:chatsPulse 2.4s ease-in-out infinite;
-  }
-  .chats-btn:hover{
-    background:rgba(0,255,136,0.2);
-    border-color:var(--green);
-    box-shadow:0 0 14px rgba(0,255,136,0.55);
-    color:var(--white);
-  }
-  @keyframes chatsPulse{
-    0%,100%{ box-shadow:0 0 0 rgba(0,255,136,0); }
-    50%{ box-shadow:0 0 12px rgba(0,255,136,0.4); }
-  }
-  .tabs{
-    display:flex; gap:6px; margin-bottom:18px;
-    background:rgba(8,14,24,0.75); border:1px solid var(--panel-border);
-    border-radius:4px; padding:4px; backdrop-filter:blur(10px);
-  }
-  .tab{
-    flex:1; background:transparent; border:1px solid transparent; border-radius:3px;
-    color:var(--dim); font:inherit; font-size:11px; letter-spacing:1.8px;
-    padding:9px 4px; cursor:pointer; transition:all .2s cubic-bezier(0.16,1,0.3,1);
-    text-transform:uppercase; display:flex; align-items:center; justify-content:center; gap:6px;
-    box-shadow:none;
-  }
-  .tab:hover{ color:var(--txt); background:rgba(255,255,255,0.03); transform:none; }
-  .tab.active{
-    color:var(--green); background:rgba(0,255,136,0.08); border-color:rgba(0,255,136,0.35);
-    text-shadow:0 0 8px var(--green-glow); font-weight:700;
-  }
-  .tab[data-tab="vosint"].active{
-    color:var(--cyan); background:rgba(0,229,255,0.08); border-color:rgba(0,229,255,0.35);
-    text-shadow:0 0 8px var(--cyan-glow);
-  }
-  .tab[data-tab="smsb"].active{
-    color:var(--red); background:rgba(255,45,85,0.08); border-color:rgba(255,45,85,0.35);
-    text-shadow:0 0 8px var(--red-glow);
-  }
-  .tab[data-tab="yuki"].active{
-    color:var(--pink); background:rgba(255,91,181,0.08); border-color:rgba(255,91,181,0.35);
-    text-shadow:0 0 8px var(--pink-glow);
-  }
-  .telemetry-panel{
-    margin-bottom:18px; border:1px solid var(--panel-border); background:rgba(6,11,18,0.7);
-    border-radius:4px; padding:8px 14px; display:flex; align-items:center; justify-content:space-between;
-    overflow:hidden;
-  }
-  .telemetry-left{ display:flex; align-items:center; gap:10px; }
-  .telemetry-bars{ display:flex; align-items:flex-end; gap:2.5px; height:16px; }
-  .tele-bar{ width:2.5px; background:var(--green); border-radius:1px; animation:teleOsc 1.2s infinite ease-in-out; }
-  .tele-bar:nth-child(1){ height:35%; animation-delay:0.1s; }
-  .tele-bar:nth-child(2){ height:75%; animation-delay:0.3s; }
-  .tele-bar:nth-child(3){ height:55%; animation-delay:0.15s; }
-  .tele-bar:nth-child(4){ height:95%; animation-delay:0.4s; }
-  .tele-bar:nth-child(5){ height:45%; animation-delay:0.25s; }
-  .tele-bar:nth-child(6){ height:65%; animation-delay:0.5s; }
-  .telemetry-txt{ font-size:10px; color:var(--dim); letter-spacing:1.5px; text-transform:uppercase; }
-  .telemetry-txt b{ color:var(--green); font-weight:normal; }
-  .telemetry-geo{ font-size:10px; color:var(--dim); letter-spacing:1px; }
-  @keyframes teleOsc { 0%,100%{ transform:scaleY(0.4) } 50%{ transform:scaleY(1.1) } }
+  @keyframes pulse-dot{ 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.35;transform:scale(0.85)} }
 
-  .page{ display:none; }
-  .page.active{ display:block; animation:pageSlideIn .25s cubic-bezier(0.16,1,0.3,1) both; }
-  @keyframes pageSlideIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
-
-  .title-wrap{ text-align:center; margin-bottom:18px; position:relative; }
-  .title{
-    font-size:clamp(22px,5vw,32px); letter-spacing:8px;
-    color:var(--green); text-shadow:0 0 10px var(--green-glow), 0 0 24px var(--green-glow);
-    margin:0 0 4px; font-weight:800;
-  }
-  .title.cyan{ color:var(--cyan); text-shadow:0 0 10px var(--cyan-glow), 0 0 24px var(--cyan-glow); }
-  .title.red{ color:var(--red); text-shadow:0 0 10px var(--red-glow), 0 0 24px var(--red-glow); }
-  .title.pink{ color:var(--pink); text-shadow:0 0 10px var(--pink-glow), 0 0 24px var(--pink-glow); }
-  .sub{ text-align:center; color:var(--dim); font-size:10.5px; letter-spacing:2.5px; margin-bottom:14px; text-transform:uppercase; }
-  .sub b{ color:var(--green-dim); font-weight:400; }
-  .sub.cyan b{ color:var(--cyan-dim); }
-  .sub.red b{ color:var(--red); opacity:0.75; }
-  .sub.pink b{ color:var(--pink-dim); }
-  .note{
-    font-size:10.5px; color:var(--dim); text-align:center;
-    margin:0 auto 16px; max-width:560px; line-height:1.55; letter-spacing:.3px;
-    background:rgba(0,229,255,0.03); border:1px dashed var(--cyan-dim); border-radius:4px; padding:9px 12px;
-  }
-  .note b{ color:var(--cyan); font-weight:500; }
-
-  form, .row-form{
-    display:flex; gap:8px; border:1px solid var(--green-dim); background:var(--panel);
-    border-radius:4px; padding:5px; flex-shrink:0; position:relative;
-    box-shadow:0 0 0 1px rgba(0,255,136,.08), 0 0 24px rgba(0,255,136,.04) inset;
-    transition:border-color .2s ease, box-shadow .2s ease;
-  }
-  form:focus-within{
-    border-color:var(--green);
-    box-shadow:0 0 0 1px rgba(0,255,136,.25), 0 0 30px rgba(0,255,136,.12) inset, 0 0 12px rgba(0,255,136,0.2);
-  }
-  form.cyan{ border-color:var(--cyan-dim); box-shadow:0 0 0 1px rgba(0,229,255,.08), 0 0 24px rgba(0,229,255,.04) inset; }
-  form.cyan:focus-within{
-    border-color:var(--cyan);
-    box-shadow:0 0 0 1px rgba(0,229,255,.25), 0 0 30px rgba(0,229,255,.12) inset, 0 0 12px rgba(0,229,255,0.2);
-  }
-  form.pink{ border-color:var(--pink-dim); box-shadow:0 0 0 1px rgba(255,91,181,.08), 0 0 24px rgba(255,91,181,.04) inset; }
-  form.pink:focus-within{
-    border-color:var(--pink);
-    box-shadow:0 0 0 1px rgba(255,91,181,.25), 0 0 30px rgba(255,91,181,.12) inset, 0 0 12px rgba(255,91,181,0.2);
-  }
-  form.red{ border-color:rgba(255,45,85,0.35); box-shadow:0 0 0 1px rgba(255,45,85,.08), 0 0 24px rgba(255,45,85,.04) inset; }
-  form.red:focus-within{
-    border-color:var(--red);
-    box-shadow:0 0 0 1px rgba(255,45,85,.25), 0 0 30px rgba(255,45,85,.12) inset, 0 0 12px rgba(255,45,85,0.2);
-  }
-  .input-prefix{ display:flex; align-items:center; padding-left:10px; color:var(--dim); font-size:12px; }
-  input,select{
-    flex:1; min-width:0; background:transparent; border:0; outline:0;
-    color:var(--green); font:inherit; font-size:13.5px; padding:10px 8px; letter-spacing:1px;
-  }
-  .cyan input{ color:var(--cyan); }
-  .pink input{ color:var(--pink); }
-  .red input{ color:var(--red); }
-  input::placeholder{ color:var(--dim); letter-spacing:1px; opacity:0.75; }
-  button{
-    background:var(--green); color:#00160a; border:0; border-radius:3px;
-    font:inherit; font-weight:700; font-size:11.5px; letter-spacing:1.8px;
-    padding:0 20px; cursor:pointer; transition:all .18s cubic-bezier(0.16,1,0.3,1); flex-shrink:0;
-    box-shadow:0 0 12px rgba(0,255,136,0.22);
-  }
-  button:hover{ filter:brightness(1.12); }
-  button:active{ transform:scale(0.98); filter:brightness(0.92); }
-  button:disabled{ opacity:.35; cursor:wait; transform:none; }
-  .cyan button{ background:var(--cyan); color:#001924; box-shadow:0 0 12px rgba(0,229,255,0.22); }
-  .pink button{ background:var(--pink); color:#2a0018; box-shadow:0 0 12px rgba(255,91,181,0.22); }
-  .red button{ background:var(--red); color:#ffffff; box-shadow:0 0 12px rgba(255,45,85,0.22); }
-
-  .status{
-    font-size:11.5px; color:var(--green-dim); letter-spacing:1px;
-    margin:12px 2px 0; min-height:18px; flex-shrink:0; word-break:break-word;
+  .topbar-actions{
     display:flex; align-items:center; gap:8px;
   }
-  .status.err{ color:var(--red); text-shadow:0 0 6px rgba(255,45,85,.35); }
-  .status.ok{ color:var(--cyan); text-shadow:0 0 6px rgba(0,229,255,.35); }
-  .status .cursor{ display:inline-block; width:6px; height:12px; background:var(--green); animation:blink 0.9s steps(1) infinite; }
-  .status .cursor.pink{ background:var(--pink); }
-  .status .cursor.cyan{ background:var(--cyan); }
-  @keyframes blink{ 50%{ opacity:0; } }
 
-  .out{ margin-top:18px; flex:1; }
-  .card{
-    border:1px solid var(--line); background:linear-gradient(180deg,rgba(10,16,25,0.92),rgba(4,7,12,0.96));
-    border-radius:4px; margin-bottom:12px; padding:0; overflow:hidden;
-    animation:cardPop .25s cubic-bezier(0.16,1,0.3,1) both;
-    box-shadow:0 4px 18px rgba(0,0,0,0.5), 0 0 16px rgba(0,255,136,.03);
+  /* Micro-interactive Glass Icon Buttons */
+  .icon-btn{
+    background:var(--panel); border:1px solid var(--panel-border); color:var(--dim);
+    width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center;
+    border-radius:50%; cursor:pointer; position:relative; overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    transition:transform 150ms ease-out, box-shadow 200ms ease, opacity 200ms ease;
   }
-  @keyframes cardPop{ from{ opacity:0; transform:translateY(8px); } to{ opacity:1; transform:none; } }
-  .card.cyan{ border-color:#11384e; box-shadow:0 4px 18px rgba(0,0,0,0.5), 0 0 16px rgba(0,229,255,.04); }
+  .icon-btn:hover{
+    color:var(--white);
+    border-color:var(--primary);
+    transform:scale(1.04);
+    box-shadow:0 0 12px var(--primary-glow);
+  }
+  .icon-btn:active{
+    transform:scale(0.94);
+  }
+  #btn-open-settings:hover svg{
+    transform:rotate(40deg);
+  }
+  #btn-open-settings svg{
+    transition:transform 300ms cubic-bezier(0.16,1,0.3,1);
+  }
+
+  /* Settings Drawer */
+  .drawer-backdrop{
+    position:fixed; inset:0; background:rgba(3,6,12,0.65); backdrop-filter:blur(4px);
+    z-index:900; opacity:0; pointer-events:none; transition:opacity 200ms ease;
+  }
+  .drawer-backdrop.open{ opacity:1; pointer-events:auto; }
+  .drawer{
+    position:fixed; top:0; right:0; bottom:0; width:100%; max-width:340px;
+    background:var(--drawer-bg); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+    border-left:1px solid var(--panel-border);
+    z-index:999; padding:24px 20px;
+    transform:translateX(100%); transition:transform 280ms cubic-bezier(0.16,1,0.3,1);
+    display:flex; flex-direction:column; gap:20px;
+    box-shadow:-8px 0 32px rgba(0,0,0,0.45);
+  }
+  .drawer.open{ transform:translateX(0); }
+  .drawer-head{
+    display:flex; justify-content:space-between; align-items:center;
+    padding-bottom:14px; border-bottom:1px solid var(--panel-border);
+  }
+  .drawer-title{ font-size:12px; letter-spacing:2px; color:var(--white); font-weight:600; text-transform:uppercase; }
+  .drawer-close{
+    background:transparent; border:none; color:var(--dim); cursor:pointer;
+    width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+    border-radius:4px; transition:transform 150ms ease-out, opacity 200ms ease;
+  }
+  .drawer-close:hover{ color:var(--white); transform:scale(1.1); }
+  .drawer-close:active{ transform:scale(0.92); }
+  .drawer-item{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:8px 0; font-size:12.5px; color:var(--dim-light);
+  }
+  .drawer-item span{ font-size:12px; letter-spacing:0.8px; }
+
+  /* iOS Switch */
+  .switch{ position:relative; display:inline-block; width:42px; height:24px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{
+    position:absolute; inset:0; cursor:pointer;
+    background-color:rgba(107,130,153,0.22); transition:transform 150ms ease-out;
+    border-radius:24px; border:1px solid var(--panel-border);
+  }
+  .slider:before{
+    position:absolute; content:""; height:18px; width:18px; left:2px; bottom:2px;
+    background-color:#9db2c7; transition:transform 200ms cubic-bezier(0.16,1,0.3,1);
+    border-radius:50%; box-shadow:0 1px 3px rgba(0,0,0,0.3);
+  }
+  input:checked + .slider{ background-color:var(--primary); border-color:var(--primary); }
+  input:checked + .slider:before{ transform:translateX(18px); background-color:#ffffff; }
+
+  /* Volume slider */
+  .volume-row{ display:flex; flex-direction:column; gap:8px; padding:6px 0 10px; }
+  .volume-head{ display:flex; justify-content:space-between; font-size:12px; letter-spacing:0.8px; color:var(--dim-light); }
+  .vol-slider{
+    -webkit-appearance:none; width:100%; height:4px; border-radius:99px;
+    background:rgba(107,130,153,0.25); outline:none; cursor:pointer;
+  }
+  .vol-slider::-webkit-slider-thumb{
+    -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+    background:var(--primary); cursor:pointer; box-shadow:0 0 6px var(--primary-glow);
+  }
+
+  .drawer-link{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 12px; border-radius:var(--radius-sm);
+    background:rgba(77,171,255,0.05); border:1px solid var(--panel-border);
+    color:var(--white); text-decoration:none; font-size:12px; letter-spacing:1px;
+    transition:transform 150ms ease-out, box-shadow 200ms ease; margin-top:4px;
+  }
+  .drawer-link:hover{ background:rgba(77,171,255,0.12); border-color:var(--primary); transform:translateX(3px); }
+
+  /* Layout container */
+  .wrap{
+    position:relative; z-index:10; max-width:640px; margin:0 auto;
+    padding:28px 20px 60px; min-height:calc(100vh - 54px);
+    display:flex; flex-direction:column;
+  }
+
+  /* Centered Clean Tabs with Sliding Indicator */
+  .nav-tabs-container{
+    position:relative; display:flex; justify-content:center;
+    margin:12px 0 36px;
+  }
+  .nav-tabs{
+    display:inline-flex; align-items:center; gap:28px;
+    position:relative; padding:0 4px;
+  }
+  .tab-indicator{
+    position:absolute; bottom:0; left:0; height:3px;
+    background:var(--primary); border-radius:99px;
+    box-shadow:0 0 8px var(--primary-glow);
+    transition:left 250ms cubic-bezier(0.4, 0, 0.2, 1), width 250ms cubic-bezier(0.4, 0, 0.2, 1), background-color 250ms ease;
+    pointer-events:none;
+  }
+  .tab-btn{
+    background:transparent; border:none; cursor:pointer;
+    font:inherit; font-size:12.5px; letter-spacing:2px; font-weight:500;
+    color:var(--dim); padding:8px 6px 10px; position:relative;
+    text-transform:uppercase;
+    transition:transform 150ms ease-out, opacity 200ms ease;
+  }
+  .tab-btn:hover{ color:var(--dim-light); transform:scale(1.04); }
+  .tab-btn:active{ transform:scale(0.96); }
+  .tab-btn.active{
+    color:var(--white); font-weight:600;
+  }
+
+  /* Pages */
+  .page{ display:none; flex-direction:column; width:100%; }
+  .page.active{ display:flex; animation:fadeIn .22s cubic-bezier(0.16,1,0.3,1) both; }
+  @keyframes fadeIn{ from{ opacity:0; transform:translateY(4px); } to{ opacity:1; transform:none; } }
+
+  .title-wrap{ text-align:center; margin-bottom:24px; }
+  .title{
+    font-size:36px; font-weight:700; letter-spacing:4px;
+    color:var(--white); text-shadow:0 0 24px var(--primary-glow);
+    margin:0 0 6px;
+  }
+  .sub{
+    font-size:11px; letter-spacing:2px; color:var(--dim); text-transform:uppercase;
+  }
+
+  /* INFO BOX IN EVERY TAB */
+  .info-box{
+    width:100%;
+    border-radius:var(--radius-md);
+    padding:14px 16px;
+    font-family:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+    font-size:12px;
+    line-height:1.55;
+    margin-bottom:16px;
+    background:var(--info-bg);
+    border:1px solid var(--info-border);
+    color:var(--info-text);
+  }
+
+  /* Input Box / Search Box */
+  form, .row-form{
+    display:flex; align-items:center; gap:8px;
+    background:var(--panel); border:1px solid var(--panel-border);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+    border-radius:10px; padding:6px 6px 6px 14px;
+    box-shadow:var(--shadow-card);
+  }
+  form:focus-within{
+    border-color:var(--primary);
+    box-shadow:0 0 0 1px var(--primary), 0 0 20px var(--primary-glow);
+  }
+  form.cyan:focus-within{
+    border-color:var(--cyan);
+    box-shadow:0 0 0 1px var(--cyan), 0 0 20px rgba(34,211,238,0.25);
+  }
+  form.red:focus-within{
+    border-color:var(--red);
+    box-shadow:0 0 0 1px var(--red), 0 0 20px rgba(255,77,109,0.25);
+  }
+  form.pink:focus-within{
+    border-color:var(--purple);
+    box-shadow:0 0 0 1px var(--purple), 0 0 20px rgba(167,139,250,0.25);
+  }
+  .prompt-icon{ font-size:13px; color:var(--primary); font-weight:700; user-select:none; }
+  form.cyan .prompt-icon{ color:var(--cyan); }
+  form.red .prompt-icon{ color:var(--red); }
+  form.pink .prompt-icon{ color:var(--purple); }
+
+  input, select{
+    flex:1; min-width:0; background:transparent; border:0; outline:0;
+    color:var(--white); font:inherit; font-size:13px; padding:8px 6px; letter-spacing:0.5px;
+    caret-color:var(--primary);
+  }
+  input::placeholder{ color:var(--dim); opacity:0.8; }
+
+  /* Interactive Button with Shimmer Sweep & Ripple Pulse */
+  .scan-btn{
+    position:relative; overflow:hidden;
+    background:linear-gradient(180deg, var(--primary), #2563eb);
+    color:#ffffff; font-weight:600; font-size:11.5px; letter-spacing:1.5px;
+    border:none; border-radius:var(--radius-sm);
+    padding:9px 18px; cursor:pointer; min-height:36px;
+    box-shadow:0 2px 10px rgba(77,171,255,0.25);
+    display:inline-flex; align-items:center; justify-content:center;
+    transition:transform 150ms ease-out, box-shadow 200ms ease, opacity 200ms ease;
+  }
+  /* Shimmer sweep animation */
+  .scan-btn::before{
+    content:""; position:absolute; inset:0;
+    background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.28) 50%, transparent 100%);
+    transform:translateX(-100%);
+    animation:shimmer-sweep 3s infinite ease-in-out;
+    pointer-events:none;
+  }
+  @keyframes shimmer-sweep{
+    0%{ transform:translateX(-120%); }
+    35%,100%{ transform:translateX(120%); }
+  }
+
+  /* Click pulse ring effect */
+  .scan-btn::after{
+    content:""; position:absolute; inset:0;
+    border-radius:inherit;
+    border:2px solid #ffffff;
+    opacity:0; pointer-events:none;
+    transform:scale(0.85);
+  }
+  .scan-btn.clicked::after{
+    animation:pulse-ring 0.35s ease-out forwards;
+  }
+  @keyframes pulse-ring{
+    0%{ transform:scale(0.9); opacity:0.75; }
+    100%{ transform:scale(1.25); opacity:0; }
+  }
+
+  .scan-btn:hover{
+    transform:scale(1.02);
+    box-shadow:0 0 18px var(--primary-glow);
+  }
+  .scan-btn:active{
+    transform:scale(0.96);
+  }
+  .scan-btn:disabled{ opacity:.45; cursor:wait; transform:none; }
+  
+  .scan-btn.cyan{ background:linear-gradient(180deg, var(--cyan), #0891b2); color:#05080f; }
+  .scan-btn.cyan::before{ background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%); }
+  .scan-btn.red{ background:linear-gradient(180deg, var(--red), #dc2626); color:#ffffff; }
+  .scan-btn.pink{ background:linear-gradient(180deg, var(--purple), #7c3aed); color:#ffffff; }
+
+  /* Status message */
+  .status{
+    font-size:11.5px; color:var(--dim-light); letter-spacing:0.6px;
+    margin:14px 4px 0; min-height:18px; display:flex; align-items:center; gap:8px;
+    animation:fadeIn .2s ease;
+  }
+  .status.err{
+    color:var(--red); padding:8px 12px; border-left:3px solid var(--red);
+    background:rgba(255,77,109,0.06); border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .status.ok{ color:var(--primary); }
+  .loader{
+    display:inline-block; width:11px; height:11px;
+    border:2px solid rgba(77,171,255,0.2); border-top-color:var(--primary);
+    border-radius:50%; animation:spin .6s linear infinite; flex-shrink:0;
+  }
+  @keyframes spin{ 100%{ transform:rotate(360deg); } }
+
+  /* Results / Output cards */
+  .out{ margin-top:20px; width:100%; }
+  .card{
+    background:var(--card-bg); border:1px solid var(--card-border);
+    backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border-radius:10px; margin-bottom:14px; padding:0; overflow:hidden;
+    animation:fadeIn .2s ease-out; box-shadow:var(--shadow-card);
+  }
   .card .head{
     display:flex; justify-content:space-between; align-items:center;
-    padding:8px 12px; background:rgba(0,255,136,.04); border-bottom:1px solid var(--line);
-    font-size:11px; letter-spacing:1.8px; color:var(--green); text-shadow:0 0 5px var(--green-glow);
+    padding:10px 16px; background:var(--card-head-bg); border-bottom:1px solid var(--card-border);
+    font-size:11px; letter-spacing:1.5px; color:var(--primary); font-weight:600;
   }
-  .card.cyan .head{
-    background:rgba(0,229,255,.04); border-bottom-color:#11384e; color:var(--cyan);
-    text-shadow:0 0 5px var(--cyan-glow);
-  }
-  .card .head .idx{ color:var(--red); font-weight:700; }
-  .card.cyan .head .idx{ color:var(--cyan); }
-  .card .body{ padding:12px 14px; }
+  .card .body{ padding:12px 16px; }
   .row{
     display:grid; grid-template-columns:130px 1fr; gap:12px;
-    font-size:12px; line-height:1.55; padding:6px 0;
-    border-bottom:1px dashed rgba(0,255,136,.07); align-items:baseline;
+    font-size:12.5px; padding:7px 0;
+    border-bottom:1px solid rgba(125,140,160,0.1); align-items:baseline;
   }
-  .row:last-child{ border-bottom:0; }
-  .row .k{ color:var(--red); text-transform:uppercase; letter-spacing:1px; font-size:11px;
-    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .row .v{ color:var(--green); word-break:break-word; overflow-wrap:anywhere; }
-  .row .v.hi{ color:var(--white); font-weight:600; text-shadow:0 0 4px rgba(255,255,255,0.25); }
+  .row:last-child{ border-bottom:none; }
+  .row .k{ color:var(--dim); font-size:11px; letter-spacing:0.8px; text-transform:uppercase; }
+  .row .v{ color:var(--white); word-break:break-word; }
+  .row .v.hi{ color:var(--white); font-weight:600; }
   .row .v.na{ color:var(--dim); font-style:italic; }
-  .vrow{ display:flex; align-items:baseline; gap:8px; font-size:12px; line-height:1.6; padding:6px 0; width:100%; }
-  .vrow .vk{ color:var(--cyan-dim); text-transform:uppercase; letter-spacing:1px; font-size:11px;
-    white-space:nowrap; flex-shrink:0; }
-  .vrow .fill{ flex:1; border-bottom:1px dotted rgba(0,229,255,.3); margin-bottom:4px; min-width:12px; }
-  .vrow .vv{ color:var(--cyan); text-align:right; font-size:12px;
-    word-break:break-word; overflow-wrap:anywhere; max-width:70%; }
+
+  /* Dotted lines for V-OSINT */
+  .vrow{ display:flex; align-items:baseline; gap:8px; font-size:12.5px; padding:7px 0; width:100%; }
+  .vrow .vk{ color:var(--cyan); font-size:11px; letter-spacing:0.8px; text-transform:uppercase; flex-shrink:0; }
+  .vrow .fill{ flex:1; border-bottom:1px dotted var(--dim); opacity:0.4; margin-bottom:4px; min-width:8px; }
+  .vrow .vv{ color:var(--white); text-align:right; word-break:break-word; max-width:68%; }
   .vrow .vv.hi{ color:var(--white); font-weight:600; }
   .vrow .vv.na{ color:var(--dim); font-style:italic; }
-  .kv-card{ padding:12px; }
-  .kv-card h3{ margin:0 0 8px; font-size:11px; letter-spacing:1.8px; color:var(--green); text-transform:uppercase; }
-  .kv-card.cyan h3{ color:var(--cyan); }
-  pre.raw{ background:#020509; border:1px solid var(--line); border-radius:3px;
-    padding:10px 12px; font-size:11px; line-height:1.5; color:var(--green-dim);
-    overflow-x:auto; max-height:280px; white-space:pre-wrap; word-break:break-word; }
-  .row-inline{ display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; }
-  .row-inline input, .row-inline select{
-    border:1px solid var(--line); background:var(--panel); border-radius:3px;
-    padding:9px 10px; font-size:12.5px; flex:1; min-width:90px; color:#ff809b;
-  }
-  .row-inline input:focus{ border-color:var(--red); }
-  .bomb-meter{ margin-top:12px; background:#080e18; border:1px solid var(--line); border-radius:4px;
-    padding:10px 12px; display:flex; flex-direction:column; gap:6px; }
-  .bomb-track{ height:4px; background:#04070c; border-radius:2px; overflow:hidden; }
-  .bomb-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--amber), var(--red)); transition:width .15s ease; }
-  .chat{
-    flex:1; min-height:50vh; border:1px solid var(--line); border-radius:4px;
-    background:linear-gradient(180deg,rgba(10,16,25,0.85),rgba(4,7,12,0.95));
-    padding:12px; margin-bottom:10px; display:flex; flex-direction:column; gap:8px;
-    overflow-y:auto; max-height:50vh; scroll-behavior:smooth;
-  }
-  .msg{ max-width:85%; padding:8px 12px; border-radius:4px;
-    font-size:12.5px; line-height:1.5; word-break:break-word;
-    animation:msgPop .18s cubic-bezier(0.16,1,0.3,1) both; }
-  @keyframes msgPop { from{ opacity:0; transform:translateY(4px); } to{ opacity:1; transform:none; } }
-  .msg.me{ align-self:flex-end; background:rgba(0,255,136,.09); border:1px solid var(--green-dim); color:var(--green); }
-  .msg.her{ align-self:flex-start; background:rgba(255,91,181,.09); border:1px solid var(--pink-dim); color:var(--pink);
-    box-shadow:0 0 12px rgba(255,91,181,0.06); }
-  .msg.sys{ align-self:center; background:transparent; color:var(--dim); font-size:10.5px; letter-spacing:1.5px; text-transform:uppercase; }
-  .msg .who{ font-size:9.5px; letter-spacing:1.5px; opacity:.75; display:block; margin-bottom:3px; font-weight:bold; }
-  .footer{
-    text-align:center; font-size:9.5px; color:var(--dim); letter-spacing:1px;
-    margin-top:32px; flex-shrink:0; line-height:1.7;
-    border-top:1px solid var(--panel-border); padding-top:16px;
-  }
-  .footer .disc{ font-size:9px; color:var(--dim); line-height:1.55;
-    max-width:540px; margin:0 auto 10px; letter-spacing:.2px; text-transform:none; }
-  .footer .tg{ display:inline-flex; align-items:center; gap:6px; margin-top:6px;
-    color:var(--green); text-decoration:none;
-    border:1px solid var(--green-dim); border-radius:3px;
-    padding:6px 14px; font-size:10.5px; letter-spacing:1.5px; transition:.18s; }
-  .footer .tg:hover{ background:rgba(0,255,136,.1); border-color:var(--green); box-shadow:0 0 10px var(--green-glow); }
-  .loader{ display:inline-block; width:10px; height:10px;
-    border:1.5px solid var(--green-dim); border-top-color:var(--green);
-    border-radius:50%; animation:spin .55s linear infinite;
-    vertical-align:-1px; margin-right:6px; }
-  .loader.pink{ border-color:var(--pink-dim); border-top-color:var(--pink); }
-  .loader.cyan{ border-color:var(--cyan-dim); border-top-color:var(--cyan); }
-  .loader.red{ border-color:rgba(255,45,85,0.4); border-top-color:var(--red); }
-  @keyframes spin { 100%{ transform:rotate(360deg); } }
 
-  @media (max-width:540px){
-    .hud-top{ flex-direction:column; gap:8px; align-items:flex-start; }
-    .hud-controls{ align-self:flex-end; }
-    .row{ grid-template-columns:105px 1fr; gap:8px; }
+  pre.raw{
+    background:rgba(8,10,14,0.7); border:1px solid var(--panel-border); border-radius:var(--radius-sm);
+    padding:10px 12px; font-size:11px; color:var(--dim-light);
+    max-height:220px; overflow:auto; white-space:pre-wrap; word-break:break-word;
+  }
+
+  /* SMS-B Controls */
+  .row-inline{ display:flex; gap:8px; margin-top:10px; }
+  .row-inline input{
+    border:1px solid var(--panel-border); background:var(--panel);
+    border-radius:var(--radius-sm); padding:8px 10px; font-size:12.5px;
+    flex:1; min-width:80px; color:var(--white);
+  }
+  .bomb-meter{
+    margin-top:14px; background:var(--card-bg); border:1px solid var(--panel-border);
+    border-radius:10px; padding:10px 14px; display:flex; flex-direction:column; gap:6px;
+  }
+  .bomb-track{ height:4px; background:rgba(125,140,160,0.15); border-radius:99px; overflow:hidden; }
+  .bomb-fill{ height:100%; width:0%; background:linear-gradient(90deg, var(--red), var(--primary)); transition:width .15s ease; }
+
+  /* YUKI Chat */
+  .chat{
+    min-height:360px; max-height:460px; overflow-y:auto;
+    border:1px solid var(--panel-border); border-radius:10px;
+    background:var(--panel); backdrop-filter:blur(16px);
+    padding:16px; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;
+    box-shadow:var(--shadow-card);
+  }
+  .msg{
+    max-width:82%; padding:9px 13px; border-radius:var(--radius-md);
+    font-size:12.5px; line-height:1.55; animation:fadeIn .18s ease;
+  }
+  .msg.me{ align-self:flex-end; background:rgba(77,171,255,0.12); border:1px solid rgba(77,171,255,0.25); color:var(--white); }
+  .msg.her{ align-self:flex-start; background:rgba(167,139,250,0.1); border:1px solid rgba(167,139,250,0.22); color:var(--white); }
+  .msg.sys{ align-self:center; font-size:10.5px; color:var(--dim); letter-spacing:1px; text-transform:uppercase; }
+  .msg .who{ font-size:9.5px; letter-spacing:1px; opacity:0.75; display:block; margin-bottom:3px; font-weight:600; }
+  .msg.me .who{ color:var(--primary); }
+  .msg.her .who{ color:var(--purple); }
+
+  /* Footer */
+  .footer{
+    margin-top:auto; padding-top:36px; text-align:center;
+    display:flex; flex-direction:column; gap:8px; align-items:center;
+  }
+  .footer-disc{
+    font-size:11px; color:var(--dim); line-height:1.6; max-width:540px;
+  }
+  .footer-watermark{ font-size:10px; letter-spacing:2px; color:var(--dim); opacity:0.65; text-transform:uppercase; }
+
+  @media (max-width:560px){
+    .wrap{ padding:20px 16px 50px; }
+    .nav-tabs{ gap:16px; }
+    .nav-tabs-container{ margin-bottom:24px; }
+    .tab-btn{ font-size:11.5px; letter-spacing:1.5px; }
+    .title{ font-size:28px; }
+    .row{ grid-template-columns:105px 1fr; }
   }
 </style>
 </head>
 <body>
+<!-- Subtle Tactile Noise Grain SVG Texture -->
+<svg class="noise-overlay" xmlns="http://www.w3.org/2000/svg">
+<filter id="grain-filter">
+<feturbulence basefrequency="0.8" numoctaves="3" result="noise" stitchtiles="stitch" type="fractalNoise"></feturbulence>
+<fecolormatrix type="saturate" values="0"></fecolormatrix>
+</filter>
+<rect filter="url(#grain-filter)" height="100%" width="100%"></rect>
+</svg>
 <canvas id="matrix-rain"></canvas>
-
-<div id="boot-screen">
-  <div class="boot-box">
-    <div class="boot-header">
-      <div class="boot-badge">
-        <span class="live-dot"></span>
-        <span>TACTICAL KERNEL</span>
-      </div>
-      <div class="boot-ver">SYS//4.0.9</div>
-    </div>
-    <div class="boot-log" id="boot-log-container">
-      <div class="hl">> MOUNTING SHARD PROTOCOLS...</div>
-    </div>
-    <div class="boot-progress-wrap">
-      <div class="boot-bar">
-        <div class="boot-fill" id="boot-progress-fill"></div>
-      </div>
-      <div class="boot-meta">
-        <span id="boot-status-text">INITIALIZING</span>
-        <span id="boot-pct-text">0%</span>
-      </div>
-    </div>
-  </div>
+<!-- Top Bar -->
+<header class="topbar">
+<div class="brand">
+<span class="live-dot"></span>
+<span>SYSTEM ACTIVE</span>
 </div>
-
-<div class="wrap">
-  <div class="hud-top">
-    <div class="hud-left">
-      <span class="live-dot"></span>
-      <span>SYSTEM: ACTIVE</span>
-    </div>
-    <div class="hud-stats">
-      <span>NODE: <b>ASIA-SOUTH-1</b></span>
-      <span>PING: <b id="ping-hud">18ms</b></span>
-    </div>
-    <div class="hud-controls">
-      <button class="ctrl-btn active" id="btn-toggle-rain" title="Toggle Matrix Rain Canvas">
-        <span>MATRIX: ON</span>
-      </button>
-      <button class="ctrl-btn active" id="btn-toggle-sound" title="Toggle Terminal Audio Feedback">
-        <span>SFX: ON</span>
-      </button>
-      <a href="https://yuki-chats.vercel.app/" class="ctrl-btn chats-btn" title="Open Chat Terminal">
-        <span>CHATS</span>
-      </a>
-    </div>
-  </div>
-
-  <div class="tabs">
-    <button class="tab active" data-tab="osint">OSINT</button>
-    <button class="tab" data-tab="vosint">V-OSINT</button>
-    <button class="tab" data-tab="smsb">SMS-B</button>
-    <button class="tab" data-tab="yuki">YUKI</button>
-  </div>
-
-  <div class="telemetry-panel">
-    <div class="telemetry-left">
-      <div class="telemetry-bars">
-        <div class="tele-bar"></div>
-        <div class="tele-bar"></div>
-        <div class="tele-bar"></div>
-        <div class="tele-bar"></div>
-        <div class="tele-bar"></div>
-        <div class="tele-bar"></div>
-      </div>
-      <div class="telemetry-txt">STREAM: <b id="stream-status">READY FOR SCAN</b></div>
-    </div>
-    <div class="telemetry-geo" id="clock-display">UTC 00:00:00</div>
-  </div>
-
-  <div class="page active" id="page-osint">
-    <div class="title-wrap">
-      <h1 class="title">OSINT</h1>
-      <div class="sub">[ <b>NUMBER INTELLIGENCE PROTOCOL</b> ]</div>
-    </div>
-    <form autocomplete="off" id="form-osint">
-      <span class="input-prefix">❯</span>
-      <input id="q-osint" inputmode="numeric" maxlength="14" placeholder="enter 10-digit number (e.g. 9876543210)"/>
-      <button type="submit">SCAN</button>
-    </form>
-    <div class="status" id="status-osint"></div>
-    <div class="out" id="out-osint"></div>
-  </div>
-
-  <div class="page" id="page-vosint">
-    <div class="title-wrap">
-      <h1 class="title cyan">V-OSINT</h1>
-      <div class="sub cyan">[ <b>VEHICLE RC INTELLIGENCE</b> ]</div>
-    </div>
-    <div class="note">
-      <b>NOTE:</b> Data is displayed only for records publicly listed in official registry shards.
-      Private or unlisted vehicles will return <b>no records</b>.
-    </div>
-    <form autocomplete="off" class="cyan" id="form-vosint">
-      <span class="input-prefix" style="color:var(--cyan-dim)">❯</span>
-      <input id="q-vosint" maxlength="14" placeholder="enter vehicle registration number (e.g. DL01AB1234)"/>
-      <button type="submit">SCAN</button>
-    </form>
-    <div class="status" id="status-vosint"></div>
-    <div class="out" id="out-vosint"></div>
-  </div>
-
-  <div class="page" id="page-smsb">
-    <div class="title-wrap">
-      <h1 class="title red">SMS-B</h1>
-      <div class="sub red">[ <b>AUTOMATED PACKET SEQUENCE STRESSOR</b> ]</div>
-    </div>
-    <form autocomplete="off" class="red" id="form-smsb">
-      <span class="input-prefix" style="color:rgba(255,45,85,0.6)">❯</span>
-      <input id="q-smsb" inputmode="numeric" maxlength="14" placeholder="target 10-digit number"/>
-    </form>
-    <div class="row-inline">
-      <input id="count-smsb" max="500" min="1" placeholder="count (1-500)" type="number" value="10"/>
-      <input id="delay-smsb" max="5" min="0" placeholder="delay (sec)" step="0.1" type="number" value="0"/>
-      <button id="fire-smsb" style="background:var(--red);color:#fff" type="button">FIRE</button>
-      <button disabled="" id="stop-smsb" style="background:transparent;color:var(--red);border:1px solid var(--red);cursor:pointer" type="button">HALT</button>
-    </div>
-    <div class="bomb-meter" id="bomb-meter" style="display:none;">
-      <div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--dim);">
-        <span>PROGRESS</span>
-        <span id="bomb-stats-txt">0 / 0</span>
-      </div>
-      <div class="bomb-track">
-        <div class="bomb-fill" id="bomb-progress-bar"></div>
-      </div>
-    </div>
-    <div class="status" id="status-smsb"></div>
-    <div class="out" id="out-smsb"></div>
-  </div>
-
-  <div class="page pink" id="page-yuki">
-    <div class="title-wrap">
-      <h1 class="title pink">YUKI</h1>
-      <div class="sub pink">[ <b>NEURAL INTERACTIVE COMPANION</b> ]</div>
-    </div>
-    <div class="chat" id="chat-yuki">
-      <div class="msg sys">YUKI NEURAL CHANNEL CONNECTED. READY.</div>
-    </div>
-    <form autocomplete="off" class="pink" id="form-yuki">
-      <span class="input-prefix" style="color:var(--pink-dim)">❯</span>
-      <input id="q-yuki" placeholder="type a message to Yuki..."/>
-      <button type="submit">SEND</button>
-    </form>
-    <div class="status" id="status-yuki"></div>
-  </div>
-
-  <div class="footer">
-    <div class="disc">
-      Disclaimer: This suite is built for research, educational, and authorized audit environments only.
-      It does not encourage or support unauthorized operations. All telemetry and data queried is strictly
-      drawn from public databases and indices.
-    </div>
-    <a class="tg" href="https://t.me/Yuki_kinfo_bot" rel="noopener" target="_blank">
-      <span>CONNECT VIA TELEGRAM</span> · @Yuki_kinfo_bot
-    </a>
-  </div>
+<div class="topbar-actions">
+<!-- Settings Drawer Button -->
+<button aria-label="Open Settings" class="icon-btn" id="btn-open-settings" title="Settings">
+<svg fill="none" height="17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="17">
+<circle cx="12" cy="12" r="3"></circle>
+<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+</svg>
+</button>
 </div>
-
+</header>
+<div class="topbar-border"></div>
+<!-- Slide-in Settings Drawer & Backdrop -->
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<aside aria-label="Terminal Settings" class="drawer" id="settings-drawer">
+<div class="drawer-head">
+<div class="drawer-title">TERMINAL SETTINGS</div>
+<button aria-label="Close Settings" class="drawer-close" id="btn-close-settings">
+<svg fill="none" height="18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="18">
+<line x1="18" x2="6" y1="6" y2="18"></line>
+<line x1="6" x2="18" y1="6" y2="18"></line>
+</svg>
+</button>
+</div>
+<div class="drawer-item">
+<span>PARTICLES ANIMATION</span>
+<label class="switch">
+<input checked="" id="toggle-particles" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<div class="drawer-item">
+<span>SOUND EFFECTS (SFX)</span>
+<label class="switch">
+<input checked="" id="toggle-sound" type="checkbox"/>
+<span class="slider"></span>
+</label>
+</div>
+<div class="volume-row">
+<div class="volume-head">
+<span>VOLUME</span>
+<span id="vol-val-txt">60%</span>
+</div>
+<input class="vol-slider" id="volume-slider" max="100" min="0" type="range" value="60"/>
+</div>
+<div style="border-top:1px solid var(--panel-border); padding-top:14px; margin-top:4px;">
+<span style="font-size:11px; letter-spacing:1.5px; color:var(--dim); text-transform:uppercase; display:block; margin-bottom:8px;">QUICK RELAYS</span>
+<a class="drawer-link" href="https://yuki-chats.vercel.app/" rel="noopener" target="_blank">
+<span>OPEN YUKI CHATS</span>
+<span style="color:var(--primary)">↗</span>
+</a>
+<a class="drawer-link" href="https://t.me/Yuki_kinfo_bot" rel="noopener" target="_blank">
+<span>TELEGRAM BOT</span>
+<span style="color:var(--primary)">↗</span>
+</a>
+</div>
+</aside>
+<div class="wrap app-wrap">
+<!-- Minimal Center Mode Selector Tabs with Smooth Sliding Indicator -->
+<div class="nav-tabs-container">
+<nav aria-label="Mode Navigation" class="nav-tabs tab-bar" id="nav-tabs-bar">
+<div class="tab-indicator" id="tab-indicator"></div>
+<button class="tab-btn active" data-tab="osint">OSINT</button>
+<button class="tab-btn" data-tab="vosint">V-OSINT</button>
+<button class="tab-btn" data-tab="smsb">SMS-B</button>
+<button class="tab-btn" data-tab="yuki">YUKI</button>
+</nav>
+</div>
+<!-- OSINT Page -->
+<main class="page active" id="page-osint">
+<div class="title-wrap">
+<h1 class="title">OSINT</h1>
+<div class="sub">[ NUMBER INTELLIGENCE PROTOCOL ]</div>
+</div>
+<!-- Consistent Info Box -->
+<div class="info-box">
+Public telecom shards only. Numbers must be 10-digit Indian format. Unlisted numbers will return no records.
+</div>
+<form autocomplete="off" class="search-box" id="form-osint">
+<span class="prompt-icon">❯</span>
+<input id="q-osint" inputmode="numeric" maxlength="14" placeholder="Enter 10-digit number (e.g. 9876543210)"/>
+<button class="scan-btn" type="submit">SCAN</button>
+</form>
+<div class="status" id="status-osint"></div>
+<div class="out" id="out-osint"></div>
+</main>
+<!-- V-OSINT Page -->
+<main class="page" id="page-vosint">
+<div class="title-wrap">
+<h1 class="title" style="color:var(--cyan);text-shadow:0 0 24px rgba(34,211,238,0.25)">V-OSINT</h1>
+<div class="sub">[ VEHICLE RC INTELLIGENCE ]</div>
+</div>
+<!-- Consistent Info Box -->
+<div class="info-box">
+Public registry shards only. Private or unlisted plates will return no records.
+</div>
+<form autocomplete="off" class="cyan search-box" id="form-vosint">
+<span class="prompt-icon">❯</span>
+<input id="q-vosint" maxlength="14" placeholder="Enter vehicle plate (e.g. DL01AB1234)"/>
+<button class="scan-btn cyan" type="submit">SCAN</button>
+</form>
+<div class="status" id="status-vosint"></div>
+<div class="out" id="out-vosint"></div>
+</main>
+<!-- SMS-B Page -->
+<main class="page" id="page-smsb">
+<div class="title-wrap">
+<h1 class="title" style="color:var(--red);text-shadow:0 0 24px rgba(255,77,109,0.25)">SMS-B</h1>
+<div class="sub">[ AUTOMATED PACKET SEQUENCE STRESSOR ]</div>
+</div>
+<!-- Consistent Info Box -->
+<div class="info-box">
+Outbound SMS delivery only. Rate limited to prevent abuse. Verify recipient consent before sending.
+</div>
+<form autocomplete="off" class="red search-box" id="form-smsb">
+<span class="prompt-icon">❯</span>
+<input id="q-smsb" inputmode="numeric" maxlength="14" placeholder="Target 10-digit number"/>
+</form>
+<div class="row-inline">
+<input id="count-smsb" max="500" min="1" placeholder="Count" type="number" value="10"/>
+<input id="delay-smsb" max="5" min="0" placeholder="Delay (s)" step="0.1" type="number" value="0"/>
+<button class="scan-btn red" id="fire-smsb" type="button">FIRE</button>
+<button disabled="" id="stop-smsb" style="background:transparent;color:var(--red);border:1px solid var(--red);border-radius:var(--radius-sm);cursor:pointer;padding:0 14px;font-weight:600;font-size:11.5px;letter-spacing:1px;transition:transform 150ms ease-out, opacity 200ms ease;" type="button">HALT</button>
+</div>
+<div class="bomb-meter" id="bomb-meter" style="display:none;">
+<div style="display:flex; justify-content:space-between; font-size:11px; color:var(--dim);">
+<span>PROGRESS</span>
+<span id="bomb-stats-txt">0 / 0</span>
+</div>
+<div class="bomb-track">
+<div class="bomb-fill" id="bomb-progress-bar"></div>
+</div>
+</div>
+<div class="status" id="status-smsb"></div>
+<div class="out" id="out-smsb"></div>
+</main>
+<!-- YUKI Page -->
+<main class="page" id="page-yuki">
+<div class="title-wrap">
+<h1 class="title" style="color:var(--purple);text-shadow:0 0 24px rgba(167,139,250,0.25)">YUKI</h1>
+<div class="sub">[ NEURAL INTERACTIVE COMPANION ]</div>
+</div>
+<!-- Consistent Info Box -->
+<div class="info-box">
+Neural AI companion. Supports Hindi, Hinglish, and English. Conversational queries only — no PII sharing.
+</div>
+<div class="chat chat-pane" id="chat-yuki">
+<div class="msg sys">YUKI NEURAL CHANNEL CONNECTED. READY.</div>
+</div>
+<form autocomplete="off" class="pink search-box" id="form-yuki">
+<span class="prompt-icon">❯</span>
+<input id="q-yuki" placeholder="Type a message to Yuki..."/>
+<button class="scan-btn pink" type="submit">SEND</button>
+</form>
+<div class="status" id="status-yuki"></div>
+</main>
+<!-- Minimal Footer -->
+<footer class="footer">
+<div class="footer-disc">
+Disclaimer: Built for research, educational, and authorized audit environments only.
+</div>
+<div class="footer-watermark">YUKI // OSINT SUITE</div>
+</footer>
+</div>
 <script>
-/* Synthesized Web Audio Tactical SFX System */
+/* Audio Synthesizer */
 let soundEnabled = true;
+let masterVolume = 0.06;
 let audioCtx = null;
 
 function getAudioContext(){
@@ -534,19 +657,19 @@ function getAudioContext(){
 }
 
 function playSound(type){
-  if (!soundEnabled) return;
+  if (!soundEnabled || masterVolume <= 0.001) return;
   const ctx = getAudioContext();
   if (!ctx) return;
   const now = ctx.currentTime;
 
-  if (type === "click" || type === "tab"){
+  if (type === "tab" || type === "toggle"){
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.setValueAtTime(1400, now);
-    osc.frequency.exponentialRampToValueAtTime(700, now + 0.04);
-    gain.gain.setValueAtTime(0.06, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+    osc.frequency.setValueAtTime(type === "tab" ? 1400 : 980, now);
+    osc.frequency.exponentialRampToValueAtTime(800, now + 0.035);
+    gain.gain.setValueAtTime(masterVolume * 0.7, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
@@ -555,202 +678,240 @@ function playSound(type){
   else if (type === "scan"){
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(820, now);
-    osc.frequency.exponentialRampToValueAtTime(1760, now + 0.12);
-    gain.gain.setValueAtTime(0.08, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(320, now);
+    osc.frequency.exponentialRampToValueAtTime(780, now + 0.08);
+    gain.gain.setValueAtTime(masterVolume * 0.8, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.145);
+    osc.stop(now + 0.11);
   }
   else if (type === "success"){
-    [980, 1470].forEach((freq, i) => {
+    [523.25, 659.25].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "triangle";
       osc.frequency.setValueAtTime(freq, now + i * 0.07);
-      gain.gain.setValueAtTime(0.07, now + i * 0.07);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.15);
+      gain.gain.setValueAtTime(masterVolume * 0.85, now + i * 0.07);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.07 + 0.18);
       osc.connect(gain);
       gain.connect(ctx.destination);
       osc.start(now + i * 0.07);
-      osc.stop(now + i * 0.07 + 0.16);
+      osc.stop(now + i * 0.07 + 0.19);
     });
   }
   else if (type === "error"){
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
-    osc.type = "sawtooth";
-    osc.frequency.setValueAtTime(220, now);
-    osc.frequency.linearRampToValueAtTime(140, now + 0.16);
-    gain.gain.setValueAtTime(0.08, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(110, now);
+    osc.frequency.exponentialRampToValueAtTime(60, now + 0.15);
+    gain.gain.setValueAtTime(masterVolume * 1.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.19);
+    osc.stop(now + 0.17);
   }
   else if (type === "packet"){
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.setValueAtTime(1800, now);
-    osc.frequency.exponentialRampToValueAtTime(900, now + 0.025);
-    gain.gain.setValueAtTime(0.04, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+    osc.frequency.setValueAtTime(1200, now);
+    osc.frequency.exponentialRampToValueAtTime(700, now + 0.02);
+    gain.gain.setValueAtTime(masterVolume * 0.45, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.022);
     osc.connect(gain);
     gain.connect(ctx.destination);
     osc.start(now);
-    osc.stop(now + 0.03);
+    osc.stop(now + 0.025);
   }
 }
 
 window.addEventListener("pointerdown", () => getAudioContext(), { once: true });
 window.addEventListener("keydown", () => getAudioContext(), { once: true });
 
-/* Matrix Digital Rain */
-let rainActive = true;
+/* Hypnotic Natural Snowfall Engine - AMOLED Pure Dark */
+let particlesActive = true;
 const canvas = document.getElementById("matrix-rain");
 const ctx = canvas.getContext("2d");
+let particles = [];
 
-const matrixChars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZｦｱｳｴｵｶｷｹｺｻｼｽｾｿﾀﾂﾃﾅﾆﾇﾈﾊﾋﾎﾏﾐﾑﾒﾓﾔﾕﾗﾘﾜ<>/{}[];:!@#$%&*+=-_~";
-const charArray = matrixChars.split("");
-const fontSize = 14;
-let columns = 0;
-let drops = [];
-
-function resizeRain(){
+function resizeCanvas(){
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  columns = Math.floor(canvas.width / fontSize);
-  drops = [];
-  for (let i = 0; i < columns; i++){
-    drops[i] = Math.floor(Math.random() * -50);
+  initParticles();
+}
+
+function initParticles(){
+  particles = [];
+  const count = Math.min(120, Math.max(95, Math.floor(canvas.width / 11)));
+  for (let i = 0; i < count; i++){
+    const sizeType = Math.random();
+    let r, vy;
+    if (sizeType < 0.7) {
+      r = Math.random() * 0.5 + 1.0;
+      vy = Math.random() * 0.15 + 0.15;
+    } else if (sizeType < 0.9) {
+      r = Math.random() * 0.4 + 1.8;
+      vy = Math.random() * 0.15 + 0.25;
+    } else {
+      r = Math.random() * 0.5 + 2.5;
+      vy = Math.random() * 0.15 + 0.35;
+    }
+
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      r: r,
+      vy: vy,
+      baseAlpha: Math.random() * 0.10 + 0.15,
+      swayAngle: Math.random() * Math.PI * 2,
+      swaySpeed: Math.random() * 0.008 + 0.004,
+      swayAmplitude: Math.random() * 0.45 + 0.25,
+      isGlow: r >= 2.4
+    });
   }
 }
-window.addEventListener("resize", resizeRain);
-resizeRain();
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
 
-let lastRainTime = 0;
-const rainFps = 32;
-const rainInterval = 1000 / rainFps;
+let isDocVisible = !document.hidden;
+document.addEventListener("visibilitychange", () => {
+  isDocVisible = !document.hidden;
+});
 
-function renderRain(timestamp){
-  requestAnimationFrame(renderRain);
-  if (!rainActive) return;
+function renderParticles(){
+  requestAnimationFrame(renderParticles);
+  if (!particlesActive || !isDocVisible) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const delta = timestamp - lastRainTime;
-  if (delta < rainInterval) return;
-  lastRainTime = timestamp - (delta % rainInterval);
+  for (let i = 0; i < particles.length; i++){
+    const p = particles[i];
+    
+    p.y += p.vy;
+    p.swayAngle += p.swaySpeed;
+    p.x += Math.sin(p.swayAngle) * p.swayAmplitude;
 
-  ctx.fillStyle = "rgba(3, 7, 13, 0.075)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (p.y > canvas.height + 10){
+      p.y = -10;
+      p.x = Math.random() * canvas.width;
+    }
+    if (p.x < -10) p.x = canvas.width + 10;
+    else if (p.x > canvas.width + 10) p.x = -10;
 
-  ctx.font = fontSize + 'px ui-monospace, "JetBrains Mono", monospace';
-
-  for (let i = 0; i < drops.length; i++){
-    const text = charArray[Math.floor(Math.random() * charArray.length)];
-    const x = i * fontSize;
-    const y = drops[i] * fontSize;
-
-    if (y > 0 && y < canvas.height + fontSize) {
-      if (Math.random() > 0.90) {
-        ctx.fillStyle = "#eafff1";
-        ctx.shadowBlur = 6;
-        ctx.shadowColor = "#00ff88";
-      } else if (Math.random() > 0.68) {
-        ctx.fillStyle = "#00ff88";
-        ctx.shadowBlur = 3;
-        ctx.shadowColor = "rgba(0,255,136,0.4)";
-      } else {
-        ctx.fillStyle = "#00ab56";
-        ctx.shadowBlur = 0;
-      }
-      ctx.fillText(text, x, y);
+    ctx.save();
+    ctx.fillStyle = `rgba(255, 255, 255, ${p.baseAlpha})`;
+    if (p.isGlow){
+      ctx.shadowColor = "rgba(255, 255, 255, 0.45)";
+      ctx.shadowBlur = 4;
+    } else {
+      ctx.shadowColor = "transparent";
+      ctx.shadowBlur = 0;
     }
 
-    if (y > canvas.height && Math.random() > 0.975){
-      drops[i] = 0;
-    }
-    drops[i]++;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
 }
-requestAnimationFrame(renderRain);
+requestAnimationFrame(renderParticles);
 
-const btnToggleRain = document.getElementById("btn-toggle-rain");
-btnToggleRain.addEventListener("click", () => {
-  rainActive = !rainActive;
-  btnToggleRain.classList.toggle("active", rainActive);
-  btnToggleRain.querySelector("span").textContent = rainActive ? "MATRIX: ON" : "MATRIX: OFF";
-  canvas.classList.toggle("disabled", !rainActive);
-  playSound("click");
+/* Settings Drawer Controls */
+const drawer = document.getElementById("settings-drawer");
+const drawerBackdrop = document.getElementById("drawer-backdrop");
+const btnOpenSettings = document.getElementById("btn-open-settings");
+const btnCloseSettings = document.getElementById("btn-close-settings");
+
+function openSettings(){
+  drawer.classList.add("open");
+  drawerBackdrop.classList.add("open");
+  playSound("tab");
+}
+function closeSettings(){
+  drawer.classList.remove("open");
+  drawerBackdrop.classList.remove("open");
+  playSound("toggle");
+}
+btnOpenSettings.addEventListener("click", openSettings);
+btnCloseSettings.addEventListener("click", closeSettings);
+drawerBackdrop.addEventListener("click", closeSettings);
+
+/* Settings Switches & Slider */
+const toggleParticles = document.getElementById("toggle-particles");
+toggleParticles.addEventListener("change", e => {
+  particlesActive = e.target.checked;
+  canvas.classList.toggle("disabled", !particlesActive);
+  playSound("toggle");
 });
 
-const btnToggleSound = document.getElementById("btn-toggle-sound");
-btnToggleSound.addEventListener("click", () => {
-  soundEnabled = !soundEnabled;
-  btnToggleSound.classList.toggle("active", soundEnabled);
-  btnToggleSound.querySelector("span").textContent = soundEnabled ? "SFX: ON" : "SFX: OFF";
-  if (soundEnabled) playSound("click");
+const toggleSound = document.getElementById("toggle-sound");
+toggleSound.addEventListener("change", e => {
+  soundEnabled = e.target.checked;
+  if (soundEnabled) playSound("toggle");
 });
 
-(function runFastBootSequence(){
-  const bootScreen = document.getElementById("boot-screen");
-  const fill = document.getElementById("boot-progress-fill");
-  const pctText = document.getElementById("boot-pct-text");
-  const statusText = document.getElementById("boot-status-text");
-  const logContainer = document.getElementById("boot-log-container");
+const volumeSlider = document.getElementById("volume-slider");
+const volValTxt = document.getElementById("vol-val-txt");
+volumeSlider.addEventListener("input", e => {
+  const v = parseInt(e.target.value);
+  volValTxt.textContent = v + "%";
+  masterVolume = (v / 100) * 0.1;
+});
 
-  const bootLogs = [
-    { pct: 30, msg: "MOUNTING /dev/crypto Shards... [OK]", hl: false },
-    { pct: 70, msg: "AUTHENTICATING SECURE RELAYS...", hl: false },
-    { pct: 100, msg: "CORE SYSTEM READY.", hl: true }
-  ];
-
-  let step = 0;
-  function nextStep(){
-    if (step >= bootLogs.length){
-      setTimeout(() => {
-        bootScreen.classList.add("fade-out");
-        playSound("scan");
-        setTimeout(() => bootScreen.style.display = "none", 520);
-      }, 140);
-      return;
-    }
-    const item = bootLogs[step];
-    fill.style.width = item.pct + "%";
-    pctText.textContent = item.pct + "%";
-    statusText.textContent = item.msg.replace(/\.\.\..*/, "");
-    const div = document.createElement("div");
-    if (item.hl) div.className = "hl";
-    div.textContent = "> " + item.msg;
-    logContainer.prepend(div);
-    step++;
-    setTimeout(nextStep, 160 + Math.random() * 80);
-  }
-  setTimeout(nextStep, 100);
-})();
-
-setInterval(() => {
-  const d = new Date();
-  const timeStr = d.toTimeString().split(' ')[0];
-  const clock = document.getElementById("clock-display");
-  if (clock) clock.textContent = "UTC " + timeStr;
-  const ping = document.getElementById("ping-hud");
-  if (ping && Math.random() > 0.6) {
-    ping.textContent = Math.floor(14 + Math.random() * 8) + "ms";
-  }
-}, 1000);
-
-const API_OSINT  = "/api/osint";
-const API_VOSINT = "/api/vosint";
-const API_SMSB   = "/api/smsb";
-const API_YUKI   = "/api/yuki";
-
+/* Tabs Switching with Gliding Indicator */
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
+const tabIndicator = document.getElementById("tab-indicator");
+
+function updateTabIndicator(){
+  const activeTab = document.querySelector(".tab-btn.active");
+  if (!activeTab || !tabIndicator) return;
+  const left = activeTab.offsetLeft;
+  const width = activeTab.offsetWidth;
+  tabIndicator.style.left = left + "px";
+  tabIndicator.style.width = width + "px";
+
+  const tabType = activeTab.dataset.tab;
+  if (tabType === "vosint") {
+    tabIndicator.style.backgroundColor = "var(--cyan)";
+    tabIndicator.style.boxShadow = "0 0 8px rgba(34,211,238,0.4)";
+  } else if (tabType === "smsb") {
+    tabIndicator.style.backgroundColor = "var(--red)";
+    tabIndicator.style.boxShadow = "0 0 8px rgba(255,77,109,0.4)";
+  } else if (tabType === "yuki") {
+    tabIndicator.style.backgroundColor = "var(--purple)";
+    tabIndicator.style.boxShadow = "0 0 8px rgba(167,139,250,0.4)";
+  } else {
+    tabIndicator.style.backgroundColor = "var(--primary)";
+    tabIndicator.style.boxShadow = "0 0 8px var(--primary-glow)";
+  }
+}
+
+window.addEventListener("resize", updateTabIndicator);
+setTimeout(updateTabIndicator, 50);
+
+$$(".tab-btn").forEach(t => t.addEventListener("click", () => {
+  $$(".tab-btn").forEach(x => x.classList.remove("active"));
+  $$(".page").forEach(x => x.classList.remove("active"));
+  t.classList.add("active");
+  const target = $("#page-" + t.dataset.tab);
+  if (target) target.classList.add("active");
+  updateTabIndicator();
+  playSound("tab");
+}));
+
+/* SCAN button click ripple pulse trigger */
+$$(".scan-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    btn.classList.remove("clicked");
+    void btn.offsetWidth;
+    btn.classList.add("clicked");
+  });
+});
 
 function esc(s){
   return String(s ?? "").replace(/[&<>"]/g, c => (
@@ -758,20 +919,13 @@ function esc(s){
   ));
 }
 
-$$(".tab").forEach(t => t.addEventListener("click", () => {
-  $$(".tab").forEach(x => x.classList.remove("active"));
-  $$(".page").forEach(x => x.classList.remove("active"));
-  t.classList.add("active");
-  const target = $("#page-" + t.dataset.tab);
-  if (target) {
-    target.classList.add("active");
-    const stream = $("#stream-status");
-    if (stream) stream.textContent = "MODE: " + t.dataset.tab.toUpperCase();
-  }
-  playSound("tab");
-}));
+/* API Endpoints */
+const API_OSINT  = "/api/osint";
+const API_VOSINT = "/api/vosint";
+const API_SMSB   = "/api/smsb";
+const API_YUKI   = "/api/yuki";
 
-/* OSINT */
+/* OSINT Logic */
 const formOsint = $("#form-osint"), qOsint = $("#q-osint");
 const outOsint = $("#out-osint"), statusOsint = $("#status-osint");
 
@@ -781,8 +935,7 @@ function setStatusOsint(msg, cls){
 }
 function loadingOsint(n){
   statusOsint.className = "status";
-  statusOsint.innerHTML = `<span class="loader"></span>SEARCHING REPOSITORY FOR ${esc(n)}<span class="cursor"></span>`;
-  $("#stream-status").textContent = "SCANNING REPOSITORY...";
+  statusOsint.innerHTML = `<span class="loader"></span>SEARCHING FOR ${esc(n)}...`;
   playSound("scan");
 }
 function isLeakedRecord(r){
@@ -842,32 +995,31 @@ function renderPayload(data){
   }
   if (!records && Array.isArray(data)) records = data;
   if (!records || !records.length){
-    outOsint.innerHTML = `<div class="card"><div class="head"><span class="idx">›</span><span>RECORD PAYLOAD</span></div><div class="body">${renderObj(data)}</div></div>`;
-    outOsint.innerHTML += `<details class="card kv-card"><summary style="cursor:pointer;color:var(--green-dim);font-size:11px;letter-spacing:1.5px">▸ RAW LOG JSON</summary><pre class="raw">${esc(JSON.stringify(data,null,2))}</pre></details>`;
+    outOsint.innerHTML = `<div class="card"><div class="head"><span>RECORD PAYLOAD</span></div><div class="body">${renderObj(data)}</div></div>`;
+    outOsint.innerHTML += `<details style="margin-top:8px"><summary style="cursor:pointer;color:var(--primary);font-size:11px;letter-spacing:1px;padding:4px 0;">▸ RAW LOG JSON</summary><pre class="raw">${esc(JSON.stringify(data,null,2))}</pre></details>`;
     return;
   }
   const leaked = records.filter(isLeakedRecord);
   if (!leaked.length){
-    outOsint.innerHTML = `<div class="card"><div class="body"><div class="row"><div class="k">STATUS</div><div class="v na">NO BREACH RECORDS IDENTIFIED</div></div><div class="row"><div class="k">NOTE</div><div class="v na">Target clean across indexed repositories.</div></div></div></div>`;
+    outOsint.innerHTML = `<div class="card"><div class="body"><div class="row"><div class="k">STATUS</div><div class="v na">No breach records identified</div></div></div></div>`;
     return;
   }
-  let html = `<div class="card kv-card"><h3>INTELLIGENCE SUMMARY</h3>
-    <div class="row"><div class="k">MATCHES</div><div class="v hi">${leaked.length} IDENTIFIED</div></div>
-    <div class="row"><div class="k">INDEX SCANNED</div><div class="v">${records.length} NODES</div></div></div>`;
+  let html = "";
   leaked.forEach((rec, i) => {
     html += `<div class="card">
-      <div class="head"><span class="idx">#${String(i+1).padStart(2,"0")}</span><span>IDENTITY DOSSIER</span></div>
+      <div class="head"><span>RECORD #${String(i+1).padStart(2,"0")}</span><span style="color:var(--dim-light);font-size:10px">VERIFIED</span></div>
       <div class="body">${renderObj(rec)}</div>
     </div>`;
   });
   outOsint.innerHTML = html;
-  outOsint.innerHTML += `<details class="card kv-card"><summary style="cursor:pointer;color:var(--green-dim);font-size:11px;letter-spacing:1.5px">▸ RAW LOG JSON</summary><pre class="raw">${esc(JSON.stringify(data,null,2))}</pre></details>`;
+  outOsint.innerHTML += `<details style="margin-top:8px"><summary style="cursor:pointer;color:var(--primary);font-size:11px;letter-spacing:1px;padding:4px 0;">▸ RAW LOG JSON</summary><pre class="raw">${esc(JSON.stringify(data,null,2))}</pre></details>`;
 }
+
 formOsint.addEventListener("submit", async e => {
   e.preventDefault();
   const digits = qOsint.value.replace(/\D/g,"");
   if (digits.length !== 10){
-    setStatusOsint("Invalid target: Enter 10-digit number without country code", "err");
+    setStatusOsint("Enter a 10-digit number without country code", "err");
     playSound("error");
     return;
   }
@@ -876,23 +1028,21 @@ formOsint.addEventListener("submit", async e => {
   $("#form-osint button").disabled = true;
   try{
     const r = await fetch(API_OSINT + "?q=" + encodeURIComponent(digits));
-    if (!r.ok) throw new Error("HTTP Status " + r.status);
+    if (!r.ok) throw new Error("Server returned " + r.status);
     const data = await r.json();
-    if (!data){ setStatusOsint("No response from server", "err"); playSound("error"); return; }
-    setStatusOsint(`TARGET LOCATED · ${digits}`, "ok");
+    if (!data){ setStatusOsint("Empty response received", "err"); playSound("error"); return; }
+    setStatusOsint(`TARGET RESOLVED · ${digits}`, "ok");
     playSound("success");
     renderPayload(data);
   }catch(e){
     setStatusOsint("Query failed: " + e.message, "err");
     playSound("error");
-    outOsint.innerHTML = `<div class="card"><div class="body"><div class="row"><div class="k">ERROR</div><div class="v na">${esc(e.message)}</div></div></div></div>`;
   }finally{
     $("#form-osint button").disabled = false;
-    $("#stream-status").textContent = "STANDBY";
   }
 });
 
-/* V-OSINT */
+/* V-OSINT Logic */
 const formVosint = $("#form-vosint"), qVosint = $("#q-vosint");
 const outVosint = $("#out-vosint"), statusVosint = $("#status-vosint");
 
@@ -902,10 +1052,10 @@ function setStatusVosint(msg, cls){
 }
 function loadingVosint(n){
   statusVosint.className = "status";
-  statusVosint.innerHTML = `<span class="loader cyan"></span>QUERYING NATIONAL RC SHARD ${esc(n)}<span class="cursor cyan"></span>`;
-  $("#stream-status").textContent = "V-RC RETRIEVAL...";
+  statusVosint.innerHTML = `<span class="loader" style="border-top-color:var(--cyan)"></span>QUERYING REGISTRY FOR ${esc(n)}...`;
   playSound("scan");
 }
+
 const FIELD_MAP = [
   ["owner name",       ["Owner Name","owner_name","owner","Owner","name"]],
   ["owner serial",     ["Owner Serial No.","owner_serial_no","owner_serial","serial"]],
@@ -945,7 +1095,7 @@ function getField(data, keys){
 function renderVehicle(payload){
   outVosint.innerHTML = "";
   if (!payload || typeof payload !== "object"){
-    outVosint.innerHTML = `<div class="card cyan"><div class="body"><div class="vrow"><div class="vk">RESULT</div><div class="fill"></div><div class="vv na">NO DATA AVAILABLE</div></div><div class="vrow"><div class="vk">NOTE</div><div class="fill"></div><div class="vv na">Vehicle not found in registry</div></div></div></div>`;
+    outVosint.innerHTML = `<div class="card" style="border-color:rgba(34,211,238,0.25)"><div class="body"><div class="vrow"><div class="vk">RESULT</div><div class="fill"></div><div class="vv na">Vehicle not found in registry</div></div></div></div>`;
     return;
   }
   let data = payload;
@@ -969,15 +1119,18 @@ function renderVehicle(payload){
     let msg = "No publicly indexed record found";
     if (typeof data.message === "string") msg = data.message;
     else if (typeof data.error === "string") msg = data.error;
-    outVosint.innerHTML = `<div class="card cyan"><div class="body"><div class="vrow"><div class="vk">STATUS</div><div class="fill"></div><div class="vv na">${esc(msg)}</div></div><div class="vrow"><div class="vk">NOTE</div><div class="fill"></div><div class="vv na">Vehicle is unlisted or restricted</div></div></div></div>`;
+    outVosint.innerHTML = `<div class="card" style="border-color:rgba(34,211,238,0.25)"><div class="body"><div class="vrow"><div class="vk">STATUS</div><div class="fill"></div><div class="vv na">${esc(msg)}</div></div></div></div>`;
     return;
   }
-  outVosint.innerHTML = `<div class="card cyan">
-    <div class="head"><span class="idx">RC SHARD</span><span class="right">AUTHENTICATED</span></div>
+  outVosint.innerHTML = `<div class="card" style="border-color:rgba(34,211,238,0.25)">
+    <div class="head" style="color:var(--cyan);background:rgba(34,211,238,0.06);border-bottom-color:rgba(34,211,238,0.18)">
+      <span>RC DOSSIER</span><span style="color:var(--dim-light);font-size:10px">VERIFIED</span>
+    </div>
     <div class="body">${rows.join("")}</div>
   </div>`;
-  outVosint.innerHTML += `<details class="card kv-card cyan"><summary style="cursor:pointer;color:var(--cyan-dim);font-size:11px;letter-spacing:1.5px">▸ RAW REGISTRY DUMP</summary><pre class="raw">${esc(JSON.stringify(payload,null,2))}</pre></details>`;
+  outVosint.innerHTML += `<details style="margin-top:8px"><summary style="cursor:pointer;color:var(--cyan);font-size:11px;letter-spacing:1px;padding:4px 0;">▸ RAW REGISTRY DUMP</summary><pre class="raw">${esc(JSON.stringify(payload,null,2))}</pre></details>`;
 }
+
 formVosint.addEventListener("submit", async e => {
   e.preventDefault();
   const raw = qVosint.value.toUpperCase().replace(/[^A-Z0-9]/g,"");
@@ -991,7 +1144,7 @@ formVosint.addEventListener("submit", async e => {
   $("#form-vosint button").disabled = true;
   try{
     const r = await fetch(API_VOSINT + "?number=" + encodeURIComponent(raw));
-    if (!r.ok) throw new Error("HTTP Status " + r.status);
+    if (!r.ok) throw new Error("Server returned " + r.status);
     const data = await r.json();
     setStatusVosint(`RC RECORD RESOLVED · ${raw}`, "ok");
     playSound("success");
@@ -999,14 +1152,12 @@ formVosint.addEventListener("submit", async e => {
   }catch(e){
     setStatusVosint("Query failed: " + e.message, "err");
     playSound("error");
-    outVosint.innerHTML = `<div class="card cyan"><div class="body"><div class="vrow"><div class="vk">ERROR</div><div class="fill"></div><div class="vv na">${esc(e.message)}</div></div></div></div>`;
   }finally{
     $("#form-vosint button").disabled = false;
-    $("#stream-status").textContent = "STANDBY";
   }
 });
 
-/* SMS-B */
+/* SMS-B Logic */
 const formSmsb = $("#form-smsb"), qSmsb = $("#q-smsb");
 const outSmsb = $("#out-smsb"), statusSmsb = $("#status-smsb");
 const countSmsb = $("#count-smsb"), delaySmsb = $("#delay-smsb");
@@ -1031,10 +1182,11 @@ async function fireOne(number){
     return ok;
   }catch(e){ return false; }
 }
+
 fireSmsb.addEventListener("click", async () => {
   if (smsbRunning) return;
   const digits = qSmsb.value.replace(/\D/g,"");
-  if (digits.length < 10){ setStatusSmsb("Target requires 10-digit format","err"); playSound("error"); return; }
+  if (digits.length < 10){ setStatusSmsb("Target requires 10 digits", "err"); playSound("error"); return; }
   const count = Math.max(1, Math.min(500, parseInt(countSmsb.value) || 1));
   const delay = Math.max(0, Math.min(5, parseFloat(delaySmsb.value) || 0));
   outSmsb.innerHTML = "";
@@ -1043,16 +1195,13 @@ fireSmsb.addEventListener("click", async () => {
   bombMeter.style.display = "flex";
   bombProgressBar.style.width = "0%";
   bombStatsTxt.textContent = `0 / ${count}`;
-  $("#stream-status").textContent = "DISPATCHING PACKETS...";
   playSound("scan");
 
   for (let i = 1; i <= count; i++){
     if (smsbStopFlag){
-      setStatusSmsb(`STRESS TEST ABORTED AT [${i-1}/${count}] · Sent=${smsbSent} Failed=${smsbFailed}`, "err");
+      setStatusSmsb(`Stress test aborted · Sent=${smsbSent} Failed=${smsbFailed}`, "err");
       playSound("error");
-      outSmsb.innerHTML = `<div class="card"><div class="body"><div class="row"><div class="k">STATUS</div><div class="v" style="color:var(--red)">TERMINATED</div></div><div class="row"><div class="k">DISPATCHED</div><div class="v hi">${smsbSent}</div></div><div class="row"><div class="k">FAILED</div><div class="v" style="color:var(--red)">${smsbFailed}</div></div></div></div>`;
       smsbRunning = false; fireSmsb.disabled = false; stopSmsb.disabled = true;
-      $("#stream-status").textContent = "STANDBY";
       return;
     }
     const ok = await fireOne(digits);
@@ -1060,23 +1209,22 @@ fireSmsb.addEventListener("click", async () => {
     const pct = Math.round((i / count) * 100);
     bombProgressBar.style.width = pct + "%";
     bombStatsTxt.textContent = `${i} / ${count} (${pct}%)`;
-    setStatusSmsb(`<span class="loader red"></span>DISPATCHING [${i}/${count}] · OK: ${smsbSent} | FAIL: ${smsbFailed}`, "");
+    setStatusSmsb(`Dispatching [${i}/${count}] · Sent: ${smsbSent} | Failed: ${smsbFailed}`);
     if (delay) await new Promise(r => setTimeout(r, delay * 1000));
   }
-  setStatusSmsb(`SEQUENCE FINISHED · Dispatched=${smsbSent} Failed=${smsbFailed}`, smsbSent > 0 ? "ok" : "err");
+  setStatusSmsb(`Sequence completed · Dispatched: ${smsbSent} | Failed: ${smsbFailed}`, smsbSent > 0 ? "ok" : "err");
   playSound(smsbSent > 0 ? "success" : "error");
-  outSmsb.innerHTML = `<div class="card"><div class="body"><div class="row"><div class="k">STATUS</div><div class="v" style="color:var(--green)">COMPLETED</div></div><div class="row"><div class="k">TOTAL DISPATCHED</div><div class="v hi">${smsbSent}</div></div><div class="row"><div class="k">FAILED ATTEMPTS</div><div class="v" style="color:var(--red)">${smsbFailed}</div></div></div></div>`;
   smsbRunning = false; fireSmsb.disabled = false; stopSmsb.disabled = true;
-  $("#stream-status").textContent = "STANDBY";
 });
+
 stopSmsb.addEventListener("click", () => {
   if (!smsbRunning) return;
   smsbStopFlag = true;
-  playSound("click");
-  setStatusSmsb("Halting pipeline after current batch packet...", "err");
+  playSound("toggle");
+  setStatusSmsb("Halting pipeline...", "err");
 });
 
-/* YUKI */
+/* YUKI Logic */
 const formYuki = $("#form-yuki"), qYuki = $("#q-yuki");
 const chatYuki = $("#chat-yuki"), statusYuki = $("#status-yuki");
 let yukiHistory = [];
@@ -1086,22 +1234,23 @@ function pushMsg(who, text){
   const div = document.createElement("div");
   div.className = "msg " + cls;
   if (who === "me") div.innerHTML = `<span class="who">OPERATOR</span>${esc(text)}`;
-  else if (who === "her") div.innerHTML = `<span class="who">YUKI [AI]</span>${esc(text)}`;
+  else if (who === "her") div.innerHTML = `<span class="who">YUKI</span>${esc(text)}`;
   else div.textContent = text;
   chatYuki.appendChild(div);
   chatYuki.scrollTop = chatYuki.scrollHeight;
 }
+
 formYuki.addEventListener("submit", async e => {
   e.preventDefault();
   const msg = qYuki.value.trim();
   if (!msg) return;
   qYuki.value = "";
-  playSound("click");
+  playSound("tab");
   pushMsg("me", msg);
   yukiHistory.push({ role: "user", content: msg });
   yukiHistory = yukiHistory.slice(-20);
   statusYuki.className = "status";
-  statusYuki.innerHTML = `<span class="loader pink"></span>Yuki is composing thoughts...<span class="cursor pink"></span>`;
+  statusYuki.innerHTML = `<span class="loader" style="border-top-color:var(--purple)"></span>Yuki is composing thoughts...`;
   $("#form-yuki button").disabled = true;
   try{
     const r = await fetch(API_YUKI, {
@@ -1121,11 +1270,10 @@ formYuki.addEventListener("submit", async e => {
   }catch(e){
     statusYuki.className = "status err";
     playSound("error");
-    statusYuki.textContent = "Neural connection timeout: " + e.message;
+    statusYuki.textContent = "Neural timeout: " + e.message;
   }finally{
     $("#form-yuki button").disabled = false;
   }
 });
 </script>
-</body>
-</html>
+</body></html>
