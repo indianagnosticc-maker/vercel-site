@@ -1216,5 +1216,24 @@ push('me', msg);
   window.addEventListener('load', () => setTimeout(() => audio.play('boot'), 400));
 })();
 </script>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBAcB83hPSwOvkM0t474u9idpIXI8DINTE",
+    authDomain: "buildai-aab60.firebaseapp.com",
+    databaseURL: "https://buildai-aab60-default-rtdb.firebaseio.com",
+    projectId: "buildai-aab60",
+    storageBucket: "buildai-aab60.firebasestorage.app",
+    messagingSenderId: "623484700833",
+    appId: "1:623484700833:web:81c135e27c7ca108e5c8e0",
+    measurementId: "G-VGBBMEMC7Z"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+
 </body>
 </html>
