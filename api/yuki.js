@@ -30,10 +30,8 @@ export default async function handler(req, res) {
   const p4 = "JggfnCiGQ1Sopv9veEcw";
   const API_KEY = p1 + p2 + p3 + p4;
 
-  // History format convert karo
   const contents = [];
 
-  // Agar purani history hai to format karke daalo (sirf aakhri 10 messages taaki timeout na ho)
   const recentHistory = history.slice(-10);
   recentHistory.forEach(item => {
     if (item && item.content) {
@@ -44,7 +42,6 @@ export default async function handler(req, res) {
     }
   });
 
-  // Current message add karo agar history ke aakhri item me na ho
   const lastItem = contents[contents.length - 1];
   if (!lastItem || lastItem.parts[0].text !== message || lastItem.role !== "user") {
     contents.push({
@@ -54,7 +51,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+    // Current standard Gemini 2.0 endpoint
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
     const gResponse = await fetch(url, {
       method: "POST",
