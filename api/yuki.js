@@ -28,6 +28,7 @@ export default async function handler(req, res) {
     message,
     prompt: SYSTEM_PROMPT,
     system: SYSTEM_PROMPT,
+    stream: false,
     history,
     messages: history.concat([{ role: "user", content: message }])
   };
@@ -42,23 +43,52 @@ export default async function handler(req, res) {
       body: JSON.stringify(payload)
     });
 
-    const text = await r.text();
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = { reply: text };
+    const raw = await r.text();
+
+    // Streaming chunks me se sirf actual content extract karo
+    let combinedContent = "";
+    const lines = raw.split("\n");
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("data:") && !trimmed.includes("[DONE]")) {
+        const jsonStr = trimmed.replace(/^data:\s*/, "");
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const deltaContent = parsed.choices?.[0]?.delta?.content;
+          if (deltaContent) {
+            combinedContent += deltaContent;
+          }
+        } catch {
+          // ignore chunk parse errors
+        }
+      }
     }
 
-    const reply = data.reply || data.response || data.message || data.text || text;
+    let finalReply = combinedContent.trim();
+
+    // Agar standard stream na ho to fallback normal JSON / text
+    if (!finalReply) {
+      try {
+        const standardJson = JSON.parse(raw);
+        finalReply = standardJson.reply || standardJson.response || standardJson.message || standardJson.choices?.[0]?.message?.content;
+      } catch {
+        finalReply = raw;
+      }
+    }
+
+    if (!finalReply) {
+      finalReply = "Jaan, bolo na kya bol rahe the? ❤️";
+    }
 
     res.setHeader("Content-Type", "application/json");
     res.setHeader("Cache-Control", "no-store");
 
-    return res.status(200).json({ reply });
+    return res.status(200).json({ reply: finalReply });
+
   } catch (e) {
     return res.status(200).json({ 
-      reply: "Jaan network thoda slow hai, ek baar aur bolo na! ❤️" 
+      reply: "Jaan thoda network issue ho gaya, ek baar aur bolo na! ❤️" 
     });
   }
 }
