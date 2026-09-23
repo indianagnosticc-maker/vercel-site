@@ -51,8 +51,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Current standard Gemini 2.0 endpoint
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+    // Exact recommended model
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${API_KEY}`;
 
     const gResponse = await fetch(url, {
       method: "POST",
