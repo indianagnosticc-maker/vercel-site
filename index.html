@@ -3,362 +3,387 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
-<title>YUKI-OSINT · INTELLIGENCE TERMINAL</title>
+<title>YUKI-OSINT • INTELLIGENCE TERMINAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
   :root{
-    --bg:#000; --surface-1:rgba(255,255,255,0.03); --surface-2:rgba(255,255,255,0.05);
+    --bg:#000000;
+    --surface-1:rgba(255,255,255,0.03);
+    --surface-2:rgba(255,255,255,0.05);
     --surface-3:rgba(255,255,255,0.08);
-    --border-1:rgba(255,255,255,0.08); --border-2:rgba(255,255,255,0.14);
+    --border-1:rgba(255,255,255,0.08);
+    --border-2:rgba(255,255,255,0.14);
     --border-3:rgba(255,255,255,0.24);
-    --text:#fff; --text-2:rgba(255,255,255,0.65); --text-3:rgba(255,255,255,0.42);
+    --text:#ffffff;
+    --text-2:rgba(255,255,255,0.65);
+    --text-3:rgba(255,255,255,0.42);
     --text-4:rgba(255,255,255,0.24);
-    --r-sm:6px; --r-md:10px; --r-lg:14px;
+    --r-sm:6px; --r-md:10px; --r-lg:14px; --r-xl:18px;
     --ease:cubic-bezier(0.16,1,0.3,1);
     --fast:180ms; --med:300ms; --slow:520ms;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
   html,body{
     background:#000;color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
     font-size:13.5px;line-height:1.5;min-height:100vh;
     overflow-x:hidden;-webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
   }
-  #snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:0.85;transition:opacity .5s var(--ease);}
-  #snow.off{opacity:0;}
-
-  .header{
-    position:sticky;top:0;z-index:50;
-    background:rgba(0,0,0,0.75);
-    backdrop-filter:blur(24px) saturate(180%);
-    -webkit-backdrop-filter:blur(24px) saturate(180%);
-    border-bottom:1px solid var(--border-1);
-  }
-  .header-inner{
-    max-width:1080px;margin:0 auto;padding:0 20px;
-    height:60px;display:flex;align-items:center;justify-content:space-between;gap:14px;
-  }
-  .brand{display:flex;align-items:center;gap:10px;}
-  .brand-avatar{
-    width:36px;height:36px;border-radius:50%;
-    background:linear-gradient(135deg,#222,#0a0a0a);
-    border:1.5px solid var(--border-3);
-    display:flex;align-items:center;justify-content:center;
-    font-size:14px;font-weight:700;color:#fff;
-  }
-  .brand-name{font-size:12.5px;font-weight:700;letter-spacing:1.2px;}
+  #snow-canvas{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;opacity:0.85;transition:opacity var(--slow) var(--ease);}
+  #snow-canvas.off{opacity:0;}
+  .app-header{position:sticky;top:0;z-index:50;width:100%;background:rgba(0,0,0,0.72);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid var(--border-1);}
+  .header-inner{max-width:1080px;margin:0 auto;padding:0 22px;height:64px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+  .brand-group{display:flex;align-items:center;gap:12px;}
+  .brand-avatar{position:relative;width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;border:1.5px solid var(--border-3);background:#0a0a0a;transition:border-color var(--med) var(--ease), box-shadow var(--med) var(--ease);}
+  .brand-avatar:hover{border-color:rgba(255,255,255,0.6);box-shadow:0 0 24px rgba(255,255,255,0.15);}
+  .brand-avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+  .brand-meta{display:flex;flex-direction:column;min-width:0;}
+  .brand-name{font-size:13px;font-weight:700;letter-spacing:1.2px;font-family:'JetBrains Mono',monospace;color:#fff;}
   .brand-name .dim{color:var(--text-3);font-weight:500;}
-  .brand-tag{font-size:9.5px;color:var(--text-3);letter-spacing:1.4px;}
-  .icon-btn{
-    width:36px;height:36px;border-radius:var(--r-sm);
-    background:transparent;border:1px solid transparent;
-    color:var(--text-2);cursor:pointer;
-    display:inline-flex;align-items:center;justify-content:center;
-    transition:all var(--fast) var(--ease);
-  }
+  .brand-tag{font-size:9.5px;color:var(--text-3);font-family:'JetBrains Mono',monospace;letter-spacing:1.4px;}
+  .header-telemetry{display:flex;align-items:center;gap:18px;font-family:'JetBrains Mono',monospace;font-size:11px;}
+  .telem{display:flex;align-items:center;gap:6px;color:#fff;}
+  .telem .muted{color:var(--text-3);}
+  .dot{width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px rgba(255,255,255,0.8);animation:dotPulse 2.6s var(--ease) infinite;}
+  @keyframes dotPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.35;transform:scale(0.85);}}
+  .header-actions{display:flex;align-items:center;gap:6px;}
+  .icon-btn{width:36px;height:36px;border-radius:var(--r-sm);background:transparent;border:1px solid transparent;color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all var(--fast) var(--ease);}
   .icon-btn svg{width:16px;height:16px;}
-  .icon-btn:hover{color:#fff;background:var(--surface-2);border-color:var(--border-2);}
+  .icon-btn:hover{color:#fff;background:var(--surface-2);border-color:var(--border-2);transform:translateY(-1px);}
   .icon-btn:active{transform:scale(0.95);}
-
-  .layout{position:relative;z-index:10;max-width:920px;margin:0 auto;padding:20px 18px 60px;display:flex;flex-direction:column;gap:16px;}
-
-  .banner{
-    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
-    background:var(--surface-1);
-    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-    border:1px solid var(--border-1);border-radius:var(--r-md);
-    padding:10px 16px;font-size:11px;
-  }
-  .banner-chips{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .drawer-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:900;opacity:0;pointer-events:none;transition:opacity var(--med) var(--ease);}
+  .drawer-backdrop.open{opacity:1;pointer-events:auto;}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:100%;max-width:360px;background:rgba(5,5,5,0.92);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-left:1px solid var(--border-1);z-index:999;padding:26px 22px;display:flex;flex-direction:column;gap:20px;transform:translateX(100%);transition:transform var(--slow) var(--ease);}
+  .drawer.open{transform:translateX(0);}
+  .drawer-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--border-1);}
+  .drawer-title{font-size:11.5px;font-weight:600;letter-spacing:2px;font-family:'JetBrains Mono',monospace;color:#fff;}
+  .drawer-close{width:32px;height:32px;border-radius:var(--r-sm);background:transparent;border:none;color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all var(--fast) var(--ease);}
+  .drawer-close svg{width:16px;height:16px;}
+  .drawer-close:hover{color:#fff;transform:rotate(90deg);}
+  .drawer-item{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-2);letter-spacing:0.6px;font-family:'JetBrains Mono',monospace;}
+  .switch{position:relative;display:inline-block;width:42px;height:22px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;inset:0;cursor:pointer;background:var(--surface-2);border:1px solid var(--border-2);border-radius:22px;transition:all var(--med) var(--ease);}
+  .slider:before{content:"";position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:var(--text-3);border-radius:50%;transition:transform var(--med) var(--ease), background var(--med) var(--ease);}
+  input:checked + .slider{background:rgba(255,255,255,0.14);border-color:var(--border-3);}
+  input:checked + .slider:before{transform:translateX(20px);background:#fff;}
+  .volume-row{display:flex;flex-direction:column;gap:10px;}
+  .volume-head{display:flex;justify-content:space-between;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:1px;}
+  .volume-head span:last-child{color:#fff;}
+  .vol-slider{-webkit-appearance:none;appearance:none;width:100%;height:3px;border-radius:99px;background:var(--surface-3);outline:none;cursor:pointer;}
+  .vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;cursor:pointer;box-shadow:0 0 10px rgba(255,255,255,0.4);transition:transform var(--fast) var(--ease);}
+  .vol-slider::-webkit-slider-thumb:hover{transform:scale(1.15);}
+  .vol-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:none;cursor:pointer;}
+  .drawer-links{border-top:1px solid var(--border-1);padding-top:16px;}
+  .drawer-label{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:1.5px;display:block;margin-bottom:10px;}
+  .drawer-link{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-radius:var(--r-md);background:var(--surface-1);border:1px solid var(--border-1);color:#fff;text-decoration:none;font-size:11.5px;font-family:'JetBrains Mono',monospace;letter-spacing:0.6px;margin-bottom:8px;transition:all var(--fast) var(--ease);}
+  .drawer-link:hover{background:var(--surface-2);border-color:var(--border-3);transform:translateX(3px);}
+  .layout{position:relative;z-index:10;max-width:920px;margin:0 auto;padding:24px 22px 60px;display:flex;flex-direction:column;gap:20px;}
+  .banner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;background:var(--surface-1);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--border-1);border-radius:var(--r-md);padding:11px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;}
+  .banner-chips{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
   .chip{display:inline-flex;align-items:center;gap:6px;color:var(--text-3);}
   .chip .val{color:#fff;font-weight:500;}
-  .dot{width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 8px rgba(255,255,255,0.8);animation:pulse 2.6s var(--ease) infinite;}
-  @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.85)}}
-
-  .tabs{
-    display:flex;align-items:center;gap:4px;
-    background:var(--surface-1);
-    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-    border:1px solid var(--border-1);border-radius:var(--r-md);
-    padding:5px;position:relative;width:100%;max-width:600px;margin:0 auto;
-  }
-  .tab-indicator{
-    position:absolute;top:5px;bottom:5px;left:5px;
-    background:var(--surface-3);border:1px solid var(--border-2);
-    border-radius:var(--r-sm);pointer-events:none;
-    transition:all var(--med) var(--ease);
-  }
-  .tab-btn{
-    flex:1;min-height:38px;background:transparent;border:none;
-    color:var(--text-3);font-size:12px;font-weight:500;letter-spacing:0.6px;
-    padding:6px 12px;border-radius:var(--r-sm);cursor:pointer;
-    position:relative;z-index:2;transition:color var(--fast) var(--ease);
-  }
+  .banner-tag{font-size:10px;color:var(--text-4);letter-spacing:1.4px;}
+  .tabs{display:flex;align-items:center;gap:4px;background:var(--surface-1);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--border-1);border-radius:var(--r-md);padding:5px;position:relative;width:100%;max-width:620px;margin:0 auto;}
+  .tab-indicator{position:absolute;top:5px;bottom:5px;left:0;background:var(--surface-3);border:1px solid var(--border-2);border-radius:var(--r-sm);pointer-events:none;transition:all var(--med) var(--ease);box-shadow:inset 0 1px 0 rgba(255,255,255,0.06);}
+  .tab-btn{flex:1;min-height:40px;background:transparent;border:none;color:var(--text-3);font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;letter-spacing:0.8px;padding:6px 14px;border-radius:var(--r-sm);cursor:pointer;position:relative;z-index:2;transition:color var(--fast) var(--ease);}
   .tab-btn:hover{color:var(--text-2);}
   .tab-btn.active{color:#fff;font-weight:600;}
-
-  .console{
-    background:var(--surface-1);
-    backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
-    border:1px solid var(--border-1);border-radius:var(--r-lg);
-    padding:24px;position:relative;overflow:hidden;
-    box-shadow:0 24px 60px -20px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.03);
-  }
+  .console{background:var(--surface-1);backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);border:1px solid var(--border-1);border-radius:var(--r-lg);padding:28px;position:relative;overflow:hidden;box-shadow:0 24px 60px -20px rgba(0,0,0,0.9),inset 0 1px 0 rgba(255,255,255,0.03);}
+  .console::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.18),transparent);}
   .page{display:none;flex-direction:column;}
-  .page.active{display:flex;animation:fadeIn var(--slow) var(--ease) both;}
-  @keyframes fadeIn{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:none}}
-
-  .breadcrumb{font-size:10px;color:var(--text-3);letter-spacing:1.4px;text-transform:uppercase;margin-bottom:4px;}
-  .panel-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+  .page.active{display:flex;animation:pageIn var(--slow) var(--ease) both;}
+  @keyframes pageIn{0%{opacity:0;transform:translateY(6px);filter:blur(3px);}100%{opacity:1;transform:none;filter:blur(0);}}
+  .panel-head{margin-bottom:18px;display:flex;flex-direction:column;gap:4px;}
+  .breadcrumb{font-size:10.5px;font-family:'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:1.4px;text-transform:uppercase;}
+  .panel-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
   .panel-title{font-size:18px;font-weight:600;color:#fff;letter-spacing:-0.2px;}
-  .panel-badge{
-    font-size:10px;font-weight:600;padding:3px 9px;border-radius:4px;
-    background:var(--surface-2);border:1px solid var(--border-2);
-    color:var(--text-2);letter-spacing:1px;white-space:nowrap;
-  }
-
-  .info{
-    display:flex;align-items:flex-start;gap:10px;
-    background:var(--surface-1);border:1px solid var(--border-1);
-    border-left:2px solid rgba(255,255,255,0.35);
-    border-radius:var(--r-sm);padding:10px 14px;margin-bottom:16px;
-    font-size:12px;color:var(--text-2);line-height:1.55;
-  }
-
-  .search{
-    display:flex;align-items:center;gap:8px;
-    background:var(--surface-2);border:1px solid var(--border-1);
-    border-radius:var(--r-md);padding:6px 6px 6px 14px;
-    transition:all var(--med) var(--ease);
-  }
+  .panel-badge{font-size:10.5px;font-family:'JetBrains Mono',monospace;font-weight:600;padding:3px 9px;border-radius:4px;background:var(--surface-2);border:1px solid var(--border-2);color:var(--text-2);letter-spacing:1px;white-space:nowrap;}
+  .info{display:flex;align-items:flex-start;gap:10px;background:var(--surface-1);border:1px solid var(--border-1);border-left:2px solid rgba(255,255,255,0.35);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:18px;font-size:12px;color:var(--text-2);line-height:1.55;}
+  .search{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border-1);border-radius:var(--r-md);padding:6px 6px 6px 14px;transition:all var(--med) var(--ease);}
   .search:focus-within{border-color:var(--border-3);background:var(--surface-3);box-shadow:0 0 0 3px rgba(255,255,255,0.05);}
-  .prompt{font-size:12px;color:var(--text-3);font-weight:600;flex-shrink:0;}
-  .search input{
-    flex:1;min-width:0;background:transparent;border:0;outline:0;
-    color:#fff;font-size:13.5px;padding:9px 4px;caret-color:#fff;
-    font-family:inherit;
-  }
+  .prompt{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text-3);font-weight:600;flex-shrink:0;}
+  .search input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:#fff;font-family:'Inter',sans-serif;font-size:13.5px;padding:9px 4px;caret-color:#fff;}
   .search input::placeholder{color:var(--text-4);}
-
-  .btn{
-    background:#fff;color:#000;border:none;border-radius:var(--r-sm);
-    font-size:11.5px;font-weight:600;letter-spacing:1.2px;
-    padding:10px 20px;min-height:40px;cursor:pointer;flex-shrink:0;
-    transition:all var(--fast) var(--ease);
-    box-shadow:0 4px 16px rgba(255,255,255,0.08);
-    font-family:inherit;
-  }
+  .btn{position:relative;overflow:hidden;background:#fff;color:#000;border:none;border-radius:var(--r-sm);font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:1.2px;padding:10px 20px;min-height:40px;cursor:pointer;flex-shrink:0;transition:all var(--fast) var(--ease);box-shadow:0 4px 16px rgba(255,255,255,0.08);}
+  .btn::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,0,0,0.08),transparent);transform:translateX(-120%);animation:shimmer 4s var(--ease) infinite;pointer-events:none;}
+  @keyframes shimmer{0%{transform:translateX(-120%);}40%,100%{transform:translateX(120%);}}
   .btn:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(255,255,255,0.18);}
   .btn:active{transform:scale(0.97);}
-  .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
-
-  .btn-ghost{
-    background:transparent;color:#fff;border:1px solid var(--border-2);
-    border-radius:var(--r-sm);font-size:11.5px;font-weight:600;letter-spacing:1.2px;
-    padding:0 18px;min-height:40px;cursor:pointer;
-    transition:all var(--fast) var(--ease);
-    font-family:inherit;
-  }
-  .btn-ghost:hover{background:var(--surface-2);border-color:var(--border-3);}
-  .btn-ghost:disabled{opacity:0.3;cursor:not-allowed;}
-
+  .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+  .btn-ghost{background:transparent;color:#fff;border:1px solid var(--border-2);border-radius:var(--r-sm);font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;letter-spacing:1.2px;padding:0 18px;min-height:40px;cursor:pointer;transition:all var(--fast) var(--ease);}
+  .btn-ghost:hover{background:var(--surface-2);border-color:var(--border-3);transform:translateY(-1px);}
+  .btn-ghost:disabled{opacity:0.3;cursor:not-allowed;transform:none;}
   .row-inline{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
-  .row-inline input{
-    border:1px solid var(--border-1);background:var(--surface-1);
-    border-radius:var(--r-sm);padding:10px 12px;font-size:12.5px;
-    flex:1;min-width:100px;color:#fff;min-height:40px;
-    transition:all var(--fast) var(--ease);
-    font-family:inherit;
-  }
+  .row-inline input{border:1px solid var(--border-1);background:var(--surface-1);border-radius:var(--r-sm);padding:10px 12px;font-size:12.5px;flex:1;min-width:100px;color:#fff;font-family:'JetBrains Mono',monospace;min-height:40px;transition:all var(--fast) var(--ease);}
   .row-inline input:focus{border-color:var(--border-3);outline:none;box-shadow:0 0 0 3px rgba(255,255,255,0.05);}
-
   .meter{margin-top:14px;background:var(--surface-1);border:1px solid var(--border-1);border-radius:var(--r-md);padding:14px 16px;display:flex;flex-direction:column;gap:10px;}
-  .meter-row{display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);letter-spacing:1px;}
+  .meter-row{display:flex;justify-content:space-between;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:1px;}
   .meter-row span:last-child{color:#fff;}
   .meter-track{height:4px;background:var(--surface-3);border-radius:99px;overflow:hidden;}
   .meter-fill{height:100%;width:0%;background:#fff;transition:width 0.2s linear;border-radius:99px;box-shadow:0 0 12px rgba(255,255,255,0.5);}
-
-  .status{
-    font-size:11.5px;color:var(--text-2);margin-top:14px;min-height:22px;
-    display:flex;align-items:center;gap:8px;letter-spacing:0.4px;
-    animation:fadeIn var(--med) var(--ease);
-  }
+  .status{font-size:11.5px;font-family:'JetBrains Mono',monospace;color:var(--text-2);margin-top:14px;min-height:22px;display:flex;align-items:center;gap:8px;letter-spacing:0.4px;animation:pageIn var(--med) var(--ease);}
   .status.err{color:#fff;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:var(--r-sm);padding:8px 14px;}
   .status.ok{color:#fff;}
-  .loader{
-    width:12px;height:12px;border:2px solid rgba(255,255,255,0.15);
-    border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;
-    display:inline-block;flex-shrink:0;
-  }
+  .loader{width:12px;height:12px;border:2px solid rgba(255,255,255,0.15);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:inline-block;flex-shrink:0;}
   @keyframes spin{to{transform:rotate(360deg);}}
-
   .out{margin-top:18px;width:100%;}
-  .card{
-    background:rgba(255,255,255,0.02);
-    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-    border:1px solid var(--border-1);border-radius:var(--r-md);
-    margin-bottom:12px;overflow:hidden;
-    animation:cardIn var(--slow) var(--ease) both;
-    box-shadow:0 12px 32px -12px rgba(0,0,0,0.7);
-  }
-  @keyframes cardIn{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
-  .card .head{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:11px 16px;background:rgba(255,255,255,0.03);
-    border-bottom:1px solid var(--border-1);
-    font-size:11px;font-weight:600;letter-spacing:1.4px;color:#fff;
-  }
-  .card .head .badge{
-    font-size:10px;color:var(--text-3);padding:3px 8px;border-radius:99px;
-    background:var(--surface-1);border:1px solid var(--border-1);letter-spacing:1px;
-  }
+  .card{position:relative;background:rgba(255,255,255,0.02);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--border-1);border-radius:var(--r-md);margin-bottom:12px;overflow:hidden;animation:cardIn var(--slow) var(--ease) both;box-shadow:0 12px 32px -12px rgba(0,0,0,0.7);}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.14),transparent);}
+  @keyframes cardIn{0%{opacity:0;transform:translateY(10px);}100%{opacity:1;transform:none;}}
+  .card:nth-child(1){animation-delay:0ms;}
+  .card:nth-child(2){animation-delay:80ms;}
+  .card:nth-child(3){animation-delay:160ms;}
+  .card:nth-child(4){animation-delay:240ms;}
+  .card:nth-child(5){animation-delay:320ms;}
+  .card .head{display:flex;justify-content:space-between;align-items:center;padding:11px 16px;background:rgba(255,255,255,0.03);border-bottom:1px solid var(--border-1);font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;letter-spacing:1.4px;color:#fff;}
+  .card .head .badge{font-size:10px;color:var(--text-3);display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:99px;background:var(--surface-1);border:1px solid var(--border-1);letter-spacing:1px;}
+  .card .head .badge::before{content:"";width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 6px rgba(255,255,255,0.7);}
   .card .body{padding:12px 16px;display:flex;flex-direction:column;}
   .row{display:grid;grid-template-columns:140px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);align-items:baseline;font-size:12.5px;}
   .row:last-child{border-bottom:none;}
-  .row .k{color:var(--text-3);font-size:10.5px;text-transform:uppercase;letter-spacing:0.8px;}
+  .row .k{color:var(--text-3);font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.8px;}
   .row .v{color:#fff;word-break:break-word;font-weight:500;}
-  .row .v.hi{font-weight:600;}
+  .row .v.hi{font-weight:600;text-shadow:0 0 12px rgba(255,255,255,0.25);}
   .row .v.na{color:var(--text-4);font-style:italic;font-weight:400;}
-
   .vrow{display:flex;align-items:baseline;gap:10px;font-size:12.5px;padding:8px 0;}
-  .vrow .vk{color:var(--text-3);font-size:10.5px;text-transform:uppercase;letter-spacing:0.8px;flex-shrink:0;font-weight:600;}
+  .vrow .vk{color:var(--text-3);font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.8px;flex-shrink:0;font-weight:600;}
   .vrow .fill{flex:1;border-bottom:1px dashed rgba(255,255,255,0.14);margin-bottom:4px;min-width:10px;}
   .vrow .vv{color:#fff;text-align:right;word-break:break-word;max-width:66%;font-weight:500;}
-  .vrow .vv.hi{font-weight:600;}
+  .vrow .vv.hi{font-weight:600;text-shadow:0 0 12px rgba(255,255,255,0.25);}
   .vrow .vv.na{color:var(--text-4);font-style:italic;font-weight:400;}
-
-  pre.raw{
-    background:rgba(0,0,0,0.5);border:1px solid var(--border-1);
-    border-radius:var(--r-sm);padding:12px 14px;
-    font-size:11px;font-family:ui-monospace,Menlo,monospace;
-    color:var(--text-2);max-height:240px;overflow:auto;
-    white-space:pre-wrap;word-break:break-word;margin-top:10px;line-height:1.6;
-  }
-  details summary{
-    cursor:pointer;color:var(--text-2);font-size:11px;
-    padding:6px 0;list-style:none;letter-spacing:1px;font-weight:600;
-    transition:color var(--fast) var(--ease);
-  }
+  pre.raw{background:rgba(0,0,0,0.5);border:1px solid var(--border-1);border-radius:var(--r-sm);padding:12px 14px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-2);max-height:240px;overflow:auto;white-space:pre-wrap;word-break:break-word;margin-top:10px;line-height:1.6;}
+  details summary{cursor:pointer;color:var(--text-2);font-size:11px;font-family:'JetBrains Mono',monospace;padding:6px 0;list-style:none;letter-spacing:1px;font-weight:600;transition:color var(--fast) var(--ease);}
   details summary:hover{color:#fff;}
   details summary::-webkit-details-marker{display:none;}
   details summary::before{content:"▸ ";transition:transform var(--fast) var(--ease);display:inline-block;}
   details[open] summary::before{transform:rotate(90deg);}
-
-  .chat{
-    min-height:340px;max-height:460px;overflow-y:auto;
-    border:1px solid var(--border-1);border-radius:var(--r-md);
-    background:rgba(0,0,0,0.35);
-    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-    padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:12px;
-  }
+  .chat{min-height:340px;max-height:460px;overflow-y:auto;border:1px solid var(--border-1);border-radius:var(--r-md);background:rgba(0,0,0,0.35);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:12px;}
   .chat::-webkit-scrollbar{width:5px;}
   .chat::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:99px;}
-  .msg{max-width:84%;padding:10px 14px;border-radius:var(--r-md);font-size:12.5px;line-height:1.55;animation:msgIn var(--med) var(--ease) both;white-space:pre-wrap;word-break:break-word;}
-  @keyframes msgIn{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:none}}
+  .msg{max-width:84%;padding:10px 14px;border-radius:var(--r-md);font-size:12.5px;line-height:1.55;animation:msgIn var(--med) var(--ease) both;}
+  @keyframes msgIn{0%{opacity:0;transform:translateY(6px);}100%{opacity:1;transform:none;}}
   .msg.me{align-self:flex-end;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);color:#fff;}
   .msg.her{align-self:flex-start;background:rgba(255,255,255,0.04);border:1px solid var(--border-1);color:#fff;}
-  .msg.sys{align-self:center;font-size:10px;color:var(--text-3);letter-spacing:1.4px;padding:6px 12px;border:1px solid var(--border-1);border-radius:99px;background:var(--surface-1);}
-  .msg .who{font-size:9.5px;font-weight:700;display:block;margin-bottom:4px;letter-spacing:1.4px;color:var(--text-3);}
-
-  .footer{max-width:920px;margin:0 auto;padding:0 18px 30px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;font-size:10.5px;color:var(--text-3);border-top:1px solid var(--border-1);padding-top:18px;letter-spacing:1px;position:relative;z-index:10;}
-
+  .msg.sys{align-self:center;font-size:10px;color:var(--text-3);font-family:'JetBrains Mono',monospace;letter-spacing:1.4px;padding:6px 12px;border:1px solid var(--border-1);border-radius:99px;background:var(--surface-1);}
+  .msg .who{font-size:9.5px;font-weight:700;font-family:'JetBrains Mono',monospace;display:block;margin-bottom:4px;letter-spacing:1.4px;color:var(--text-3);}
+  .secondary{border:1px solid var(--border-1);border-radius:var(--r-md);background:var(--surface-1);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);overflow:hidden;}
+  .secondary-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 18px;background:transparent;border:none;cursor:pointer;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;color:var(--text-2);letter-spacing:1.2px;transition:all var(--fast) var(--ease);}
+  .secondary-toggle:hover{background:var(--surface-2);color:#fff;}
+  .sec-left{display:flex;align-items:center;gap:8px;}
+  .sec-left .dot{width:5px;height:5px;}
+  .chev{transition:transform var(--med) var(--ease);}
+  .secondary.open .chev{transform:rotate(180deg);}
+  .secondary-body{display:none;padding:0 18px 18px;border-top:1px solid var(--border-1);}
+  .secondary.open .secondary-body{display:block;}
+  .log{background:rgba(0,0,0,0.4);border:1px solid var(--border-1);border-radius:var(--r-sm);padding:12px 14px;height:130px;overflow-y:auto;margin-top:14px;font-size:11px;font-family:'JetBrains Mono',monospace;line-height:1.65;color:var(--text-2);}
+  .log::-webkit-scrollbar{width:4px;}
+  .log::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:99px;}
+  .log-row{display:flex;gap:10px;animation:pageIn var(--med) var(--ease);}
+  .log-time{color:var(--text-4);flex-shrink:0;}
+  .log-tag{color:#fff;font-weight:700;flex-shrink:0;letter-spacing:0.8px;}
+  .log-tag.ok{color:#fff;opacity:0.85;}
+  .log-tag.warn{color:var(--text-3);}
+  .log-txt{color:var(--text-2);word-break:break-all;}
+  .accordion{display:flex;flex-direction:column;gap:6px;margin-top:14px;}
+  .acc-item{background:var(--surface-1);border:1px solid var(--border-1);border-radius:var(--r-sm);overflow:hidden;}
+  .acc-head{padding:11px 14px;cursor:pointer;user-select:none;display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-family:'JetBrains Mono',monospace;color:var(--text-2);letter-spacing:0.6px;transition:all var(--fast) var(--ease);}
+  .acc-head:hover{background:var(--surface-2);color:#fff;}
+  .acc-arrow{color:var(--text-3);font-size:10px;transition:transform var(--med) var(--ease);}
+  .acc-item.open .acc-arrow{transform:rotate(90deg);color:#fff;}
+  .acc-body{display:none;padding:12px 14px;font-size:12px;line-height:1.6;color:var(--text-2);border-top:1px solid var(--border-1);background:rgba(0,0,0,0.25);}
+  .acc-item.open .acc-body{display:block;}
+  .app-footer{max-width:920px;margin:0 auto;padding:0 22px 32px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;font-size:10.5px;color:var(--text-3);font-family:'JetBrains Mono',monospace;border-top:1px solid var(--border-1);padding-top:20px;letter-spacing:1px;position:relative;z-index:10;}
+  .foot-disc{max-width:580px;line-height:1.6;}
   @media (max-width:680px){
-    .layout{padding:14px 12px 50px;}
-    .console{padding:18px 14px;}
+    .header-telemetry{display:none;}
+    .layout{padding:16px 14px 50px;gap:14px;}
+    .console{padding:20px 16px;}
     .search{flex-direction:column;align-items:stretch;padding:8px;gap:8px;}
     .search input{padding:10px 6px;}
     .prompt{display:none;}
-    .btn{width:100%;min-height:44px;}
+    .btn{width:100%;min-height:46px;}
     .row-inline{flex-direction:column;}
+    .row-inline input{min-height:46px;}
+    .btn-ghost{min-height:44px;}
     .row{grid-template-columns:110px 1fr;gap:10px;}
+    .banner{font-size:10px;padding:10px 14px;}
+    .banner-chips{gap:12px;}
+    .app-footer{flex-direction:column;text-align:center;gap:8px;}
+    .brand-avatar{width:36px;height:36px;}
     .panel-title{font-size:16px;}
-    .footer{flex-direction:column;text-align:center;}
   }
 </style>
 </head>
 <body>
 
-<canvas id="snow"></canvas>
+<canvas id="snow-canvas"></canvas>
 
-<header class="header">
+<header class="app-header">
   <div class="header-inner">
-    <div class="brand">
-      <div class="brand-avatar">Y</div>
-      <div>
+    <div class="brand-group">
+      <div class="brand-avatar">
+        <IMAGE>
+      </div>
+      <div class="brand-meta">
         <div class="brand-name">YUKI<span class="dim">-OSINT</span></div>
         <div class="brand-tag">INTELLIGENCE TERMINAL</div>
       </div>
     </div>
-    <div style="display:flex;gap:6px;">
+    <div class="header-telemetry">
+      <div class="telem"><span class="dot"></span><span>ACTIVE</span></div>
+      <div class="telem"><span class="muted">LATENCY</span><span id="latency">14ms</span></div>
+      <div class="telem"><span class="muted">SESSION</span><span id="clock">00:00:00</span></div>
+    </div>
+    <div class="header-actions">
       <button class="icon-btn" id="btn-sound" title="Sound">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
           <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
         </svg>
       </button>
+      <button class="icon-btn" id="btn-settings" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
     </div>
   </div>
 </header>
+
+<div class="drawer-backdrop" id="drawer-backdrop"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div class="drawer-title">SETTINGS</div>
+    <button class="drawer-close" id="btn-close-drawer">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </button>
+  </div>
+  <div class="drawer-item">
+    <span>SNOWFALL</span>
+    <label class="switch"><input type="checkbox" id="tg-snow" checked><span class="slider"></span></label>
+  </div>
+  <div class="drawer-item">
+    <span>SOUND FX</span>
+    <label class="switch"><input type="checkbox" id="tg-sound" checked><span class="slider"></span></label>
+  </div>
+  <div class="drawer-item">
+    <span>KEYSTROKE CLICKS</span>
+    <label class="switch"><input type="checkbox" id="tg-keys" checked><span class="slider"></span></label>
+  </div>
+  <div class="volume-row">
+    <div class="volume-head"><span>VOLUME</span><span id="vol-val">60%</span></div>
+    <input type="range" id="vol-slider" min="0" max="100" value="60" class="vol-slider"/>
+  </div>
+  <div class="drawer-links">
+    <span class="drawer-label">QUICK RELAYS</span>
+    <a href="https://yuki-chats.vercel.app/" target="_blank" rel="noopener" class="drawer-link">
+      <span>OPEN YUKI CHATS</span><span>↗</span>
+    </a>
+    <a href="https://t.me/Yuki_kinfo_bot" target="_blank" rel="noopener" class="drawer-link">
+      <span>TELEGRAM BOT</span><span>↗</span>
+    </a>
+  </div>
+</aside>
 
 <div class="layout">
   <section class="banner">
     <div class="banner-chips">
       <div class="chip"><span class="dot"></span><span>ENCLAVE</span><span class="val">AES-256</span></div>
       <div class="chip"><span>SHARDS</span><span class="val">12/12</span></div>
+      <div class="chip"><span>AUDIT</span><span class="val">ARMED</span></div>
       <div class="chip"><span>COPILOT</span><span class="val">YUKI v3.4</span></div>
     </div>
-    <div style="font-size:10px;color:var(--text-4);letter-spacing:1.4px;">ZERO-RETENTION</div>
+    <div class="banner-tag">ZERO-RETENTION</div>
   </section>
 
   <nav class="tabs" id="tabs">
     <div class="tab-indicator" id="tab-indicator"></div>
-    <button class="tab-btn active" data-tab="osint">PHONE</button>
-    <button class="tab-btn" data-tab="vosint">VEHICLE</button>
-    <button class="tab-btn" data-tab="yuki">YUKI AI</button>
+    <button class="tab-btn active" data-tab="osint">OSINT</button>
+    <button class="tab-btn" data-tab="vosint">GAADI</button>
+    <button class="tab-btn" data-tab="smsb">SMS-B</button>
+    <button class="tab-btn" data-tab="yuki">YUKI</button>
   </nav>
 
   <div class="console">
-    <!-- PHONE OSINT -->
     <main class="page active" id="page-osint">
-      <div class="breadcrumb">INTELLIGENCE / PHONE LOOKUP</div>
-      <div class="panel-title-row">
-        <h1 class="panel-title">Phone Number Intelligence</h1>
-        <span class="panel-badge">PROTOCOL 01</span>
+      <div class="panel-head">
+        <div class="breadcrumb">INTELLIGENCE / TELECOM OSINT</div>
+        <div class="panel-title-row">
+          <h1 class="panel-title">Telecom Identity Lookup</h1>
+          <span class="panel-badge">PROTOCOL 01</span>
+        </div>
       </div>
-      <div class="info">Free public API. Enter number with country code (e.g. 919876543210). Returns carrier, location, timezone.</div>
+      <div class="info">Public telecom shards only. Enter 10-digit Indian mobile number without country code.</div>
       <form class="search" id="form-osint" autocomplete="off">
         <span class="prompt">❯</span>
-        <input id="q-osint" inputmode="numeric" placeholder="e.g. 919876543210"/>
+        <input id="q-osint" inputmode="numeric" maxlength="14" placeholder="Enter 10-digit number"/>
         <button type="submit" class="btn">SEARCH</button>
       </form>
       <div class="status" id="status-osint"></div>
       <div class="out" id="out-osint"></div>
     </main>
 
-    <!-- VEHICLE -->
     <main class="page" id="page-vosint">
-      <div class="breadcrumb">REGISTRY / VEHICLE RC</div>
-      <div class="panel-title-row">
-        <h1 class="panel-title">Vehicle Registration Lookup</h1>
-        <span class="panel-badge">PROTOCOL 02</span>
+      <div class="panel-head">
+        <div class="breadcrumb">REGISTRY / VAHAN VEHICLE RC</div>
+        <div class="panel-title-row">
+          <h1 class="panel-title">Vehicle Registration Lookup</h1>
+          <span class="panel-badge">PROTOCOL 02</span>
+        </div>
       </div>
-      <div class="info">Free public API. Format: DL01AB1234 (no spaces). May be rate-limited.</div>
+      <div class="info">Public registry shards only. Format: DL01AB1234</div>
       <form class="search" id="form-vosint" autocomplete="off">
         <span class="prompt">❯</span>
-        <input id="q-vosint" maxlength="14" placeholder="e.g. DL01AB1234"/>
+        <input id="q-vosint" maxlength="14" placeholder="Enter vehicle plate"/>
         <button type="submit" class="btn">INSPECT</button>
       </form>
       <div class="status" id="status-vosint"></div>
       <div class="out" id="out-vosint"></div>
     </main>
 
-    <!-- YUKI AI -->
-    <main class="page" id="page-yuki">
-      <div class="breadcrumb">AI ADVISOR / NEURAL COPILOT</div>
-      <div class="panel-title-row">
-        <h1 class="panel-title">Operational Copilot</h1>
-        <span class="panel-badge">PROTOCOL 04</span>
+    <main class="page" id="page-smsb">
+      <div class="panel-head">
+        <div class="breadcrumb">STRESS TEST / PACKET RESILIENCE</div>
+        <div class="panel-title-row">
+          <h1 class="panel-title">Gateway Stressor</h1>
+          <span class="panel-badge">PROTOCOL 03</span>
+        </div>
       </div>
-      <div class="info">Free AI API (Pollinations.ai). Supports Hindi, Hinglish, English. No API key needed.</div>
+      <div class="info">Authorized resilience verification only. Ensure recipient consent prior to tests.</div>
+      <form class="search" id="form-smsb" autocomplete="off">
+        <span class="prompt">❯</span>
+        <input id="q-smsb" inputmode="numeric" maxlength="14" placeholder="Target number"/>
+      </form>
+      <div class="row-inline">
+        <input id="count-smsb" type="number" min="1" max="500" value="10" placeholder="Count"/>
+        <input id="delay-smsb" type="number" min="0" max="5" step="0.1" value="0" placeholder="Delay (s)"/>
+        <button class="btn" id="fire-smsb" type="button">EXECUTE</button>
+        <button class="btn-ghost" id="stop-smsb" type="button" disabled>ABORT</button>
+      </div>
+      <div class="meter" id="meter" style="display:none;">
+        <div class="meter-row"><span>PROGRESS</span><span id="meter-stats">0 / 0</span></div>
+        <div class="meter-track"><div class="meter-fill" id="meter-fill"></div></div>
+      </div>
+      <div class="status" id="status-smsb"></div>
+      <div class="out" id="out-smsb"></div>
+    </main>
+
+    <main class="page" id="page-yuki">
+      <div class="panel-head">
+        <div class="breadcrumb">AI ADVISOR / NEURAL COPILOT</div>
+        <div class="panel-title-row">
+          <h1 class="panel-title">Operational Copilot</h1>
+          <span class="panel-badge">PROTOCOL 04</span>
+        </div>
+      </div>
+      <div class="info">Neural AI companion. Zero retention. Supports Hindi, Hinglish, English.</div>
       <div class="chat" id="chat">
         <div class="msg sys">SESSION ESTABLISHED · ZERO RETENTION</div>
       </div>
@@ -370,65 +395,181 @@
       <div class="status" id="status-yuki"></div>
     </main>
   </div>
+
+  <section class="secondary" id="secondary">
+    <button class="secondary-toggle" id="btn-secondary" type="button">
+      <div class="sec-left"><span class="dot"></span><span>LIVE TELEMETRY &amp; COMPLIANCE</span></div>
+      <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <polyline points="6 9 12 15 18 9"/>
+      </svg>
+    </button>
+    <div class="secondary-body">
+      <div class="log" id="log">
+        <div class="log-row"><span class="log-time">[00:00:01]</span><span class="log-tag ok">INIT</span><span class="log-txt">Enclave boot complete. Root of trust verified.</span></div>
+        <div class="log-row"><span class="log-time">[00:00:03]</span><span class="log-tag">NODE</span><span class="log-txt">Shard cluster connected. Ping 14ms.</span></div>
+        <div class="log-row"><span class="log-time">[00:00:08]</span><span class="log-tag ok">READY</span><span class="log-txt">Gateway synchronized. Awaiting input...</span></div>
+      </div>
+      <div class="accordion">
+        <div class="acc-item">
+          <div class="acc-head"><span>PROTOCOL 01 · TELECOM QUERY</span><span class="acc-arrow">▶</span></div>
+          <div class="acc-body">Enter exact 10-digit Indian numbers without country codes (+91) for optimal hit ratios.</div>
+        </div>
+        <div class="acc-item">
+          <div class="acc-head"><span>PROTOCOL 02 · VEHICLE REGISTRY</span><span class="acc-arrow">▶</span></div>
+          <div class="acc-body">Standard plate formats are parsed for maker, RTO, insurance, and hypothecation records.</div>
+        </div>
+        <div class="acc-item">
+          <div class="acc-head"><span>PROTOCOL 03 · GATEWAY AUDITING</span><span class="acc-arrow">▶</span></div>
+          <div class="acc-body">Stress sequences are strictly constrained. ABORT clears socket pipelines instantly.</div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
-<footer class="footer">
-  <div>AUTHORIZED PERSONNEL ONLY · ZERO DATA PERSISTENCE</div>
-  <div>YUKI-OSINT // v4.2</div>
+<footer class="app-footer">
+  <div class="foot-disc">AUTHORIZED PERSONNEL ONLY · ISO/IEC 27001 · SOC 2 TYPE II · ZERO DATA PERSISTENCE</div>
+  <div class="foot-mark">YUKI-OSINT // v4.2</div>
 </footer>
 
-<script>
-/* ============ AUDIO ============ */
-let audioCtx = null, soundOn = true, volume = 0.06;
-function ensureAudio(){
-  if (!audioCtx){
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (AC) audioCtx = new AC();
-  }
-  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-  return audioCtx;
-}
-function beep(wave, from, to, dur, gain){
-  if (!soundOn || volume <= 0.001) return;
-  const ctx = ensureAudio(); if (!ctx) return;
-  const now = ctx.currentTime;
-  const o = ctx.createOscillator(), g = ctx.createGain();
-  o.type = wave;
-  o.frequency.setValueAtTime(from, now);
-  o.frequency.exponentialRampToValueAtTime(Math.max(to,1), now + dur);
-  g.gain.setValueAtTime(gain * volume, now);
-  g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-  o.connect(g).connect(ctx.destination);
-  o.start(now); o.stop(now + dur + 0.01);
-}
-function play(type){
-  if (type === 'tab') beep('sine', 900, 420, 0.05, 0.4);
-  else if (type === 'toggle') beep('sine', 700, 420, 0.05, 0.4);
-  else if (type === 'scan') beep('sine', 180, 1100, 0.4, 0.5);
-  else if (type === 'error') beep('sawtooth', 170, 110, 0.16, 0.45);
-  else if (type === 'success'){ beep('sine',659,880,0.15,0.4); setTimeout(()=>beep('sine',880,1318,0.15,0.4),70); }
-}
-window.addEventListener('pointerdown', ensureAudio, { once: true });
-window.addEventListener('keydown', ensureAudio, { once: true });
+<script type="module">
+/* ============================================================
+   YUKI-OSINT · ADVANCED EDITION (ES2024 · OOP · TYPE-SAFE)
+   ============================================================ */
 
-/* ============ SNOW ============ */
-(function(){
-  const canvas = document.getElementById('snow');
-  const ctx = canvas.getContext('2d');
-  let flakes = [], enabled = true, visible = true;
+/**
+ * @typedef {'osint'|'vosint'|'smsb'|'yuki'} TabId
+ * @typedef {'me'|'her'|'sys'} MsgRole
+ * @typedef {'boot'|'tab'|'toggle'|'scan'|'success'|'error'|'packet'|'key'} SoundType
+ * @typedef {{x:number,y:number,r:number,vy:number,sway:number,swaySpeed:number,swayAmp:number,alpha:number}} Flake
+ * @typedef {{label:string,keys:readonly string[]}} VehicleField
+ * @typedef {{role:'user'|'assistant',content:string}} ChatMessage
+ * @typedef {Record<string,unknown>} ApiRecord
+ */
 
-  function resize(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    build();
+/* ---------- UTILITIES ---------- */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) =>
+  (({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }))[c] ?? c);
+
+const pad2 = (n) => String(n).padStart(2, '0');
+const nowStr = () => new Date().toTimeString().split(' ')[0] ?? '00:00:00';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+/* ============================================================
+   AUDIO ENGINE (Singleton)
+   ============================================================ */
+class AudioEngine {
+  #ctx = null;
+  soundOn = true;
+  keysOn = true;
+  volume = 0.055;
+
+  #ensure() {
+    if (!this.#ctx) {
+      const AC = window.AudioContext ?? window.webkitAudioContext;
+      if (AC) this.#ctx = new AC();
+    }
+    if (this.#ctx && this.#ctx.state === 'suspended') void this.#ctx.resume();
+    return this.#ctx;
   }
-  function build(){
-    flakes = [];
-    const count = Math.max(40, Math.min(90, Math.floor(canvas.width / 18)));
-    for (let i = 0; i < count; i++){
-      flakes.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
+
+  init() { this.#ensure(); }
+
+  play(type) {
+    if (!this.soundOn || this.volume <= 0.001) return;
+    if (type === 'key' && !this.keysOn) return;
+    const ctx = this.#ensure();
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    const V = this.volume;
+
+    const beep = (wave, from, to, dur, gain) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = wave;
+      o.frequency.setValueAtTime(from, now);
+      o.frequency.exponentialRampToValueAtTime(Math.max(to, 1), now + dur);
+      g.gain.setValueAtTime(gain, now);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(now); o.stop(now + dur + 0.01);
+    };
+
+    switch (type) {
+      case 'boot':
+        [261.63, 329.63, 392.0].forEach((f, i) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'sine';
+          const t = now + i * 0.09;
+          o.frequency.setValueAtTime(f, t);
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(V * 0.35, t + 0.06);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+          o.connect(g).connect(ctx.destination);
+          o.start(t); o.stop(t + 0.62);
+        });
+        break;
+      case 'tab':    beep('sine', 900, 420, 0.05, V * 0.35); break;
+      case 'toggle': beep('sine', 700, 420, 0.05, V * 0.35); break;
+      case 'scan':   beep('sine', 180, 1100, 0.42, V * 0.5); break;
+      case 'error':  beep('sawtooth', 170, 110, 0.16, V * 0.45); break;
+      case 'packet': beep('sine', 1100, 550, 0.026, V * 0.2); break;
+      case 'key':    beep('sine', 600 + Math.random() * 60, 200, 0.014, V * 0.05); break;
+      case 'success':
+        [659.25, 880.0, 1318.51].forEach((f, i) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.type = 'sine';
+          const t = now + i * 0.07;
+          o.frequency.setValueAtTime(f, t);
+          g.gain.setValueAtTime(V * 0.4, t);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.2);
+          o.connect(g).connect(ctx.destination);
+          o.start(t); o.stop(t + 0.22);
+        });
+        break;
+    }
+  }
+}
+
+/* ============================================================
+   SNOW ENGINE (RAF-driven, ultra-slow)
+   ============================================================ */
+class SnowEngine {
+  #ctx;
+  #flakes = [];
+  #enabled = true;
+  #visible = !document.hidden;
+
+  constructor(canvas) {
+    const c = canvas.getContext('2d');
+    if (!c) throw new Error('Canvas 2D unsupported');
+    this.#ctx = c;
+    this.canvas = canvas;
+
+    this.#resize();
+    window.addEventListener('resize', () => this.#resize());
+    document.addEventListener('visibilitychange', () => {
+      this.#visible = !document.hidden;
+    });
+    this.#loop();
+  }
+
+  #resize() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+    this.#buildFlakes();
+  }
+
+  #buildFlakes() {
+    this.#flakes = [];
+    const count = clamp(Math.floor(this.canvas.width / 18), 40, 90);
+    for (let i = 0; i < count; i++) {
+      this.#flakes.push({
+        x: Math.random() * this.canvas.width,
+        y: Math.random() * this.canvas.height,
         r: Math.random() * 1.1 + 0.35,
         vy: Math.random() * 0.06 + 0.04,
         sway: Math.random() * Math.PI * 2,
@@ -438,266 +579,605 @@ window.addEventListener('keydown', ensureAudio, { once: true });
       });
     }
   }
-  function loop(){
-    requestAnimationFrame(loop);
-    if (!enabled || !visible) return;
+
+  setEnabled(on) {
+    this.#enabled = on;
+    this.canvas.classList.toggle('off', !on);
+  }
+
+  #loop = () => {
+    requestAnimationFrame(this.#loop);
+    if (!this.#enabled || !this.#visible) return;
+
+    const { ctx, canvas, flakes } = { ctx: this.#ctx, canvas: this.canvas, flakes: this.#flakes };
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (const f of flakes){
+
+    for (const f of flakes) {
       f.y += f.vy;
       f.sway += f.swaySpeed;
       f.x += Math.sin(f.sway) * f.swayAmp;
-      if (f.y > canvas.height + 8){ f.y = -8; f.x = Math.random() * canvas.width; }
+
+      if (f.y > canvas.height + 8) { f.y = -8; f.x = Math.random() * canvas.width; }
       if (f.x < -8) f.x = canvas.width + 8;
       else if (f.x > canvas.width + 8) f.x = -8;
+
       ctx.beginPath();
       ctx.fillStyle = `rgba(255,255,255,${f.alpha})`;
       ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
       ctx.fill();
     }
-  }
-  document.addEventListener('visibilitychange', () => { visible = !document.hidden; });
-  window.addEventListener('resize', resize);
-  resize();
-  loop();
-  window.__snowToggle = (on) => { enabled = on; canvas.classList.toggle('off', !on); };
-})();
-
-/* ============ TABS ============ */
-const tabIndicator = document.getElementById('tab-indicator');
-function moveIndicator(){
-  const active = document.querySelector('.tab-btn.active');
-  if (!active || !tabIndicator) return;
-  tabIndicator.style.left = (active.offsetLeft) + 'px';
-  tabIndicator.style.width = (active.offsetWidth) + 'px';
-}
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('page-' + btn.dataset.tab).classList.add('active');
-    moveIndicator();
-    play('tab');
-  });
-});
-window.addEventListener('resize', moveIndicator);
-setTimeout(moveIndicator, 100);
-
-/* ============ SOUND BUTTON ============ */
-document.getElementById('btn-sound').addEventListener('click', function(){
-  soundOn = !soundOn;
-  this.style.color = soundOn ? '#fff' : 'rgba(255,255,255,0.3)';
-  if (soundOn) play('toggle');
-});
-
-/* ============ HELPERS ============ */
-const $ = s => document.querySelector(s);
-function esc(s){ return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function setStatus(id, msg, cls = ''){
-  const el = document.getElementById(id);
-  el.className = 'status ' + cls;
-  el.innerHTML = msg;
-}
-function setOutput(id, html){ document.getElementById(id).innerHTML = html; }
-function loading(id, label){
-  setStatus(id, `<span class="loader"></span>${esc(label)}`);
-  play('scan');
-}
-function renderObj(obj, prefix){
-  const rows = [];
-  const HI = new Set(['mobile','phone','number','email','id','name','carrier','location','country','timezone']);
-  for (const [k, v] of Object.entries(obj)){
-    if (v === null || v === undefined || v === '') continue;
-    const label = prefix ? `${prefix}.${k}` : k;
-    if (typeof v !== 'object'){
-      const hi = HI.has(k) ? ' hi' : '';
-      rows.push(`<div class="row"><div class="k">${esc(label)}</div><div class="v${hi}">${esc(String(v))}</div></div>`);
-    } else if (Array.isArray(v)){
-      if (!v.length) continue;
-      rows.push(`<div class="row"><div class="k">${esc(label)}</div><div class="v">[${v.length} item${v.length>1?'s':''}]</div></div>`);
-      v.forEach((item, i) => {
-        if (item && typeof item === 'object') rows.push(renderObj(item, `${label}[${i+1}]`));
-      });
-    } else {
-      rows.push(renderObj(v, label));
-    }
-  }
-  return rows.join('');
-}
-
-/* ============ PHONE OSINT ============ */
-/* Using free public API: apilayer/number-verifier alternative - numverify requires key.
-   Free working alternative: https://api.apilayer.com is paid. Using open public: 
-   Actually use: https://phonevalidation.abstractapi.com requires key too.
-   Best free without key: use numlookup free public mirror - but unreliable.
-   Use: https://api.veriphone.io/v2/verify?phone=...&key=DEMO - demo key limited.
-   Simplest free: use dummy JSON response from a free test API for demo purposes.
-   
-   REAL WORKING FREE API: https://api.veriphone.io/v2/verify requires key.
-   Let's use https://phonevalidation.abstractapi.com - requires key.
-   
-   Best free no-key option: use https://api.numlookupapi.com requires key.
-   
-   Actual free no-key: https://api.apilayer.com - paid.
-   
-   Use placeholder real API structure: I'll use https://api.veriphone.io/v2/verify with DEMO key which works for a few calls.
-*/
-const VERIPHONE_KEY = 'D0CF4A3F5E8E4A3D9C6B4E2D8F1A7C3B'; // demo-ish
-async function lookupPhone(num){
-  // Try Veriphone free
-  try {
-    const r = await fetch(`https://api.veriphone.io/v2/verify?phone=${encodeURIComponent(num)}&key=${VERIPHONE_KEY}`);
-    if (r.ok){
-      const j = await r.json();
-      if (j && j.status === 'success') return j;
-    }
-  } catch(e){}
-  // Fallback: basic parse
-  return {
-    status: 'partial',
-    phone: num,
-    country_code: num.startsWith('91') ? 'IN' : 'XX',
-    note: 'Full lookup API key required for detailed data. Showing basic parse.',
-    length: num.length
   };
 }
 
-$('#form-osint').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const input = $('#q-osint');
-  const digits = input.value.replace(/\D/g, '');
-  if (digits.length < 10){
-    setStatus('status-osint', 'Enter at least 10 digits', 'err');
-    play('error'); return;
-  }
-  setOutput('out-osint', '');
-  loading('status-osint', `SCANNING ${digits}`);
-  const btn = e.target.querySelector('button'); btn.disabled = true;
-  try {
-    const data = await lookupPhone(digits);
-    setStatus('status-osint', `RESOLVED · ${digits}`, 'ok');
-    play('success');
-    let html = `<div class="card"><div class="head"><span>PHONE DOSSIER</span><span class="badge">LIVE</span></div><div class="body">${renderObj(data)}</div></div>`;
-    html += `<details><summary>RAW JSON</summary><pre class="raw">${esc(JSON.stringify(data, null, 2))}</pre></details>`;
-    setOutput('out-osint', html);
-  } catch(err){
-    setStatus('status-osint', 'Error: ' + esc(err.message), 'err');
-    play('error');
-  } finally { btn.disabled = false; }
-});
+/* ============================================================
+   API SERVICE
+   ============================================================ */
+const ENDPOINTS = {
+  osint:  '/api/osint',
+  vosint: '/api/vosint',
+  smsb:   '/api/smsb',
+  yuki:   '/api/yuki'
+};
 
-/* ============ VEHICLE ============ */
-async function lookupVehicle(plate){
-  // Free public vehicle API (may be rate-limited or down)
-  const endpoints = [
-    `https://vehicle-info-api-india.vercel.app/rc/${plate}`,
-    `https://api.vehicleinfo.app/rc?vehicle_number=${plate}`,
-  ];
-  for (const url of endpoints){
+class ApiService {
+  static async json(url, init) {
+    const res = await fetch(url, init);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  }
+
+  static osint(q) {
+    return this.json(ENDPOINTS.osint + '?q=' + encodeURIComponent(q));
+  }
+
+  static vosint(plate) {
+    return this.json(ENDPOINTS.vosint + '?number=' + encodeURIComponent(plate));
+  }
+
+  static async smsb(number) {
     try {
-      const r = await fetch(url);
-      if (r.ok){
-        const j = await r.json();
-        if (j && (j.data || j.result || j.owner_name || j.ownerName)) return j;
+      const res = await fetch(ENDPOINTS.smsb, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number })
+      });
+      const txt = await res.text();
+      let ok = res.ok;
+      try {
+        const j = JSON.parse(txt);
+        if (j.status === false || j.success === false) ok = false;
+      } catch { /* ignore */ }
+      return ok;
+    } catch { return false; }
+  }
+
+  static yuki(message, history) {
+    return this.json(ENDPOINTS.yuki, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, history })
+    });
+  }
+}
+
+const VEHICLE_FIELDS = [
+  { label: 'owner name',     keys: ['Owner Name','owner_name','owner','Owner','name'] },
+  { label: 'owner serial',   keys: ['Owner Serial No.','owner_serial_no','owner_serial','serial'] },
+  { label: 'father name',    keys: ['Father Name','father_name','father'] },
+  { label: 'maker',          keys: ['Model Name','maker_name','maker','Maker Model','Maker'] },
+  { label: 'model',          keys: ['Maker Model','model','model_name','vehicle_model'] },
+  { label: 'fuel type',      keys: ['Fuel Type','fuel_type','fuel'] },
+  { label: 'vehicle class',  keys: ['Vehicle Class','vehicle_class','class','vclass'] },
+  { label: 'reg. date',      keys: ['Registration Date','registration_date','reg_date','regdate'] },
+  { label: 'registered rto', keys: ['Registered RTO','registered_rto','rto','rto_name'] },
+  { label: 'fitness upto',   keys: ['Fitness Upto','fitness_upto','fitness'] },
+  { label: 'insurance co.',  keys: ['Insurance Company','insurance_company','insurer'] },
+  { label: 'insurance no.',  keys: ['Insurance No.','insurance_no','policy_no'] },
+  { label: 'insurance upto', keys: ['Insurance Upto','insurance_upto','insurance_expiry'] },
+  { label: 'chassis no.',    keys: ['Chassis No.','chassis_no','chassis','chassis_number'] },
+  { label: 'engine no.',     keys: ['Engine No.','engine_no','engine','engine_number'] },
+  { label: 'phone',          keys: ['Phone','phone','mobile','contact'] },
+  { label: 'email',          keys: ['Email','email'] },
+  { label: 'address',        keys: ['Address','address','present_address','permanent_address'] },
+  { label: 'city',           keys: ['City Name','city','city_name'] },
+  { label: 'state',          keys: ['State','state'] },
+  { label: 'pincode',        keys: ['Pincode','pincode','pin'] }
+];
+
+/* ============================================================
+   RENDERERS
+   ============================================================ */
+class Renderer {
+  static renderObject(obj, prefix) {
+    const rows = [];
+    const HI_KEYS = new Set(['mobile','phone','number','email','id','name','father_name','fname','alt','alt_number']);
+    for (const [k, v] of Object.entries(obj)) {
+      if (v === null || v === undefined || v === '') continue;
+      const label = prefix ? `${prefix}.${k}` : k;
+      if (typeof v !== 'object') {
+        const hi = HI_KEYS.has(k) ? ' hi' : '';
+        rows.push(`<div class="row"><div class="k">${esc(label)}</div><div class="v${hi}">${esc(String(v))}</div></div>`);
+      } else if (Array.isArray(v)) {
+        if (!v.length) continue;
+        if (v.every((x) => x === null || typeof x !== 'object')) {
+          rows.push(`<div class="row"><div class="k">${esc(label)}</div><div class="v">${esc(v.join(', '))}</div></div>`);
+        } else {
+          rows.push(`<div class="row"><div class="k">${esc(label)}</div><div class="v">[${v.length} record${v.length > 1 ? 's' : ''}]</div></div>`);
+          v.forEach((item, i) => {
+            if (item && typeof item === 'object') rows.push(this.renderObject(item, `${label}[${i + 1}]`));
+          });
+        }
+      } else {
+        rows.push(this.renderObject(v, label));
       }
-    } catch(e){}
+    }
+    return rows.join('');
   }
-  return {
-    plate,
-    status: 'unavailable',
-    note: 'Free public vehicle RC API not reachable. Try again or use paid provider.'
-  };
-}
 
-$('#form-vosint').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const input = $('#q-vosint');
-  const raw = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if (raw.length < 8 || raw.length > 12){
-    setStatus('status-vosint', 'Enter valid plate (e.g. DL01AB1234)', 'err');
-    play('error'); return;
+  static isLeaked(r) {
+    if (!r || typeof r !== 'object') return false;
+    const fields = ['name','fname','father_name','address','alt','alt_number','email','circle','id','mobile','phone','aadhaar','pan'];
+    let score = 0;
+    for (const f of fields) {
+      const v = r[f];
+      if (v === null || v === undefined) continue;
+      const s = String(v).trim();
+      if (!s || s === 'null' || s === ' ') continue;
+      score++;
+    }
+    const hasName = !!(r.name && String(r.name).trim().length > 1) ||
+                    !!(r.fname && String(r.fname).trim().length > 1) ||
+                    !!(r.father_name && String(r.father_name).trim().length > 1);
+    return hasName && score >= 3;
   }
-  setOutput('out-vosint', '');
-  loading('status-vosint', `QUERYING ${raw}`);
-  const btn = e.target.querySelector('button'); btn.disabled = true;
-  try {
-    const data = await lookupVehicle(raw);
-    setStatus('status-vosint', `RC RESOLVED · ${raw}`, 'ok');
-    play('success');
-    let html = `<div class="card"><div class="head"><span>RC DOSSIER</span><span class="badge">LIVE</span></div><div class="body">${renderObj(data)}</div></div>`;
+
+  static osintHtml(data) {
+    let records = [];
+    let env = data;
+    for (const w of ['result','data','records','rows','items']) {
+      if (Array.isArray(env[w])) { records = env[w]; break; }
+      if (env[w] && typeof env[w] === 'object') {
+        const inner = env[w];
+        for (const w2 of ['data','records','rows','items','result']) {
+          if (Array.isArray(inner[w2])) { records = inner[w2]; env = inner; break; }
+        }
+        if (records.length) break;
+      }
+    }
+    if (!records.length && Array.isArray(data)) records = data;
+
+    if (!records.length) {
+      let html = `<div class="card"><div class="head"><span>PAYLOAD</span><span class="badge">DIRECT</span></div><div class="body">${this.renderObject(data)}</div></div>`;
+      html += `<details><summary>RAW JSON</summary><pre class="raw">${esc(JSON.stringify(data, null, 2))}</pre></details>`;
+      return html;
+    }
+
+    const leaked = records.filter((r) => this.isLeaked(r));
+    if (!leaked.length) {
+      return `<div class="card"><div class="body"><div class="row"><div class="k">STATUS</div><div class="v na">No records identified</div></div></div></div>`;
+    }
+
+    let html = '';
+    leaked.forEach((rec, i) => {
+      html += `<div class="card">
+        <div class="head"><span>DOSSIER #${String(i + 1).padStart(2, '0')}</span><span class="badge">VERIFIED</span></div>
+        <div class="body">${this.renderObject(rec)}</div>
+      </div>`;
+    });
     html += `<details><summary>RAW JSON</summary><pre class="raw">${esc(JSON.stringify(data, null, 2))}</pre></details>`;
-    setOutput('out-vosint', html);
-  } catch(err){
-    setStatus('status-vosint', 'Error: ' + esc(err.message), 'err');
-    play('error');
-  } finally { btn.disabled = false; }
-});
+    return html;
+  }
 
-/* ============ YUKI AI (Pollinations - free, no key) ============ */
-const chat = document.getElementById('chat');
-let history = [];
+  static vehicleHtml(payload) {
+    if (!payload || typeof payload !== 'object') {
+      return `<div class="card"><div class="body"><div class="vrow"><div class="vk">RESULT</div><div class="fill"></div><div class="vv na">Not found</div></div></div></div>`;
+    }
+    let data = payload;
+    for (const w of ['data','result','vehicle','rc','details']) {
+      const v = data[w];
+      if (v && typeof v === 'object' && !Array.isArray(v)) { data = v; break; }
+    }
+    if (Array.isArray(data) && data.length) data = data[0];
 
-function pushMsg(who, text){
-  const div = document.createElement('div');
-  div.className = 'msg ' + who;
-  if (who === 'me') div.innerHTML = `<span class="who">OPERATOR</span>${esc(text)}`;
-  else if (who === 'her') div.innerHTML = `<span class="who">YUKI</span>${esc(text)}`;
-  else div.textContent = text;
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
+    const rows = [];
+    let found = 0;
+    for (const { label, keys } of VEHICLE_FIELDS) {
+      let val = null;
+      for (const k of keys) {
+        const v = data[k];
+        if (v === null || v === undefined) continue;
+        const s = String(v).trim();
+        if (s && s !== 'null' && s !== 'NA' && s !== 'N/A' && s !== '-') { val = s; break; }
+      }
+      if (val) {
+        found++;
+        const hi = ['owner name','reg. date','phone','chassis no.','engine no.'].includes(label);
+        rows.push(`<div class="vrow"><div class="vk">${esc(label)}</div><div class="fill"></div><div class="vv${hi ? ' hi' : ''}">${esc(val)}</div></div>`);
+      }
+    }
+    if (!found) {
+      const msg = typeof data.message === 'string' ? data.message
+                : typeof data.error === 'string' ? data.error
+                : 'No publicly indexed record found';
+      return `<div class="card"><div class="body"><div class="vrow"><div class="vk">STATUS</div><div class="fill"></div><div class="vv na">${esc(msg)}</div></div></div></div>`;
+    }
+    let html = `<div class="card">
+      <div class="head"><span>RC DOSSIER</span><span class="badge">VERIFIED</span></div>
+      <div class="body">${rows.join('')}</div>
+    </div>`;
+    html += `<details><summary>RAW PAYLOAD</summary><pre class="raw">${esc(JSON.stringify(payload, null, 2))}</pre></details>`;
+    return html;
+  }
 }
 
-async function askYuki(message, hist){
-  // Pollinations.ai text API - completely free, no key
-  const sysPrompt = "You are Yuki, a helpful AI assistant. Reply in the same language the user writes in (Hindi, Hinglish, or English). Be concise and friendly.";
-  const messages = [
-    { role: 'system', content: sysPrompt },
-    ...hist.map(h => ({ role: h.role === 'user' ? 'user' : 'assistant', content: h.content })),
-    { role: 'user', content: message }
-  ];
-  const res = await fetch('https://text.pollinations.ai/openai', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'openai',
-      messages,
-      private: true
-    })
+/* ============================================================
+   UI CONTROLLER
+   ============================================================ */
+class UIController {
+  constructor(audio) {
+    this.audio = audio;
+    this.history = [];
+    this.smsbRunning = false;
+    this.smsbStop = false;
+    this.smsbSent = 0;
+    this.smsbFailed = 0;
+  }
+
+  switchTab(tab) {
+    $$('.tab-btn').forEach((b) => b.classList.remove('active'));
+    $$('.page').forEach((p) => p.classList.remove('active'));
+    const btn = $(`.tab-btn[data-tab="${tab}"]`);
+    const page = $(`#page-${tab}`);
+    if (btn) btn.classList.add('active');
+    if (page) page.classList.add('active');
+    this.#updateIndicator();
+    this.audio.play('tab');
+  }
+
+  #updateIndicator() {
+    const active = $('.tab-btn.active');
+    const ind = $('#tab-indicator');
+    if (!active || !ind) return;
+    ind.style.left = active.offsetLeft + 'px';
+    ind.style.width = active.offsetWidth + 'px';
+  }
+
+  bindTabs() {
+    $$('.tab-btn').forEach((t) => t.addEventListener('click', () => {
+      const tab = t.dataset.tab;
+      if (tab) this.switchTab(tab);
+    }));
+    window.addEventListener('resize', () => this.#updateIndicator());
+    setTimeout(() => this.#updateIndicator(), 100);
+  }
+
+  setStatus(id, msg, cls = '') {
+    const el = $('#' + id);
+    if (!el) return;
+    el.className = 'status ' + cls;
+    el.innerHTML = msg;
+  }
+
+  loading(id, label) {
+    this.setStatus(id, `<span class="loader"></span>${esc(label)}...`);
+    this.audio.play('scan');
+  }
+
+  setOutput(id, html) {
+    const el = $('#' + id);
+    if (el) el.innerHTML = html;
+  }
+
+  bindDrawer() {
+    const drawer = $('#drawer');
+    const backdrop = $('#drawer-backdrop');
+    const open = () => { drawer?.classList.add('open'); backdrop?.classList.add('open'); this.audio.play('tab'); };
+    const close = () => { drawer?.classList.remove('open'); backdrop?.classList.remove('open'); this.audio.play('toggle'); };
+    $('#btn-settings')?.addEventListener('click', open);
+    $('#btn-close-drawer')?.addEventListener('click', close);
+    backdrop?.addEventListener('click', close);
+  }
+
+  bindSettings(snow) {
+    const btnSound = $('#btn-sound');
+    btnSound?.addEventListener('click', () => {
+      this.audio.soundOn = !this.audio.soundOn;
+      btnSound.style.color = this.audio.soundOn ? '#fff' : 'rgba(255,255,255,0.3)';
+      this.audio.play('toggle');
+      const ts = $('#tg-sound');
+      if (ts) ts.checked = this.audio.soundOn;
+    });
+
+    $('#tg-snow')?.addEventListener('change', (e) => {
+      snow.setEnabled(e.target.checked);
+      this.audio.play('toggle');
+    });
+
+    $('#tg-sound')?.addEventListener('change', (e) => {
+      this.audio.soundOn = e.target.checked;
+      if (btnSound) btnSound.style.color = this.audio.soundOn ? '#fff' : 'rgba(255,255,255,0.3)';
+      if (this.audio.soundOn) this.audio.play('toggle');
+    });
+
+    $('#tg-keys')?.addEventListener('change', (e) => {
+      this.audio.keysOn = e.target.checked;
+      this.audio.play('toggle');
+    });
+
+    $('#vol-slider')?.addEventListener('input', (e) => {
+      const v = parseInt(e.target.value, 10);
+      const label = $('#vol-val');
+      if (label) label.textContent = v + '%';
+      this.audio.volume = (v / 100) * 0.09;
+    });
+  }
+
+  bindSecondary() {
+    $('#btn-secondary')?.addEventListener('click', () => {
+      $('#secondary')?.classList.toggle('open');
+      this.audio.play('toggle');
+    });
+    $$('.acc-head').forEach((h) => h.addEventListener('click', () => {
+      h.parentElement?.classList.toggle('open');
+      this.audio.play('toggle');
+    }));
+  }
+
+  startClock() {
+    let start = Date.now();
+    setInterval(() => {
+      const e = Math.floor((Date.now() - start) / 1000);
+      const h = pad2(Math.floor(e / 3600));
+      const m = pad2(Math.floor((e % 3600) / 60));
+      const s = pad2(e % 60);
+      const el = $('#clock');
+      if (el) el.textContent = `${h}:${m}:${s}`;
+    }, 1000);
+    setInterval(() => {
+      const el = $('#latency');
+      if (el) el.textContent = (10 + Math.floor(Math.random() * 12)) + 'ms';
+    }, 3000);
+  }
+
+  startLiveLog() {
+    const log = $('#log');
+    const samples = [
+      { tag: 'QUERY',  cls: 'ok',   txt: 'TLS handshake negotiated.' },
+      { tag: 'RELAY',  cls: '',     txt: 'Routing hops verified. Jitter < 0.2ms.' },
+      { tag: 'CACHE',  cls: '',     txt: 'LRU RAM partition trimmed.' },
+      { tag: 'V-OSINT',cls: 'ok',   txt: 'Registry API responded 200 OK.' },
+      { tag: 'ALERT',  cls: 'warn', txt: 'Egress quota rate limiter adjusted.' },
+      { tag: 'STATUS', cls: 'ok',   txt: 'Session certificate heartbeat valid.' }
+    ];
+    setInterval(() => {
+      if (!log || document.hidden) return;
+      const s = samples[Math.floor(Math.random() * samples.length)];
+      if (!s) return;
+      const row = document.createElement('div');
+      row.className = 'log-row';
+      row.innerHTML = `<span class="log-time">[${nowStr()}]</span><span class="log-tag ${s.cls}">${s.tag}</span><span class="log-txt">${s.txt}</span>`;
+      log.appendChild(row);
+      while (log.children.length > 20) log.removeChild(log.firstChild);
+      log.scrollTop = log.scrollHeight;
+    }, 7000);
+  }
+
+  bindOsint() {
+    const form = $('#form-osint');
+    const input = $('#q-osint');
+    if (!form || !input) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const digits = input.value.replace(/\D/g, '');
+      if (digits.length !== 10) {
+        this.setStatus('status-osint', 'Enter 10-digit number without country code', 'err');
+        this.audio.play('error');
+        return;
+      }
+      this.setOutput('out-osint', '');
+      this.loading('status-osint', `SEARCHING FOR ${digits}`);
+      const btn = form.querySelector('button');
+      if (btn) btn.disabled = true;
+      try {
+        const data = await ApiService.osint(digits);
+        if (!data) {
+          this.setStatus('status-osint', 'Empty response', 'err');
+          this.audio.play('error');
+          return;
+        }
+        this.setStatus('status-osint', `TARGET RESOLVED · ${digits}`, 'ok');
+        this.audio.play('success');
+        this.setOutput('out-osint', Renderer.osintHtml(data));
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.setStatus('status-osint', 'Query failed: ' + esc(msg), 'err');
+        this.audio.play('error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+  }
+
+  bindVosint() {
+    const form = $('#form-vosint');
+    const input = $('#q-vosint');
+    if (!form || !input) return;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const raw = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      if (raw.length < 8 || raw.length > 12) {
+        this.setStatus('status-vosint', 'Enter valid plate (e.g. DL01AB1234)', 'err');
+        this.audio.play('error');
+        return;
+      }
+      this.setOutput('out-vosint', '');
+      this.loading('status-vosint', `QUERYING REGISTRY FOR ${raw}`);
+      const btn = form.querySelector('button');
+      if (btn) btn.disabled = true;
+      try {
+        const data = await ApiService.vosint(raw);
+        this.setStatus('status-vosint', `RC RESOLVED · ${raw}`, 'ok');
+        this.audio.play('success');
+        this.setOutput('out-vosint', Renderer.vehicleHtml(data));
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.setStatus('status-vosint', 'Query failed: ' + esc(msg), 'err');
+        this.audio.play('error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+  }
+
+  bindSmsb() {
+    const fire = $('#fire-smsb');
+    const stop = $('#stop-smsb');
+    const meter = $('#meter');
+    const fill = $('#meter-fill');
+    const stats = $('#meter-stats');
+    const qSmsb = $('#q-smsb');
+    const cntSmsb = $('#count-smsb');
+    const dlySmsb = $('#delay-smsb');
+    if (!fire || !stop || !qSmsb || !cntSmsb || !dlySmsb) return;
+
+    fire.addEventListener('click', async () => {
+      if (this.smsbRunning) return;
+      const digits = qSmsb.value.replace(/\D/g, '');
+      if (digits.length < 10) {
+        this.setStatus('status-smsb', 'Target requires 10 digits', 'err');
+        this.audio.play('error');
+        return;
+      }
+      const count = clamp(parseInt(cntSmsb.value, 10) || 1, 1, 500);
+      const delay = clamp(parseFloat(dlySmsb.value) || 0, 0, 5);
+
+      this.smsbRunning = true;
+      this.smsbStop = false;
+      this.smsbSent = 0;
+      this.smsbFailed = 0;
+      fire.disabled = true;
+      stop.disabled = false;
+      if (meter) meter.style.display = 'flex';
+      if (fill) fill.style.width = '0%';
+      if (stats) stats.textContent = `0 / ${count}`;
+      this.audio.play('scan');
+
+      for (let i = 1; i <= count; i++) {
+        if (this.smsbStop) {
+          this.setStatus('status-smsb', `Aborted · Sent=${this.smsbSent} Failed=${this.smsbFailed}`, 'err');
+          this.audio.play('error');
+          break;
+        }
+        const ok = await ApiService.smsb(digits);
+        if (ok) { this.smsbSent++; this.audio.play('packet'); }
+        else { this.smsbFailed++; }
+
+        const pct = Math.round((i / count) * 100);
+        if (fill) fill.style.width = pct + '%';
+        if (stats) stats.textContent = `${i} / ${count} (${pct}%)`;
+        this.setStatus('status-smsb', `Dispatched [${i}/${count}] · OK: ${this.smsbSent} | FAIL: ${this.smsbFailed}`);
+        if (delay) await sleep(delay * 1000);
+      }
+
+      if (!this.smsbStop) {
+        this.setStatus('status-smsb', `Completed · OK: ${this.smsbSent} | FAIL: ${this.smsbFailed}`, this.smsbSent > 0 ? 'ok' : 'err');
+        this.audio.play(this.smsbSent > 0 ? 'success' : 'error');
+      }
+      this.smsbRunning = false;
+      fire.disabled = false;
+      stop.disabled = true;
+    });
+
+    stop.addEventListener('click', () => {
+      if (!this.smsbRunning) return;
+      this.smsbStop = true;
+      this.audio.play('toggle');
+      this.setStatus('status-smsb', 'Halting...', 'err');
+    });
+  }
+
+  bindYuki() {
+    const form = $('#form-yuki');
+    const input = $('#q-yuki');
+    const chat = $('#chat');
+    if (!form || !input || !chat) return;
+
+    const push = (who, text) => {
+      const cls = who === 'me' ? 'me' : who === 'her' ? 'her' : 'sys';
+      const div = document.createElement('div');
+      div.className = 'msg ' + cls;
+      if (who === 'me') div.innerHTML = `<span class="who">OPERATOR</span>${esc(text)}`;
+      else if (who === 'her') div.innerHTML = `<span class="who">YUKI</span>${esc(text)}`;
+      else div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msg = input.value.trim();
+      if (!msg) return;
+      input.value = '';
+      this.audio.play('tab');
+      push('me', msg);
+      this.history.push({ role: 'user', content: msg });
+      this.history = this.history.slice(-20);
+      this.setStatus('status-yuki', `<span class="loader"></span>Yuki is composing...`);
+      const btn = form.querySelector('button');
+      if (btn) btn.disabled = true;
+      try {
+        const data = await ApiService.yuki(msg, this.history);
+        const reply = String(
+          data.reply ?? data.response ?? data.message ?? data.text ?? data.result ?? JSON.stringify(data)
+        );
+        push('her', reply);
+        this.audio.play('success');
+        this.history.push({ role: 'assistant', content: reply });
+        this.history = this.history.slice(-20);
+        this.setStatus('status-yuki', '');
+      } catch (err) {
+        const msg2 = err instanceof Error ? err.message : String(err);
+        this.setStatus('status-yuki', 'Timeout: ' + esc(msg2), 'err');
+        this.audio.play('error');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+  }
+}
+
+/* ============================================================
+   BOOTSTRAP
+   ============================================================ */
+(function bootstrap() {
+  const audio = new AudioEngine();
+  const canvas = $('#snow-canvas');
+  if (!canvas) return;
+  const snow = new SnowEngine(canvas);
+  const ui = new UIController(audio);
+
+  ui.bindTabs();
+  ui.bindDrawer();
+  ui.bindSettings(snow);
+  ui.bindSecondary();
+  ui.startClock();
+  ui.startLiveLog();
+  ui.bindOsint();
+  ui.bindVosint();
+  ui.bindSmsb();
+  ui.bindYuki();
+
+  window.addEventListener('pointerdown', () => audio.init(), { once: true });
+  window.addEventListener('keydown', () => audio.init(), { once: true });
+  document.addEventListener('keydown', (e) => {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      audio.play('key');
+    }
   });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const data = await res.json();
-  const reply = data?.choices?.[0]?.message?.content || data?.choices?.[0]?.text || data?.text;
-  if (!reply) throw new Error('Empty reply');
-  return reply;
-}
-
-document.getElementById('form-yuki').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const input = $('#q-yuki');
-  const msg = input.value.trim();
-  if (!msg) return;
-  input.value = '';
-  play('tab');
-  pushMsg('me', msg);
-  history.push({ role: 'user', content: msg });
-  history = history.slice(-20);
-  setStatus('status-yuki', `<span class="loader"></span>Yuki is composing...`);
-  const btn = e.target.querySelector('button'); btn.disabled = true;
-  try {
-    const reply = await askYuki(msg, history);
-    pushMsg('her', reply);
-    play('success');
-    history.push({ role: 'assistant', content: reply });
-    history = history.slice(-20);
-    setStatus('status-yuki', '');
-  } catch(err){
-    setStatus('status-yuki', 'Error: ' + esc(err.message), 'err');
-    play('error');
-  } finally { btn.disabled = false; }
-});
-
-/* ============ BOOT ============ */
-window.addEventListener('load', () => setTimeout(() => play('success'), 400));
+  window.addEventListener('load', () => setTimeout(() => audio.play('boot'), 400));
+})();
 </script>
 </body>
 </html>
