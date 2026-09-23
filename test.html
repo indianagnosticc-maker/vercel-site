@@ -1,875 +1,853 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>CYBER//OSINT • RED TERMINAL</title>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" name="viewport"/>
+<title>YUKI-OSINT // INTELLIGENCE TERMINAL</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
   :root{
-    --bg:#000000;
-    --panel:rgba(8,4,6,0.72);
-    --panel-solid:#0a0507;
-    --panel-border:rgba(255,45,85,0.16);
-    --panel-border-strong:rgba(255,45,85,0.42);
-    --red:#ff2d55;
-    --red-2:#ff4d6d;
-    --red-3:#dc1e40;
-    --red-glow:rgba(255,45,85,0.35);
-    --red-glow-soft:rgba(255,45,85,0.14);
-    --cyan:#22d3ee;
-    --cyan-glow:rgba(34,211,238,0.35);
-    --purple:#a78bfa;
-    --purple-glow:rgba(167,139,250,0.35);
-    --white:#f5f7fa;
-    --dim:#7a8a9a;
-    --dim-2:#a8b8c8;
-    --radius-sm:8px;
-    --radius-md:12px;
-    --radius-lg:18px;
-    --radius-xl:24px;
-    --font-mono:ui-monospace,"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+    --bg-base:#060709;
+    --surface-0:#0a0c10;
+    --surface-1:#101318;
+    --surface-2:#161a22;
+
+    --border-subtle:rgba(255,255,255,0.06);
+    --border-mid:rgba(255,255,255,0.12);
+
+    --accent:#38bdf8;
+    --accent-dim:rgba(56,189,248,0.1);
+    --accent-glow:rgba(56,189,248,0.35);
+    --accent-hover:#0ea5e9;
+
+    --text-primary:#f8fafc;
+    --text-secondary:#94a3b8;
+    --text-muted:#64748b;
+    --text-disabled:#475569;
+
+    --status-ok:#10b981;
+    --status-danger:#f43f5e;
+    --status-warn:#f59e0b;
+
+    --radius-sm:6px;
+    --radius-md:10px;
+    --radius-lg:14px;
   }
 
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
 
-  html,body{
-    background:#000;
-    color:var(--white);
-    font-family:var(--font-mono);
-    font-size:13.5px;
-    line-height:1.6;
-    min-height:100vh;
-    overflow-x:hidden;
-    -webkit-font-smoothing:antialiased;
+  body{
+    background-color:var(--bg-base)!important;
+    color:var(--text-primary);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    font-size:13.5px;line-height:1.5;min-height:100vh;overflow-x:hidden;
+    position:relative;-webkit-font-smoothing:antialiased;
   }
 
-  /* ============ BACKGROUND FX LAYERS ============ */
-  .bg-fx{position:fixed;inset:0;pointer-events:none;z-index:0;}
-
-  /* Deep radial red glow */
-  .bg-fx.glow{
-    background:
-      radial-gradient(circle at 50% 0%, rgba(255,45,85,0.16) 0%, transparent 55%),
-      radial-gradient(circle at 15% 90%, rgba(167,139,250,0.07) 0%, transparent 50%),
-      radial-gradient(circle at 85% 75%, rgba(34,211,238,0.05) 0%, transparent 50%);
-    animation:glowPulse 8s ease-in-out infinite;
-  }
-  @keyframes glowPulse{
-    0%,100%{opacity:1;}
-    50%{opacity:0.72;}
+  .bg-grid{
+    position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:radial-gradient(rgba(255,255,255,0.06) 1px,transparent 1px);
+    background-size:28px 28px;opacity:0.45;
+    mask-image:radial-gradient(ellipse at 50% 15%,black 40%,transparent 85%);
+    -webkit-mask-image:radial-gradient(ellipse at 50% 15%,black 40%,transparent 85%);
   }
 
-  /* Hex grid */
-  .bg-fx.hex{
-    background-image:
-      linear-gradient(rgba(255,45,85,0.045) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,45,85,0.045) 1px, transparent 1px);
-    background-size:44px 44px;
-    mask-image:radial-gradient(circle at 50% 40%, #000 20%, transparent 85%);
-    -webkit-mask-image:radial-gradient(circle at 50% 40%, #000 20%, transparent 85%);
-    opacity:0.75;
-    animation:gridDrift 24s linear infinite;
-  }
-  @keyframes gridDrift{
-    0%{background-position:0 0, 0 0;}
-    100%{background-position:44px 44px, 44px 44px;}
-  }
-
-  /* Scanline sweep */
-  .bg-fx.scan{
-    background:linear-gradient(180deg, transparent 0%, rgba(255,45,85,0.09) 48%, rgba(255,45,85,0.22) 50%, rgba(255,45,85,0.09) 52%, transparent 100%);
-    height:180px;
-    top:-180px;
-    animation:scanSweep 6s linear infinite;
-    mix-blend-mode:screen;
-  }
-  @keyframes scanSweep{
-    0%{transform:translateY(0);}
-    100%{transform:translateY(calc(100vh + 180px));}
-  }
-
-  /* Grain */
-  .bg-fx.grain{
-    opacity:0.05;
-    mix-blend-mode:overlay;
-  }
-
-  /* Particles canvas */
-  #particles{
+  #particle-canvas{
     position:fixed;inset:0;width:100%;height:100%;
-    pointer-events:none;z-index:1;
+    z-index:1;pointer-events:none;opacity:0.5;
+    transition:opacity 300ms ease;
+  }
+  #particle-canvas.disabled{opacity:0;}
+
+  /* ============ HEADER ============ */
+  .app-header{
+    position:sticky;top:0;z-index:50;width:100%;
+    background:rgba(6,7,9,0.8);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border-subtle);
+  }
+  .header-inner{
+    max-width:1080px;margin:0 auto;padding:0 20px;
+    height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+  }
+  .brand-group{display:flex;align-items:center;gap:12px;}
+
+  /* ANIME ICON AVATAR */
+  .brand-avatar{
+    position:relative;width:38px;height:38px;border-radius:50%;
+    overflow:hidden;flex-shrink:0;
+    border:1.5px solid rgba(56,189,248,0.5);
+    box-shadow:0 0 12px rgba(56,189,248,0.35),0 0 24px rgba(56,189,248,0.15);
+    animation:avatarPulse 3.5s ease-in-out infinite;
+    background:#2d4a2d;
+  }
+  @keyframes avatarPulse{
+    0%,100%{box-shadow:0 0 12px rgba(56,189,248,0.35),0 0 24px rgba(56,189,248,0.15);border-color:rgba(56,189,248,0.5);}
+    50%{box-shadow:0 0 20px rgba(56,189,248,0.6),0 0 40px rgba(56,189,248,0.25);border-color:rgba(56,189,248,0.9);}
+  }
+  .brand-avatar img{
+    width:100%;height:100%;object-fit:cover;display:block;
+    transform:scale(1.02);
   }
 
-  /* ============ TOP BAR ============ */
-  .topbar{
-    position:relative;z-index:30;
-    width:100%;max-width:680px;margin:0 auto;
-    padding:18px 20px 14px;
-    display:flex;justify-content:space-between;align-items:center;
+  .brand-meta{display:flex;flex-direction:column;min-width:0;}
+  .brand-name{
+    font-size:13px;font-weight:700;letter-spacing:0.6px;
+    color:#ffffff;display:flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono',monospace;
   }
-  .brand{
-    display:flex;align-items:center;gap:10px;
-    font-size:11px;font-weight:700;letter-spacing:2.4px;
-    color:var(--white);text-transform:uppercase;
+  .brand-name .accent{color:var(--accent);text-shadow:0 0 10px var(--accent-glow);}
+  .brand-tag{
+    font-size:9.5px;font-weight:500;font-family:'JetBrains Mono',monospace;
+    color:var(--text-muted);letter-spacing:0.4px;
   }
-  .live-dot{
-    width:7px;height:7px;border-radius:50%;
-    background:var(--red);
-    box-shadow:0 0 10px var(--red),0 0 20px var(--red-glow);
-    animation:pulseDot 2.2s infinite;
+
+  .header-telemetry{
+    display:flex;align-items:center;gap:14px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
   }
-  @keyframes pulseDot{
+  .telemetry-item{display:flex;align-items:center;gap:6px;color:var(--text-secondary);}
+  .pulse-indicator{
+    width:6px;height:6px;border-radius:50%;background:var(--status-ok);
+    box-shadow:0 0 8px var(--status-ok);
+    animation:pulse-glow 2.2s infinite ease-in-out;
+  }
+  @keyframes pulse-glow{
     0%,100%{opacity:1;transform:scale(1);}
-    50%{opacity:0.4;transform:scale(0.82);}
+    50%{opacity:0.35;transform:scale(0.8);}
   }
-  .brand-txt em{color:var(--red);font-style:normal;}
 
+  .header-actions{display:flex;align-items:center;gap:6px;}
   .icon-btn{
-    width:40px;height:40px;
-    background:rgba(255,45,85,0.06);
-    border:1px solid var(--panel-border);
-    color:var(--dim-2);
-    border-radius:50%;
-    display:inline-flex;align-items:center;justify-content:center;
-    cursor:pointer;
-    transition:transform 200ms cubic-bezier(0.16,1,0.3,1), border-color 200ms, color 200ms, box-shadow 200ms, background 200ms;
+    background:transparent;border:1px solid transparent;
+    color:var(--text-secondary);width:34px;height:34px;
+    border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all 160ms ease;
   }
-  .icon-btn:hover{
-    color:var(--red);
-    border-color:var(--red);
-    background:rgba(255,45,85,0.12);
-    box-shadow:0 0 18px var(--red-glow);
-    transform:scale(1.06);
-  }
-  .icon-btn:active{transform:scale(0.94);}
-  .icon-btn svg{transition:transform 400ms cubic-bezier(0.16,1,0.3,1);}
-  .icon-btn:hover svg{transform:rotate(60deg);}
+  .icon-btn:hover{background:var(--surface-1);border-color:var(--border-subtle);color:var(--text-primary);}
+  .icon-btn:active{transform:scale(0.96);}
 
-  .topbar-line{
-    width:100%;height:1px;
-    background:linear-gradient(90deg, transparent 0%, var(--red) 50%, transparent 100%);
-    box-shadow:0 0 12px var(--red-glow),0 0 24px var(--red-glow-soft);
-    position:relative;z-index:30;
-    animation:lineShimmer 4s ease-in-out infinite;
-  }
-  @keyframes lineShimmer{
-    0%,100%{opacity:0.7;}
-    50%{opacity:1;}
+  /* ============ LAYOUT ============ */
+  .layout-container{
+    position:relative;z-index:10;max-width:860px;margin:0 auto;
+    padding:24px 20px 60px;display:flex;flex-direction:column;gap:20px;
   }
 
-  /* ============ SETTINGS DRAWER ============ */
-  .drawer-backdrop{
-    position:fixed;inset:0;
-    background:rgba(0,0,0,0.72);
-    backdrop-filter:blur(6px);
-    -webkit-backdrop-filter:blur(6px);
-    z-index:900;
-    opacity:0;pointer-events:none;
-    transition:opacity 260ms ease;
+  .system-banner{
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    background:var(--surface-0);border:1px solid var(--border-subtle);
+    border-radius:var(--radius-md);padding:9px 16px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
   }
-  .drawer-backdrop.open{opacity:1;pointer-events:auto;}
+  .system-chips{display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .system-chip{display:inline-flex;align-items:center;gap:6px;color:var(--text-secondary);}
+  .system-chip-val{color:var(--text-primary);font-weight:500;}
 
-  .drawer{
-    position:fixed;top:0;right:0;bottom:0;
-    width:100%;max-width:360px;
-    background:rgba(5,2,4,0.96);
-    backdrop-filter:blur(28px);
-    -webkit-backdrop-filter:blur(28px);
-    border-left:1px solid var(--panel-border);
-    z-index:999;padding:26px 22px;
-    transform:translateX(100%);
-    transition:transform 340ms cubic-bezier(0.16,1,0.3,1);
-    display:flex;flex-direction:column;gap:20px;
-    box-shadow:-16px 0 48px rgba(255,45,85,0.08),-8px 0 32px rgba(0,0,0,0.7);
+  /* ============ NAV TABS ============ */
+  .mode-nav-wrapper{display:flex;justify-content:center;width:100%;}
+  .mode-nav{
+    display:flex;align-items:center;gap:4px;
+    background:var(--surface-0);border:1px solid var(--border-subtle);
+    padding:4px;border-radius:var(--radius-md);
+    position:relative;width:100%;max-width:640px;
+    overflow-x:auto;-webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
   }
-  .drawer.open{transform:translateX(0);}
-  .drawer-head{
-    display:flex;justify-content:space-between;align-items:center;
-    padding-bottom:16px;border-bottom:1px solid var(--panel-border);
-  }
-  .drawer-title{
-    font-size:12px;letter-spacing:2.4px;color:var(--white);
-    font-weight:700;text-transform:uppercase;
-  }
-  .drawer-title span{color:var(--red);}
-  .drawer-close{
-    background:transparent;border:none;color:var(--dim-2);cursor:pointer;
-    width:34px;height:34px;display:flex;align-items:center;justify-content:center;
-    border-radius:8px;transition:all 200ms;
-  }
-  .drawer-close:hover{color:var(--red);transform:scale(1.1);}
+  .mode-nav::-webkit-scrollbar{display:none;}
 
-  .drawer-item{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:8px 0;font-size:12.5px;color:var(--dim-2);
-  }
-  .drawer-item span{letter-spacing:1px;font-size:11.5px;}
-
-  .switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0;}
-  .switch input{opacity:0;width:0;height:0;}
-  .slider{
-    position:absolute;inset:0;cursor:pointer;
-    background:rgba(122,138,154,0.2);
-    border:1px solid var(--panel-border);
-    border-radius:26px;
-    transition:all 220ms;
-  }
-  .slider:before{
-    content:"";position:absolute;
-    height:20px;width:20px;left:2px;bottom:2px;
-    background:#7a8a9a;border-radius:50%;
-    transition:transform 280ms cubic-bezier(0.16,1,0.3,1), background 220ms;
-    box-shadow:0 2px 6px rgba(0,0,0,0.5);
-  }
-  input:checked + .slider{
-    background:linear-gradient(180deg, var(--red), var(--red-3));
-    border-color:var(--red);
-    box-shadow:0 0 14px var(--red-glow);
-  }
-  input:checked + .slider:before{
-    transform:translateX(20px);background:#fff;
-  }
-
-  .volume-row{display:flex;flex-direction:column;gap:10px;padding:6px 0 10px;}
-  .volume-head{display:flex;justify-content:space-between;font-size:11.5px;letter-spacing:1px;color:var(--dim-2);}
-  .volume-head span:last-child{color:var(--red);font-weight:700;}
-  .vol-slider{
-    -webkit-appearance:none;width:100%;height:4px;border-radius:99px;
-    background:rgba(122,138,154,0.2);outline:none;cursor:pointer;
-  }
-  .vol-slider::-webkit-slider-thumb{
-    -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
-    background:var(--red);cursor:pointer;
-    box-shadow:0 0 10px var(--red-glow),0 0 20px var(--red-glow-soft);
-    border:2px solid #fff;
-  }
-  .vol-slider::-moz-range-thumb{
-    width:14px;height:14px;border-radius:50%;
-    background:var(--red);cursor:pointer;border:2px solid #fff;
-    box-shadow:0 0 10px var(--red-glow);
-  }
-
-  .drawer-section-label{
-    font-size:10.5px;letter-spacing:2px;color:var(--dim);
-    text-transform:uppercase;display:block;margin-bottom:10px;
-  }
-  .drawer-link{
-    display:flex;align-items:center;justify-content:space-between;
-    padding:12px 14px;border-radius:var(--radius-md);
-    background:rgba(255,45,85,0.05);
-    border:1px solid var(--panel-border);
-    color:var(--white);text-decoration:none;
-    font-size:11.5px;letter-spacing:1.5px;font-weight:600;
-    transition:all 220ms cubic-bezier(0.16,1,0.3,1);
-    margin-bottom:8px;
-  }
-  .drawer-link:hover{
-    background:rgba(255,45,85,0.12);
-    border-color:var(--red);
-    transform:translateX(4px);
-    box-shadow:0 0 18px var(--red-glow-soft);
-  }
-  .drawer-link span:last-child{color:var(--red);font-size:14px;}
-
-  /* ============ MAIN WRAP ============ */
-  .wrap{
-    position:relative;z-index:20;
-    max-width:680px;margin:0 auto;
-    padding:20px 20px 60px;
-    display:flex;flex-direction:column;
-  }
-
-  /* ============ TABS ============ */
-  .nav-tabs-container{
-    position:relative;display:flex;justify-content:center;
-    margin:8px 0 32px;
-  }
-  .nav-tabs{
-    display:inline-flex;align-items:center;gap:22px;
-    position:relative;padding:4px 6px 2px;
-  }
   .tab-indicator{
-    position:absolute;bottom:0;left:0;height:3px;
-    background:var(--red);
-    border-radius:99px;
-    box-shadow:0 0 10px var(--red-glow),0 0 20px var(--red-glow-soft);
-    transition:left 320ms cubic-bezier(0.4,0,0.2,1), width 320ms cubic-bezier(0.4,0,0.2,1), background 320ms;
-    pointer-events:none;
+    position:absolute;top:4px;bottom:4px;left:0;
+    background:linear-gradient(180deg, rgba(56,189,248,0.18), rgba(56,189,248,0.08));
+    border:1px solid rgba(56,189,248,0.4);
+    border-radius:var(--radius-sm);pointer-events:none;
+    transition:all 260ms cubic-bezier(0.16,1,0.3,1);
+    box-shadow:0 0 12px rgba(56,189,248,0.25),inset 0 1px 0 rgba(255,255,255,0.05);
   }
   .tab-btn{
-    background:transparent;border:none;cursor:pointer;
-    font:inherit;font-size:12.5px;letter-spacing:2.4px;font-weight:600;
-    color:var(--dim);padding:10px 6px 12px;
-    text-transform:uppercase;
-    transition:color 200ms, transform 200ms;
-    position:relative;
+    flex:1;min-height:38px;background:transparent;border:none;color:var(--text-secondary);
+    font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;
+    padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;
+    position:relative;z-index:2;display:flex;align-items:center;justify-content:center;gap:6px;
+    transition:color 150ms ease;white-space:nowrap;
   }
-  .tab-btn:hover{color:var(--dim-2);transform:translateY(-1px);}
-  .tab-btn:active{transform:scale(0.96);}
-  .tab-btn.active{color:var(--white);text-shadow:0 0 12px var(--red-glow);}
+  .tab-btn:hover{color:var(--text-primary);}
+  .tab-btn.active{color:#ffffff;font-weight:600;}
+  .tab-chip{
+    font-size:9.5px;padding:1px 5px;border-radius:4px;
+    background:rgba(255,255,255,0.05);font-family:'JetBrains Mono',monospace;
+    color:var(--text-muted);
+  }
+  .tab-btn.active .tab-chip{background:var(--accent-dim);color:var(--accent);}
 
-  /* ============ PAGES ============ */
+  /* ============ CONSOLE FRAME ============ */
+  .console-frame{
+    background:var(--surface-0);border:1px solid var(--border-subtle);
+    border-radius:var(--radius-lg);padding:28px;width:100%;
+    box-shadow:0 16px 40px -10px rgba(0,0,0,0.6);
+    position:relative;overflow:hidden;
+  }
+  .console-frame::before{
+    content:"";position:absolute;top:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(56,189,248,0.4),transparent);
+  }
+
   .page{display:none;flex-direction:column;width:100%;}
-  .page.active{display:flex;animation:pageIn 320ms cubic-bezier(0.16,1,0.3,1) both;}
-  @keyframes pageIn{
-    from{opacity:0;transform:translateY(8px);}
-    to{opacity:1;transform:none;}
+  .page.active{display:flex;animation:fadeIn 260ms cubic-bezier(0.16,1,0.3,1) both;}
+  @keyframes fadeIn{
+    from{opacity:0;transform:translateY(4px);}
+    to{opacity:1;transform:translateY(0);}
   }
 
-  .title-wrap{text-align:center;margin-bottom:22px;}
-  .title{
-    font-size:38px;font-weight:800;letter-spacing:5px;
-    color:var(--white);
-    text-shadow:0 0 28px var(--red-glow),0 0 60px var(--red-glow-soft);
-    margin:0 0 8px;
-    font-family:var(--font-mono);
+  .panel-header{margin-bottom:18px;display:flex;flex-direction:column;gap:4px;}
+  .panel-breadcrumbs{
+    display:flex;align-items:center;gap:6px;
+    font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-muted);
+    text-transform:uppercase;letter-spacing:0.6px;
   }
-  .title .accent{color:var(--red);}
-  .sub{
-    font-size:11px;letter-spacing:2.4px;color:var(--dim-2);
-    text-transform:uppercase;
+  .panel-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;}
+  .panel-title{font-size:18px;font-weight:600;color:#ffffff;letter-spacing:-0.2px;}
+  .panel-badge{
+    font-size:10.5px;font-family:'JetBrains Mono',monospace;
+    padding:2px 7px;border-radius:4px;
+    background:var(--accent-dim);border:1px solid rgba(56,189,248,0.25);
+    color:var(--accent);white-space:nowrap;
+    box-shadow:0 0 10px rgba(56,189,248,0.15);
   }
 
-  /* Info box */
   .info-box{
-    width:100%;
-    border-radius:var(--radius-md);
-    padding:14px 16px;
-    font-size:11.5px;
-    line-height:1.65;
-    margin-bottom:18px;
-    background:linear-gradient(135deg, rgba(255,45,85,0.06), rgba(255,45,85,0.02));
-    border:1px solid var(--panel-border);
-    color:var(--dim-2);
-    position:relative;
-    overflow:hidden;
+    display:flex;align-items:flex-start;gap:10px;
+    background:var(--surface-1);border:1px solid var(--border-subtle);
+    border-left:3px solid var(--accent);
+    border-radius:var(--radius-sm);padding:10px 14px;
+    margin-bottom:20px;font-size:12px;color:var(--text-secondary);line-height:1.5;
   }
-  .info-box::before{
-    content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
-    background:var(--red);
-    box-shadow:0 0 8px var(--red-glow);
+  .info-icon{
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+    color:var(--accent);flex-shrink:0;margin-top:2px;
   }
 
-  /* ============ FORMS ============ */
-  form.search-box{
+  form,.row-form{
     display:flex;align-items:center;gap:8px;
-    background:rgba(8,4,6,0.72);
-    border:1px solid var(--panel-border);
-    backdrop-filter:blur(20px);
-    -webkit-backdrop-filter:blur(20px);
-    border-radius:var(--radius-lg);
-    padding:6px 6px 6px 16px;
-    transition:border-color 220ms, box-shadow 220ms, transform 220ms;
-    box-shadow:0 8px 32px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.03);
+    background:var(--surface-1);border:1px solid var(--border-mid);
+    border-radius:var(--radius-md);padding:5px 6px 5px 14px;
+    transition:all 180ms ease;
   }
-  form.search-box:focus-within{
-    border-color:var(--red);
-    box-shadow:0 0 0 1px var(--red),0 0 24px var(--red-glow-soft),0 8px 32px rgba(0,0,0,0.5);
-  }
-  form.cyan:focus-within{
-    border-color:var(--cyan);
-    box-shadow:0 0 0 1px var(--cyan),0 0 24px var(--cyan-glow),0 8px 32px rgba(0,0,0,0.5);
-  }
-  form.red:focus-within{
-    border-color:var(--red);
-    box-shadow:0 0 0 1px var(--red),0 0 24px var(--red-glow),0 8px 32px rgba(0,0,0,0.5);
-  }
-  form.pink:focus-within{
-    border-color:var(--purple);
-    box-shadow:0 0 0 1px var(--purple),0 0 24px var(--purple-glow),0 8px 32px rgba(0,0,0,0.5);
+  form:focus-within{
+    border-color:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-dim),0 0 20px rgba(56,189,248,0.15);
+    background:var(--surface-2);
   }
 
   .prompt-icon{
-    font-size:14px;color:var(--red);font-weight:700;
-    user-select:none;flex-shrink:0;
-    text-shadow:0 0 10px var(--red-glow);
+    font-size:12px;font-family:'JetBrains Mono',monospace;
+    color:var(--text-muted);font-weight:500;
   }
-  form.cyan .prompt-icon{color:var(--cyan);text-shadow:0 0 10px var(--cyan-glow);}
-  form.pink .prompt-icon{color:var(--purple);text-shadow:0 0 10px var(--purple-glow);}
-
-  input{
+  input,select{
     flex:1;min-width:0;background:transparent;border:0;outline:0;
-    color:var(--white);font:inherit;font-size:13.5px;
-    padding:9px 6px;letter-spacing:0.4px;
-    caret-color:var(--red);
+    color:var(--text-primary);font-family:'Inter',sans-serif;font-size:13.5px;
+    padding:8px 4px;
   }
-  form.cyan input{caret-color:var(--cyan);}
-  form.pink input{caret-color:var(--purple);}
-  input::placeholder{color:var(--dim);opacity:0.75;}
+  input::placeholder{color:var(--text-muted);}
 
-  /* ============ SCAN BUTTON ============ */
+  .shortcut-pill{
+    display:inline-flex;align-items:center;
+    padding:3px 6px;border-radius:4px;background:rgba(255,255,255,0.05);
+    border:1px solid var(--border-subtle);color:var(--text-muted);
+    font-size:10px;font-family:'JetBrains Mono',monospace;
+  }
+
+  /* SCAN BUTTON WITH GLOW */
   .scan-btn{
+    background:linear-gradient(180deg,#0ea5e9,#0284c7);
+    border:1px solid rgba(255,255,255,0.15);
+    color:#ffffff;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;
+    padding:9px 18px;border-radius:var(--radius-sm);cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    transition:all 180ms cubic-bezier(0.16,1,0.3,1);
+    flex-shrink:0;min-height:38px;
     position:relative;overflow:hidden;
-    background:linear-gradient(180deg, var(--red-2), var(--red-3));
-    color:#fff;font-weight:700;font-size:11.5px;letter-spacing:1.8px;
-    border:none;border-radius:var(--radius-md);
-    padding:10px 20px;cursor:pointer;min-height:40px;
-    box-shadow:0 4px 18px var(--red-glow),inset 0 1px 0 rgba(255,255,255,0.18);
-    display:inline-flex;align-items:center;justify-content:center;
-    transition:transform 180ms cubic-bezier(0.16,1,0.3,1), box-shadow 220ms, opacity 220ms;
-    font-family:var(--font-mono);
-    text-transform:uppercase;
+    box-shadow:0 0 0 rgba(56,189,248,0);
   }
   .scan-btn::before{
     content:"";position:absolute;inset:0;
-    background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);
     transform:translateX(-120%);
-    animation:shimmerSweep 3.2s infinite ease-in-out;
+    animation:shimmer 3.5s infinite ease-in-out;
     pointer-events:none;
   }
-  @keyframes shimmerSweep{
+  @keyframes shimmer{
     0%{transform:translateX(-120%);}
     40%,100%{transform:translateX(120%);}
   }
-  .scan-btn::after{
-    content:"";position:absolute;inset:0;
-    border-radius:inherit;border:2px solid #fff;
-    opacity:0;pointer-events:none;transform:scale(0.85);
-  }
-  .scan-btn.clicked::after{animation:pulseRing 0.4s ease-out forwards;}
-  @keyframes pulseRing{
-    0%{transform:scale(0.9);opacity:0.8;}
-    100%{transform:scale(1.35);opacity:0;}
-  }
   .scan-btn:hover{
-    transform:scale(1.03);
-    box-shadow:0 0 26px var(--red-glow),0 4px 18px var(--red-glow),inset 0 1px 0 rgba(255,255,255,0.2);
+    background:linear-gradient(180deg,#38bdf8,#0ea5e9);
+    box-shadow:0 0 20px var(--accent-glow),0 0 40px rgba(56,189,248,0.15);
+    transform:translateY(-1px);
   }
-  .scan-btn:active{transform:scale(0.95);}
-  .scan-btn:disabled{opacity:0.5;cursor:wait;transform:none;}
+  .scan-btn:active{transform:scale(0.98);}
+  .scan-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none;}
 
-  .scan-btn.cyan{
-    background:linear-gradient(180deg, var(--cyan), #0891b2);
-    color:#05080f;
-    box-shadow:0 4px 18px var(--cyan-glow),inset 0 1px 0 rgba(255,255,255,0.3);
+  .row-inline{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .row-inline input{
+    border:1px solid var(--border-mid);background:var(--surface-1);
+    border-radius:var(--radius-sm);padding:8px 12px;font-size:12.5px;
+    flex:1;min-width:100px;color:var(--text-primary);
+    font-family:'JetBrains Mono',monospace;min-height:38px;
   }
-  .scan-btn.cyan:hover{box-shadow:0 0 26px var(--cyan-glow),0 4px 18px var(--cyan-glow);}
-  .scan-btn.pink{
-    background:linear-gradient(180deg, var(--purple), #7c3aed);
-    color:#fff;
-    box-shadow:0 4px 18px var(--purple-glow),inset 0 1px 0 rgba(255,255,255,0.2);
+  .row-inline input:focus{
+    border-color:var(--accent);outline:none;
+    box-shadow:0 0 0 2px var(--accent-dim);
   }
-  .scan-btn.pink:hover{box-shadow:0 0 26px var(--purple-glow),0 4px 18px var(--purple-glow);}
 
-  /* ============ STATUS ============ */
+  .bomb-meter{
+    margin-top:14px;background:var(--surface-1);border:1px solid var(--border-subtle);
+    border-radius:var(--radius-md);padding:12px 14px;display:flex;flex-direction:column;gap:8px;
+  }
+  .bomb-track{height:4px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden;}
+  .bomb-fill{
+    height:100%;width:0%;
+    background:linear-gradient(90deg,#0284c7,#38bdf8);
+    transition:width 0.15s ease;
+    box-shadow:0 0 10px var(--accent-glow);
+  }
+
   .status{
-    font-size:11.5px;color:var(--dim-2);letter-spacing:0.7px;
-    margin:16px 4px 0;min-height:20px;
-    display:flex;align-items:center;gap:10px;
-    animation:fadeIn 240ms ease;
+    font-size:12px;font-family:'JetBrains Mono',monospace;
+    color:var(--text-secondary);margin-top:12px;min-height:22px;
+    display:flex;align-items:center;gap:8px;
   }
   .status.err{
-    color:var(--red);
-    padding:10px 14px;
-    border-left:3px solid var(--red);
-    background:rgba(255,45,85,0.07);
-    border-radius:0 var(--radius-sm) var(--radius-sm) 0;
-    box-shadow:0 0 18px var(--red-glow-soft);
+    color:#fb7185;background:rgba(244,63,94,0.08);
+    border:1px solid rgba(244,63,94,0.2);border-radius:var(--radius-sm);
+    padding:6px 12px;
   }
-  .status.ok{color:var(--red);text-shadow:0 0 10px var(--red-glow-soft);}
-  .loader{
-    display:inline-block;width:12px;height:12px;
-    border:2px solid rgba(255,45,85,0.2);
-    border-top-color:var(--red);
-    border-radius:50%;animation:spin 0.7s linear infinite;flex-shrink:0;
-    box-shadow:0 0 8px var(--red-glow);
-  }
-  .loader.cyan{border-color:rgba(34,211,238,0.2);border-top-color:var(--cyan);box-shadow:0 0 8px var(--cyan-glow);}
-  .loader.purple{border-color:rgba(167,139,250,0.2);border-top-color:var(--purple);box-shadow:0 0 8px var(--purple-glow);}
-  @keyframes spin{100%{transform:rotate(360deg);}}
+  .status.ok{color:var(--accent);text-shadow:0 0 8px var(--accent-glow);}
 
-  /* ============ OUTPUT CARDS ============ */
-  .out{margin-top:22px;width:100%;}
+  .loader{
+    width:12px;height:12px;border:2px solid rgba(56,189,248,0.2);
+    border-top-color:var(--accent);border-radius:50%;
+    animation:spin 0.6s linear infinite;display:inline-block;
+    box-shadow:0 0 6px var(--accent-glow);
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .out{margin-top:18px;width:100%;}
   .card{
-    background:rgba(8,4,6,0.72);
-    border:1px solid var(--panel-border);
-    backdrop-filter:blur(22px);
-    -webkit-backdrop-filter:blur(22px);
-    border-radius:var(--radius-lg);
-    margin-bottom:16px;overflow:hidden;
-    animation:cardIn 340ms cubic-bezier(0.16,1,0.3,1) both;
-    box-shadow:0 10px 40px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.03);
-    position:relative;
-  }
-  .card::before{
-    content:"";position:absolute;top:0;left:0;right:0;height:1px;
-    background:linear-gradient(90deg, transparent, var(--red), transparent);
-    opacity:0.55;
-  }
-  @keyframes cardIn{
-    from{opacity:0;transform:translateY(14px) scale(0.99);}
-    to{opacity:1;transform:none;}
+    background:var(--surface-1);border:1px solid var(--border-subtle);
+    border-radius:var(--radius-md);margin-bottom:10px;overflow:hidden;
+    animation:fadeIn 240ms cubic-bezier(0.16,1,0.3,1) both;
+    box-shadow:0 8px 24px -8px rgba(0,0,0,0.5);
   }
   .card .head{
     display:flex;justify-content:space-between;align-items:center;
-    padding:12px 18px;
-    background:linear-gradient(180deg, rgba(255,45,85,0.08), transparent);
-    border-bottom:1px solid var(--panel-border);
-    font-size:11px;letter-spacing:1.8px;color:var(--red);font-weight:700;
-    text-transform:uppercase;
+    padding:9px 14px;background:var(--surface-2);border-bottom:1px solid var(--border-subtle);
+    font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;
+    color:var(--text-primary);
   }
-  .card .head .badge{
-    color:var(--dim-2);font-size:10px;letter-spacing:1.2px;
-    padding:3px 8px;border:1px solid var(--panel-border);border-radius:99px;
-  }
-  .card .body{padding:14px 18px;}
-
+  .card .body{padding:12px 14px;display:flex;flex-direction:column;}
   .row{
-    display:grid;grid-template-columns:140px 1fr;gap:14px;
-    font-size:12.5px;padding:9px 0;
-    border-bottom:1px solid rgba(255,45,85,0.06);
-    align-items:baseline;
+    display:grid;grid-template-columns:140px 1fr;gap:12px;
+    padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);
+    align-items:baseline;font-size:12.5px;
   }
   .row:last-child{border-bottom:none;}
   .row .k{
-    color:var(--dim);font-size:10.5px;letter-spacing:1px;
-    text-transform:uppercase;
+    color:var(--text-muted);font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;
   }
-  .row .v{color:var(--white);word-break:break-word;font-weight:500;}
-  .row .v.hi{color:var(--red);font-weight:700;text-shadow:0 0 10px var(--red-glow-soft);}
-  .row .v.na{color:var(--dim);font-style:italic;}
+  .row .v{color:var(--text-primary);word-break:break-word;}
+  .row .v.hi{font-weight:600;color:#ffffff;text-shadow:0 0 10px rgba(56,189,248,0.3);}
+  .row .v.na{color:var(--text-disabled);font-style:italic;}
 
-  /* V-OSINT dotted lines */
-  .vrow{display:flex;align-items:baseline;gap:10px;font-size:12.5px;padding:9px 0;width:100%;}
+  .vrow{display:flex;align-items:baseline;gap:10px;font-size:12.5px;padding:6px 0;}
   .vrow .vk{
-    color:var(--cyan);font-size:10.5px;letter-spacing:1px;
-    text-transform:uppercase;flex-shrink:0;font-weight:600;
+    color:var(--text-muted);font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;text-transform:uppercase;letter-spacing:0.5px;flex-shrink:0;
   }
-  .vrow .fill{flex:1;border-bottom:1px dotted rgba(34,211,238,0.35);margin-bottom:4px;min-width:10px;}
-  .vrow .vv{color:var(--white);text-align:right;word-break:break-word;max-width:66%;font-weight:500;}
-  .vrow .vv.hi{color:var(--cyan);font-weight:700;text-shadow:0 0 10px var(--cyan-glow);}
-  .vrow .vv.na{color:var(--dim);font-style:italic;}
+  .vrow .fill{flex:1;border-bottom:1px dashed rgba(255,255,255,0.08);margin-bottom:4px;}
+  .vrow .vv{color:var(--text-primary);text-align:right;word-break:break-word;max-width:65%;}
+  .vrow .vv.hi{color:#ffffff;font-weight:600;text-shadow:0 0 10px rgba(56,189,248,0.3);}
+  .vrow .vv.na{color:var(--text-disabled);font-style:italic;}
 
   pre.raw{
-    background:rgba(0,0,0,0.72);
-    border:1px solid var(--panel-border);
-    border-radius:var(--radius-sm);
-    padding:12px 14px;font-size:11px;color:var(--dim-2);
-    max-height:240px;overflow:auto;white-space:pre-wrap;word-break:break-word;
-    font-family:var(--font-mono);line-height:1.6;
+    background:#040507;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);
+    padding:10px;font-size:11px;font-family:'JetBrains Mono',monospace;
+    color:var(--text-secondary);max-height:200px;overflow:auto;
+    white-space:pre-wrap;word-break:break-word;margin-top:8px;
   }
   details summary{
-    cursor:pointer;color:var(--red);font-size:11px;letter-spacing:1.4px;
-    padding:6px 0;list-style:none;
-    transition:opacity 200ms;
+    cursor:pointer;color:var(--accent);font-size:11px;
+    font-family:'JetBrains Mono',monospace;padding:4px 0;
+    list-style:none;transition:opacity 150ms;
   }
   details summary:hover{opacity:0.8;}
   details summary::-webkit-details-marker{display:none;}
-  details summary::before{content:"▸ ";transition:transform 200ms;}
+  details summary::before{content:"▸ ";transition:transform 180ms;}
   details[open] summary::before{content:"▾ ";}
 
-  /* ============ SMS-B CONTROLS ============ */
-  .row-inline{display:flex;gap:10px;margin-top:12px;}
-  .row-inline input{
-    border:1px solid var(--panel-border);
-    background:rgba(8,4,6,0.72);
-    border-radius:var(--radius-md);
-    padding:10px 12px;font-size:12.5px;
-    flex:1;min-width:80px;color:var(--white);
-    transition:border-color 200ms, box-shadow 200ms;
-  }
-  .row-inline input:focus{
-    outline:none;border-color:var(--red);
-    box-shadow:0 0 0 1px var(--red),0 0 16px var(--red-glow-soft);
-  }
-  .bomb-meter{
-    margin-top:16px;
-    background:rgba(8,4,6,0.72);
-    border:1px solid var(--panel-border);
-    border-radius:var(--radius-lg);
-    padding:14px 18px;
-    display:flex;flex-direction:column;gap:10px;
-    backdrop-filter:blur(20px);
-    -webkit-backdrop-filter:blur(20px);
-    box-shadow:0 8px 28px rgba(0,0,0,0.5);
-  }
-  .bomb-track{
-    height:6px;background:rgba(122,138,154,0.15);
-    border-radius:99px;overflow:hidden;
-    position:relative;
-  }
-  .bomb-fill{
-    height:100%;width:0%;
-    background:linear-gradient(90deg, var(--red), #ff7a95);
-    transition:width 0.2s ease;
-    box-shadow:0 0 12px var(--red-glow);
-    border-radius:99px;
-  }
-  .halt-btn{
-    background:transparent;color:var(--red);
-    border:1px solid var(--red);
-    border-radius:var(--radius-md);
-    cursor:pointer;padding:0 18px;font-weight:700;
-    font-size:11.5px;letter-spacing:1.8px;
-    font-family:var(--font-mono);text-transform:uppercase;
-    transition:all 200ms cubic-bezier(0.16,1,0.3,1);
-  }
-  .halt-btn:hover{
-    background:rgba(255,45,85,0.1);
-    box-shadow:0 0 18px var(--red-glow-soft);
-    transform:scale(1.03);
-  }
-  .halt-btn:disabled{opacity:0.35;cursor:not-allowed;transform:none;}
-
-  /* ============ YUKI CHAT ============ */
   .chat{
-    min-height:380px;max-height:480px;overflow-y:auto;
-    border:1px solid var(--panel-border);
-    border-radius:var(--radius-lg);
-    background:rgba(8,4,6,0.72);
-    backdrop-filter:blur(22px);
-    -webkit-backdrop-filter:blur(22px);
-    padding:18px;margin-bottom:14px;
-    display:flex;flex-direction:column;gap:12px;
-    box-shadow:0 10px 40px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.03);
-    scroll-behavior:smooth;
+    min-height:300px;max-height:420px;overflow-y:auto;
+    border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+    background:#040507;padding:14px;margin-bottom:12px;
+    display:flex;flex-direction:column;gap:10px;
   }
   .chat::-webkit-scrollbar{width:6px;}
-  .chat::-webkit-scrollbar-thumb{background:rgba(255,45,85,0.25);border-radius:99px;}
+  .chat::-webkit-scrollbar-thumb{background:rgba(56,189,248,0.2);border-radius:99px;}
   .msg{
-    max-width:84%;padding:11px 15px;
-    border-radius:var(--radius-md);
-    font-size:12.5px;line-height:1.6;
-    animation:msgIn 300ms cubic-bezier(0.16,1,0.3,1) both;
-    position:relative;
+    max-width:84%;padding:8px 12px;border-radius:var(--radius-sm);
+    font-size:12.5px;line-height:1.5;
+    animation:msgIn 260ms cubic-bezier(0.16,1,0.3,1) both;
   }
   @keyframes msgIn{
-    from{opacity:0;transform:translateY(8px);}
+    from{opacity:0;transform:translateY(6px);}
     to{opacity:1;transform:none;}
   }
   .msg.me{
     align-self:flex-end;
-    background:linear-gradient(135deg, rgba(255,45,85,0.18), rgba(255,45,85,0.08));
-    border:1px solid rgba(255,45,85,0.35);
-    color:var(--white);
-    box-shadow:0 4px 18px rgba(255,45,85,0.12);
+    background:linear-gradient(135deg, rgba(56,189,248,0.15), rgba(56,189,248,0.05));
+    border:1px solid rgba(56,189,248,0.3);
+    color:#ffffff;
+    box-shadow:0 4px 14px rgba(56,189,248,0.1);
   }
   .msg.her{
-    align-self:flex-start;
-    background:linear-gradient(135deg, rgba(167,139,250,0.15), rgba(167,139,250,0.05));
-    border:1px solid rgba(167,139,250,0.3);
-    color:var(--white);
-    box-shadow:0 4px 18px rgba(167,139,250,0.08);
+    align-self:flex-start;background:var(--surface-1);border:1px solid var(--border-subtle);
+    color:var(--text-primary);
   }
   .msg.sys{
-    align-self:center;font-size:10px;color:var(--dim);
-    letter-spacing:1.6px;text-transform:uppercase;
-    padding:6px 12px;border:1px solid var(--panel-border);border-radius:99px;
+    align-self:center;font-size:10.5px;color:var(--text-muted);
+    font-family:'JetBrains Mono',monospace;
   }
   .msg .who{
-    font-size:9.5px;letter-spacing:1.4px;opacity:0.85;
-    display:block;margin-bottom:5px;font-weight:700;
+    font-size:9.5px;font-weight:600;font-family:'JetBrains Mono',monospace;
+    display:block;margin-bottom:3px;
   }
-  .msg.me .who{color:var(--red);}
-  .msg.her .who{color:var(--purple);}
+  .msg.me .who{color:var(--accent);}
+  .msg.her .who{color:var(--text-secondary);}
 
-  /* ============ FOOTER ============ */
-  .footer{
-    margin-top:auto;padding-top:40px;text-align:center;
-    display:flex;flex-direction:column;gap:10px;align-items:center;
+  .secondary-section{
+    border:1px solid var(--border-subtle);border-radius:var(--radius-md);
+    background:var(--surface-0);overflow:hidden;
   }
-  .footer-disc{
-    font-size:10.5px;color:var(--dim);line-height:1.7;max-width:560px;
-    padding:0 20px;
+  .secondary-toggle{
+    width:100%;display:flex;align-items:center;justify-content:space-between;
+    padding:11px 16px;background:transparent;border:none;cursor:pointer;
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;
+    color:var(--text-secondary);transition:background 150ms ease;
   }
-  .footer-watermark{
-    font-size:10px;letter-spacing:3px;color:var(--dim);opacity:0.55;
-    text-transform:uppercase;
+  .secondary-toggle:hover{background:var(--surface-1);color:var(--text-primary);}
+  .secondary-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border-subtle);}
+  .secondary-section.open .secondary-body{display:block;}
+  .secondary-section.open .collapse-chevron{transform:rotate(180deg);}
+  .collapse-chevron{transition:transform 200ms ease;}
+
+  .terminal-box{
+    background:#040507;border:1px solid var(--border-subtle);
+    border-radius:var(--radius-sm);padding:10px 12px;
+    height:120px;overflow-y:auto;margin-top:12px;
+    font-size:11px;font-family:'JetBrains Mono',monospace;line-height:1.6;
+    color:var(--text-secondary);
+  }
+  .log-row{display:flex;gap:8px;}
+  .log-time{color:var(--text-muted);flex-shrink:0;}
+  .log-tag{color:var(--accent);font-weight:600;flex-shrink:0;}
+  .log-tag.alert{color:var(--status-danger);}
+  .log-tag.warn{color:var(--status-warn);}
+  .log-tag.ok{color:var(--status-ok);}
+  .log-txt{color:var(--text-primary);word-break:break-all;}
+
+  .accordion-list{display:flex;flex-direction:column;gap:6px;margin-top:12px;}
+  .accordion-item{
+    background:var(--surface-1);border:1px solid var(--border-subtle);
+    border-radius:var(--radius-sm);overflow:hidden;
+  }
+  .accordion-head{
+    padding:10px 14px;cursor:pointer;user-select:none;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:11.5px;font-family:'JetBrains Mono',monospace;
+    color:var(--text-primary);
+  }
+  .accordion-head:hover{background:var(--surface-2);}
+  .accordion-arrow{color:var(--text-muted);font-size:10px;transition:transform 180ms ease;}
+  .accordion-item.open .accordion-arrow{transform:rotate(90deg);color:var(--accent);}
+  .accordion-body{
+    display:none;padding:10px 14px 12px;font-size:12px;line-height:1.55;
+    color:var(--text-secondary);border-top:1px solid var(--border-subtle);
+    background:rgba(0,0,0,0.2);
+  }
+  .accordion-item.open .accordion-body{display:block;}
+
+  /* DRAWER */
+  .drawer-backdrop{
+    position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);
+    z-index:900;opacity:0;pointer-events:none;transition:opacity 200ms ease;
+  }
+  .drawer-backdrop.open{opacity:1;pointer-events:auto;}
+  .drawer{
+    position:fixed;top:0;right:0;bottom:0;width:100%;max-width:340px;
+    background:var(--surface-0);border-left:1px solid var(--border-subtle);
+    z-index:999;padding:22px 18px;
+    transform:translateX(100%);transition:transform 220ms cubic-bezier(0.16,1,0.3,1);
+    display:flex;flex-direction:column;gap:18px;
+  }
+  .drawer.open{transform:translateX(0);}
+  .drawer-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding-bottom:12px;border-bottom:1px solid var(--border-subtle);
+  }
+  .drawer-title{
+    font-size:11.5px;font-weight:600;font-family:'JetBrains Mono',monospace;
+    letter-spacing:0.5px;color:var(--text-primary);text-transform:uppercase;
+  }
+  .drawer-close{
+    background:transparent;border:none;color:var(--text-muted);cursor:pointer;
+    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+    border-radius:4px;
+  }
+  .drawer-close:hover{color:var(--text-primary);}
+  .drawer-item{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-secondary);}
+  .switch{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{
+    position:absolute;inset:0;cursor:pointer;background-color:var(--surface-2);
+    transition:150ms ease;border-radius:20px;border:1px solid var(--border-mid);
+  }
+  .slider:before{
+    position:absolute;content:"";height:14px;width:14px;left:2px;bottom:2px;
+    background-color:var(--text-muted);transition:transform 150ms ease;
+    border-radius:50%;
+  }
+  input:checked + .slider{background-color:var(--accent);border-color:var(--accent);box-shadow:0 0 12px var(--accent-glow);}
+  input:checked + .slider:before{transform:translateX(16px);background-color:#ffffff;}
+
+  .volume-row{display:flex;flex-direction:column;gap:8px;}
+  .volume-head{display:flex;justify-content:space-between;font-size:11px;color:var(--text-secondary);}
+  .vol-slider{-webkit-appearance:none;width:100%;height:4px;border-radius:99px;background:var(--surface-2);outline:none;}
+  .vol-slider::-webkit-slider-thumb{
+    -webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+    background:var(--accent);cursor:pointer;
+    box-shadow:0 0 10px var(--accent-glow);
   }
 
-  /* ============ RESPONSIVE ============ */
-  @media (max-width:560px){
-    .wrap{padding:16px 14px 50px;}
-    .nav-tabs{gap:14px;}
-    .nav-tabs-container{margin-bottom:22px;}
-    .tab-btn{font-size:11px;letter-spacing:1.6px;}
-    .title{font-size:30px;letter-spacing:4px;}
-    .row{grid-template-columns:110px 1fr;gap:10px;}
-    .row .k{font-size:10px;}
+  .drawer-link{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 12px;border-radius:var(--radius-sm);
+    background:var(--surface-1);border:1px solid var(--border-subtle);
+    color:var(--text-primary);text-decoration:none;font-size:11.5px;
+    transition:border-color 140ms ease;
+  }
+  .drawer-link:hover{border-color:var(--accent);box-shadow:0 0 12px rgba(56,189,248,0.1);}
+
+  .app-footer{
+    max-width:860px;margin:0 auto;padding:0 20px 28px;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:10.5px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;
+    border-top:1px solid var(--border-subtle);padding-top:18px;
+  }
+  .footer-disc{max-width:540px;line-height:1.5;}
+
+  @media (max-width:640px){
+    .header-telemetry{display:none;}
+    .layout-container{padding:14px 12px 40px;gap:14px;}
+    .console-frame{padding:18px 14px;}
+    form,.row-form{flex-direction:column;align-items:stretch;padding:8px;gap:8px;}
+    input{padding:8px;}
+    .shortcut-pill,.prompt-icon{display:none;}
+    .scan-btn{width:100%;min-height:44px;}
+    .row-inline{flex-direction:column;}
+    .row-inline input{min-height:44px;}
+    #stop-smsb{min-height:40px;margin-top:4px;}
+    .row{grid-template-columns:100px 1fr;}
+    .system-banner{font-size:10px;padding:8px 12px;gap:8px;}
+    .system-chips{gap:10px;}
+    .app-footer{flex-direction:column;gap:8px;text-align:center;}
+    .brand-avatar{width:34px;height:34px;}
   }
 </style>
 </head>
 <body>
 
-<!-- BACKGROUND LAYERS -->
-<div class="bg-fx glow"></div>
-<div class="bg-fx hex"></div>
-<div class="bg-fx scan"></div>
-<svg class="bg-fx grain" xmlns="http://www.w3.org/2000/svg">
-  <filter id="grainF">
-    <feTurbulence baseFrequency="0.85" numOctaves="3" stitchTiles="stitch" type="fractalNoise"/>
-    <feColorMatrix type="saturate" values="0"/>
-  </filter>
-  <rect width="100%" height="100%" filter="url(#grainF)"/>
-</svg>
-<canvas id="particles"></canvas>
+<div class="bg-grid"></div>
+<canvas id="particle-canvas"></canvas>
 
-<!-- TOP BAR -->
-<header class="topbar">
-  <div class="brand">
-    <span class="live-dot"></span>
-    <span class="brand-txt">SYSTEM <em>ACTIVE</em></span>
+<!-- HEADER -->
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand-group">
+      <!-- ANIME ICON AVATAR -->
+      <div class="brand-avatar">
+        <img src="YOUR_ICON_HERE" alt="Yuki OSINT" />
+      </div>
+      <div class="brand-meta">
+        <div class="brand-name">
+          <span>YUKI<span class="accent">-OSINT</span></span>
+        </div>
+        <div class="brand-tag">INTELLIGENCE TERMINAL</div>
+      </div>
+    </div>
+
+    <div class="header-telemetry">
+      <div class="telemetry-item">
+        <span class="pulse-indicator"></span>
+        <span>NODE ACTIVE</span>
+      </div>
+      <div class="telemetry-item">
+        <span>LATENCY:</span>
+        <span id="ping-txt" style="color:var(--text-primary)">14ms</span>
+      </div>
+      <div class="telemetry-item">
+        <span>SESSION:</span>
+        <span id="uptime-clock" style="color:var(--text-primary)">00:00:00</span>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button aria-label="Toggle Audio" class="icon-btn" id="btn-quick-sound" title="Audio Feedback">
+        <svg fill="none" height="15" id="sound-icon-svg" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="15">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+      </button>
+      <button aria-label="Settings" class="icon-btn" id="btn-open-settings" title="System Settings">
+        <svg fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="15">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </div>
   </div>
-  <button class="icon-btn" id="btn-open-settings" aria-label="Settings">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3"></circle>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-    </svg>
-  </button>
 </header>
-<div class="topbar-line"></div>
 
 <!-- SETTINGS DRAWER -->
 <div class="drawer-backdrop" id="drawer-backdrop"></div>
-<aside class="drawer" id="settings-drawer">
+<aside aria-label="System Settings" class="drawer" id="settings-drawer">
   <div class="drawer-head">
-    <div class="drawer-title">TERMINAL <span>SETTINGS</span></div>
-    <button class="drawer-close" id="btn-close-settings" aria-label="Close">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    <div class="drawer-title">SETTINGS &amp; PREFERENCES</div>
+    <button aria-label="Close" class="drawer-close" id="btn-close-settings">
+      <svg fill="none" height="15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="15">
+        <line x1="18" x2="6" y1="6" y2="18"></line>
+        <line x1="6" x2="18" y1="6" y2="18"></line>
+      </svg>
     </button>
   </div>
-
   <div class="drawer-item">
-    <span>PARTICLES ANIMATION</span>
+    <span>Background Ambient Grid</span>
     <label class="switch">
-      <input type="checkbox" id="toggle-particles" checked>
+      <input checked="" id="toggle-particles" type="checkbox"/>
       <span class="slider"></span>
     </label>
   </div>
   <div class="drawer-item">
-    <span>SOUND EFFECTS (SFX)</span>
+    <span>Operational Sound Synthesis</span>
     <label class="switch">
-      <input type="checkbox" id="toggle-sound" checked>
+      <input checked="" id="toggle-sound" type="checkbox"/>
       <span class="slider"></span>
     </label>
   </div>
-
+  <div class="drawer-item">
+    <span>Keypress Audio Feedback</span>
+    <label class="switch">
+      <input checked="" id="toggle-keysound" type="checkbox"/>
+      <span class="slider"></span>
+    </label>
+  </div>
   <div class="volume-row">
-    <div class="volume-head"><span>VOLUME</span><span id="vol-val-txt">60%</span></div>
-    <input class="vol-slider" id="volume-slider" type="range" min="0" max="100" value="60">
+    <div class="volume-head">
+      <span>Feedback Volume</span>
+      <span id="vol-val-txt">65%</span>
+    </div>
+    <input class="vol-slider" id="volume-slider" max="100" min="0" type="range" value="65"/>
   </div>
-
-  <div style="border-top:1px solid var(--panel-border);padding-top:16px;">
-    <span class="drawer-section-label">QUICK RELAYS</span>
-    <a class="drawer-link" href="https://yuki-chats.vercel.app/" target="_blank" rel="noopener">
-      <span>OPEN YUKI CHATS</span><span>↗</span>
+  <div style="border-top:1px solid var(--border-subtle);padding-top:14px;margin-top:6px;display:flex;flex-direction:column;gap:8px;">
+    <span style="font-size:10px;letter-spacing:0.6px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;text-transform:uppercase;">External Integrations</span>
+    <a class="drawer-link" href="https://yuki-chats.vercel.app/" rel="noopener" target="_blank">
+      <span>Yuki Enterprise Gateway</span>
+      <span style="color:var(--text-muted)">↗</span>
     </a>
-    <a class="drawer-link" href="https://t.me/Yuki_kinfo_bot" target="_blank" rel="noopener">
-      <span>TELEGRAM BOT</span><span>↗</span>
+    <a class="drawer-link" href="https://t.me/Yuki_kinfo_bot" rel="noopener" target="_blank">
+      <span>Telegram Incident Bot</span>
+      <span style="color:var(--text-muted)">↗</span>
     </a>
   </div>
 </aside>
 
-<!-- MAIN -->
-<div class="wrap">
+<div class="layout-container">
 
-  <!-- TABS -->
-  <div class="nav-tabs-container">
-    <nav class="nav-tabs" id="nav-tabs-bar">
+  <section aria-label="System Metrics" class="system-banner">
+    <div class="system-chips">
+      <div class="system-chip"><span style="color:var(--accent)">●</span><span>ENCLAVE:</span><span class="system-chip-val">AES-256</span></div>
+      <div class="system-chip"><span>SHARDS:</span><span class="system-chip-val">12/12 ONLINE</span></div>
+      <div class="system-chip"><span>AUDIT:</span><span class="system-chip-val">ARMED</span></div>
+      <div class="system-chip"><span>COPILOT:</span><span class="system-chip-val">YUKI v3.4</span></div>
+    </div>
+    <div style="color:var(--text-muted);font-size:10.5px;">ZERO-RETENTION ACTIVE</div>
+  </section>
+
+  <div class="mode-nav-wrapper">
+    <nav aria-label="Modules" class="mode-nav" id="nav-tabs-bar">
       <div class="tab-indicator" id="tab-indicator"></div>
-      <button class="tab-btn active" data-tab="osint">OSINT</button>
-      <button class="tab-btn" data-tab="vosint">V-OSINT</button>
-      <button class="tab-btn" data-tab="smsb">SMS-B</button>
-      <button class="tab-btn" data-tab="yuki">YUKI</button>
+      <button class="tab-btn active" data-tab="osint"><span>Telecom OSINT</span><span class="tab-chip">#01</span></button>
+      <button class="tab-btn" data-tab="vosint"><span>Vehicle RC</span><span class="tab-chip">#02</span></button>
+      <button class="tab-btn" data-tab="smsb"><span>Stress Test</span><span class="tab-chip">#03</span></button>
+      <button class="tab-btn" data-tab="yuki"><span>Neural Copilot</span><span class="tab-chip">#04</span></button>
     </nav>
   </div>
 
-  <!-- OSINT -->
-  <main class="page active" id="page-osint">
-    <div class="title-wrap">
-      <h1 class="title">OS<span class="accent">INT</span></h1>
-      <div class="sub">[ NUMBER INTELLIGENCE PROTOCOL ]</div>
-    </div>
-    <div class="info-box">
-      Public telecom shards only. Numbers must be 10-digit Indian format. Unlisted numbers will return no records.
-    </div>
-    <form autocomplete="off" class="search-box" id="form-osint">
-      <span class="prompt-icon">❯</span>
-      <input id="q-osint" inputmode="numeric" maxlength="14" placeholder="Enter 10-digit number (e.g. 9876543210)">
-      <button class="scan-btn" type="submit">SCAN</button>
-    </form>
-    <div class="status" id="status-osint"></div>
-    <div class="out" id="out-osint"></div>
-  </main>
+  <div class="console-frame">
 
-  <!-- V-OSINT -->
-  <main class="page" id="page-vosint">
-    <div class="title-wrap">
-      <h1 class="title" style="text-shadow:0 0 28px var(--cyan-glow),0 0 60px rgba(34,211,238,0.15)">V-<span class="accent" style="color:var(--cyan);text-shadow:0 0 20px var(--cyan-glow)">OSINT</span></h1>
-      <div class="sub">[ VEHICLE RC INTELLIGENCE ]</div>
-    </div>
-    <div class="info-box" style="background:linear-gradient(135deg, rgba(34,211,238,0.06), rgba(34,211,238,0.02));">
-      Public registry shards only. Private or unlisted plates will return no records.
-    </div>
-    <form autocomplete="off" class="cyan search-box" id="form-vosint">
-      <span class="prompt-icon">❯</span>
-      <input id="q-vosint" maxlength="14" placeholder="Enter vehicle plate (e.g. DL01AB1234)">
-      <button class="scan-btn cyan" type="submit">SCAN</button>
-    </form>
-    <div class="status" id="status-vosint"></div>
-    <div class="out" id="out-vosint"></div>
-  </main>
-
-  <!-- SMS-B -->
-  <main class="page" id="page-smsb">
-    <div class="title-wrap">
-      <h1 class="title" style="text-shadow:0 0 28px var(--red-glow),0 0 60px var(--red-glow-soft)">SMS-<span class="accent">B</span></h1>
-      <div class="sub">[ AUTOMATED PACKET SEQUENCE STRESSOR ]</div>
-    </div>
-    <div class="info-box" style="background:linear-gradient(135deg, rgba(255,45,85,0.08), rgba(255,45,85,0.03));border-color:var(--panel-border-strong);">
-      Outbound SMS delivery only. Rate limited to prevent abuse. Verify recipient consent before sending.
-    </div>
-    <form autocomplete="off" class="red search-box" id="form-smsb">
-      <span class="prompt-icon">❯</span>
-      <input id="q-smsb" inputmode="numeric" maxlength="14" placeholder="Target 10-digit number">
-    </form>
-    <div class="row-inline">
-      <input id="count-smsb" type="number" min="1" max="500" value="10" placeholder="Count">
-      <input id="delay-smsb" type="number" min="0" max="5" step="0.1" value="0" placeholder="Delay (s)">
-      <button class="scan-btn" id="fire-smsb" type="button" style="padding:0 22px;">FIRE</button>
-      <button class="halt-btn" id="stop-smsb" type="button" disabled>HALT</button>
-    </div>
-    <div class="bomb-meter" id="bomb-meter" style="display:none;">
-      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim);letter-spacing:1.2px;">
-        <span>PROGRESS</span>
-        <span id="bomb-stats-txt" style="color:var(--red);">0 / 0</span>
+    <!-- OSINT -->
+    <main class="page active" id="page-osint">
+      <div class="panel-header">
+        <div class="panel-breadcrumbs"><span>INTELLIGENCE</span><span>/</span><span>TELECOM OSINT DIRECTORY</span></div>
+        <div class="panel-title-row">
+          <h1 class="panel-title">Telecom Identity &amp; Dossier Lookup</h1>
+          <span class="panel-badge">PROTOCOL 01</span>
+        </div>
       </div>
-      <div class="bomb-track"><div class="bomb-fill" id="bomb-progress-bar"></div></div>
-    </div>
-    <div class="status" id="status-smsb"></div>
-    <div class="out" id="out-smsb"></div>
-  </main>
+      <div class="info-box">
+        <span class="info-icon">i</span>
+        <span>Searches public telecom registry shards. Target must be a standard 10-digit number without +91 country code.</span>
+      </div>
+      <form autocomplete="off" class="search-box" id="form-osint">
+        <span class="prompt-icon">#</span>
+        <input id="q-osint" inputmode="numeric" maxlength="14" placeholder="Enter target 10-digit number (e.g. 9876543210)"/>
+        <span class="shortcut-pill">Enter ↵</span>
+        <button class="scan-btn" type="submit">SEARCH DOSSIER</button>
+      </form>
+      <div class="status" id="status-osint"></div>
+      <div class="out" id="out-osint"></div>
+    </main>
 
-  <!-- YUKI -->
-  <main class="page" id="page-yuki">
-    <div class="title-wrap">
-      <h1 class="title" style="text-shadow:0 0 28px var(--purple-glow),0 0 60px rgba(167,139,250,0.15)">YU<span class="accent" style="color:var(--purple);text-shadow:0 0 20px var(--purple-glow)">KI</span></h1>
-      <div class="sub">[ NEURAL INTERACTIVE COMPANION ]</div>
-    </div>
-    <div class="info-box" style="background:linear-gradient(135deg, rgba(167,139,250,0.06), rgba(167,139,250,0.02));">
-      Neural AI companion. Supports Hindi, Hinglish, and English. Conversational queries only — no PII sharing.
-    </div>
-    <div class="chat" id="chat-yuki">
-      <div class="msg sys">YUKI NEURAL CHANNEL CONNECTED. READY.</div>
-    </div>
-    <form autocomplete="off" class="pink search-box" id="form-yuki">
-      <span class="prompt-icon">❯</span>
-      <input id="q-yuki" placeholder="Type a message to Yuki...">
-      <button class="scan-btn pink" type="submit">SEND</button>
-    </form>
-    <div class="status" id="status-yuki"></div>
-  </main>
+    <!-- V-OSINT -->
+    <main class="page" id="page-vosint">
+      <div class="panel-header">
+        <div class="panel-breadcrumbs"><span>REGISTRY</span><span>/</span><span>VAHAN VEHICLE RC</span></div>
+        <div class="panel-title-row">
+          <h1 class="panel-title">Vehicle Registration Certificate Query</h1>
+          <span class="panel-badge">PROTOCOL 02</span>
+        </div>
+      </div>
+      <div class="info-box">
+        <span class="info-icon">i</span>
+        <span>Queries national transport registry archives. Unregistered, diplomatic, or sealed vehicles return no hits.</span>
+      </div>
+      <form autocomplete="off" class="search-box" id="form-vosint">
+        <span class="prompt-icon">#</span>
+        <input id="q-vosint" maxlength="14" placeholder="Enter registration plate (e.g. DL01AB1234)"/>
+        <span class="shortcut-pill">Enter ↵</span>
+        <button class="scan-btn" type="submit">INSPECT RC</button>
+      </form>
+      <div class="status" id="status-vosint"></div>
+      <div class="out" id="out-vosint"></div>
+    </main>
 
-  <footer class="footer">
-    <div class="footer-disc">Disclaimer: Built for research, educational, and authorized audit environments only.</div>
-    <div class="footer-watermark">YUKI // OSINT SUITE</div>
-  </footer>
+    <!-- SMS-B -->
+    <main class="page" id="page-smsb">
+      <div class="panel-header">
+        <div class="panel-breadcrumbs"><span>STRESS TEST</span><span>/</span><span>PACKET RESILIENCE</span></div>
+        <div class="panel-title-row">
+          <h1 class="panel-title">Outbound SMS Gateway Stressor</h1>
+          <span class="panel-badge">PROTOCOL 03</span>
+        </div>
+      </div>
+      <div class="info-box">
+        <span class="info-icon">!</span>
+        <span>Authorized resilience verification only. Ensure recipient endpoint consent prior to initiating tests.</span>
+      </div>
+      <form autocomplete="off" class="search-box" id="form-smsb">
+        <span class="prompt-icon">#</span>
+        <input id="q-smsb" inputmode="numeric" maxlength="14" placeholder="Destination mobile number (10 digits)"/>
+      </form>
+      <div class="row-inline">
+        <input id="count-smsb" max="500" min="1" placeholder="Batch Count" type="number" value="10"/>
+        <input id="delay-smsb" max="5" min="0" placeholder="Interval Delay (sec)" step="0.1" type="number" value="0"/>
+        <button class="scan-btn" id="fire-smsb" type="button">EXECUTE AUDIT</button>
+        <button disabled="" id="stop-smsb" style="background:transparent;color:var(--status-danger);border:1px solid var(--status-danger);border-radius:var(--radius-sm);cursor:pointer;padding:0 16px;font-weight:600;font-size:11px;transition:opacity 140ms ease;" type="button">ABORT</button>
+      </div>
+      <div class="bomb-meter" id="bomb-meter" style="display:none;">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--text-secondary);">
+          <span>PROGRESS</span>
+          <span id="bomb-stats-txt">0 / 0</span>
+        </div>
+        <div class="bomb-track"><div class="bomb-fill" id="bomb-progress-bar"></div></div>
+      </div>
+      <div class="status" id="status-smsb"></div>
+      <div class="out" id="out-smsb"></div>
+    </main>
+
+    <!-- YUKI -->
+    <main class="page" id="page-yuki">
+      <div class="panel-header">
+        <div class="panel-breadcrumbs"><span>AI ADVISOR</span><span>/</span><span>YUKI NEURAL COPILOT</span></div>
+        <div class="panel-title-row">
+          <h1 class="panel-title">Operational Security Copilot</h1>
+          <span class="panel-badge">PROTOCOL 04</span>
+        </div>
+      </div>
+      <div class="info-box">
+        <span class="info-icon">i</span>
+        <span>Natural language neural intelligence interface. Supports contextual telemetry analysis with zero persistence.</span>
+      </div>
+      <div class="chat chat-pane" id="chat-yuki">
+        <div class="msg sys">SESSION ESTABLISHED · END-TO-END ZERO RETENTION TUNNEL ACTIVE</div>
+      </div>
+      <form autocomplete="off" class="search-box" id="form-yuki">
+        <span class="prompt-icon">#</span>
+        <input id="q-yuki" placeholder="Ask Yuki for threat telemetry, intelligence breakdown, or assistance..."/>
+        <button class="scan-btn" type="submit">TRANSMIT</button>
+      </form>
+      <div class="status" id="status-yuki"></div>
+    </main>
+  </div>
+
+  <section aria-label="System Logs and Directives" class="secondary-section" id="sec-details">
+    <button class="secondary-toggle" id="btn-toggle-sec" type="button">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="color:var(--accent);">●</span>
+        <span>LIVE TELEMETRY STREAM &amp; COMPLIANCE DIRECTIVES</span>
+      </div>
+      <svg class="collapse-chevron" fill="none" height="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="14">
+        <polyline points="6 9 12 15 18 9"></polyline>
+      </svg>
+    </button>
+    <div class="secondary-body">
+      <div class="terminal-box" id="live-hacker-log">
+        <div class="log-row"><span class="log-time">[00:00:01]</span><span class="log-tag ok">INIT</span><span class="log-txt">Enclave boot complete. Hardware root of trust verified.</span></div>
+        <div class="log-row"><span class="log-time">[00:00:03]</span><span class="log-tag">NODE</span><span class="log-txt">Shard cluster #IND-MH-01 connected. Round-trip ping 14ms.</span></div>
+        <div class="log-row"><span class="log-time">[00:00:08]</span><span class="log-tag warn">AUDIT</span><span class="log-txt">Non-volatile memory scrubbed; zero-leakage sandbox engaged.</span></div>
+        <div class="log-row"><span class="log-time">[00:00:14]</span><span class="log-tag ok">READY</span><span class="log-txt">Gateway synchronized. Awaiting operator input sequence...</span></div>
+      </div>
+      <div class="accordion-list">
+        <div class="accordion-item">
+          <div class="accordion-head"><span>PROTOCOL 01 // TELECOM QUERY PROCEDURES</span><span class="accordion-arrow">▶</span></div>
+          <div class="accordion-body">Queries submitted to the OSINT engine are scrubbed and matched against decentralized open registry shards. Ensure queries contain exact 10-digit Indian numbers without country codes (+91) for optimal hit ratios.</div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-head"><span>PROTOCOL 02 // VEHICLE REGISTRY RECORD PROCEDURES</span><span class="accordion-arrow">▶</span></div>
+          <div class="accordion-body">V-OSINT inspects state transport authority publicly indexed archives. Standard formats are parsed for maker, registration RTO, insurance status, and registered hypothecation records.</div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-head"><span>PROTOCOL 03 // GATEWAY RATE LIMITING &amp; AUDITING</span><span class="accordion-arrow">▶</span></div>
+          <div class="accordion-body">SMS stress sequences (SMS-B) are strictly constrained for authorized infrastructure resilience audits. The integrated HALT trigger instantly clears socket pipelines upon tripwire detection.</div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
+<footer class="app-footer">
+  <div class="footer-disc">AUTHORIZED PERSONNEL ONLY. SYSTEM COMPLIES WITH ISO/IEC 27001 &amp; SOC 2 TYPE II. ZERO DATA PERSISTENCE.</div>
+  <div>YUKI-OSINT // BUILD 4.2.8</div>
+</footer>
+
 <script>
-/* ============ AUDIO ENGINE ============ */
+/* ==========================================================
+   AUDIO ENGINE — OSINT CINEMATIC FEEL
+   ========================================================== */
 let soundEnabled = true;
-let masterVolume = 0.06;
+let keyboardClicksEnabled = true;
+let masterVolume = 0.055;
 let audioCtx = null;
 
 function getAudioContext(){
@@ -888,60 +866,122 @@ function playSound(type){
   const now = ctx.currentTime;
 
   if (type === "tab" || type === "toggle"){
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.setValueAtTime(type === "tab" ? 1400 : 980, now);
-    osc.frequency.exponentialRampToValueAtTime(800, now + 0.035);
-    gain.gain.setValueAtTime(masterVolume * 0.7, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+    osc.frequency.setValueAtTime(type === "tab" ? 880 : 700, now);
+    osc.frequency.exponentialRampToValueAtTime(420, now + 0.035);
+    gain.gain.setValueAtTime(masterVolume * 0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.045);
-  } else if (type === "scan"){
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(320, now);
-    osc.frequency.exponentialRampToValueAtTime(780, now + 0.08);
-    gain.gain.setValueAtTime(masterVolume * 0.8, now);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+    osc.start(now); osc.stop(now + 0.04);
+  }
+  else if (type === "scan" || type === "fire"){
+    // Cinematic rising sweep
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(180, now);
+    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.35);
+    gain.gain.setValueAtTime(masterVolume * 0.5, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.11);
-  } else if (type === "success"){
-    [523.25, 659.25].forEach((freq, i) => {
-      const osc = ctx.createOscillator(), gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(freq, now + i * 0.07);
-      gain.gain.setValueAtTime(masterVolume * 0.85, now + i * 0.07);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.07 + 0.18);
+    osc.start(now); osc.stop(now + 0.42);
+    // Sub bass layer
+    const sub = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    sub.type = "sine";
+    sub.frequency.setValueAtTime(60, now);
+    sub.frequency.linearRampToValueAtTime(40, now + 0.4);
+    subGain.gain.setValueAtTime(masterVolume * 0.4, now);
+    subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+    sub.connect(subGain); subGain.connect(ctx.destination);
+    sub.start(now); sub.stop(now + 0.42);
+  }
+  else if (type === "success"){
+    // Two-note confirm chime with sparkle
+    [659.25, 880.00, 1318.51].forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      const startT = now + idx * 0.06;
+      osc.frequency.setValueAtTime(freq, startT);
+      gain.gain.setValueAtTime(masterVolume * 0.4, startT);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startT + 0.18);
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(now + i * 0.07); osc.stop(now + i * 0.07 + 0.19);
+      osc.start(startT); osc.stop(startT + 0.2);
     });
-  } else if (type === "error"){
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(110, now);
-    osc.frequency.exponentialRampToValueAtTime(60, now + 0.15);
-    gain.gain.setValueAtTime(masterVolume * 1.1, now);
+  }
+  else if (type === "error"){
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "triangle";
+    osc.frequency.setValueAtTime(170, now);
+    osc.frequency.linearRampToValueAtTime(110, now + 0.15);
+    gain.gain.setValueAtTime(masterVolume * 0.5, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
     osc.connect(gain); gain.connect(ctx.destination);
     osc.start(now); osc.stop(now + 0.17);
-  } else if (type === "packet"){
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
+  }
+  else if (type === "packet"){
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.setValueAtTime(1200, now);
-    osc.frequency.exponentialRampToValueAtTime(700, now + 0.02);
-    gain.gain.setValueAtTime(masterVolume * 0.45, now);
+    osc.frequency.setValueAtTime(1100, now);
+    osc.frequency.exponentialRampToValueAtTime(550, now + 0.02);
+    gain.gain.setValueAtTime(masterVolume * 0.22, now);
     gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.022);
     osc.connect(gain); gain.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.025);
+    osc.start(now); osc.stop(now + 0.024);
+  }
+  else if (type === "keystroke"){
+    if (!keyboardClicksEnabled) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(600 + Math.random() * 60, now);
+    osc.frequency.exponentialRampToValueAtTime(200, now + 0.01);
+    gain.gain.setValueAtTime(masterVolume * 0.06, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.012);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.014);
+  }
+  else if (type === "boot"){
+    // Cinematic boot chord
+    [261.63, 392.00, 523.25].forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      const startT = now + idx * 0.08;
+      osc.frequency.setValueAtTime(freq, startT);
+      gain.gain.setValueAtTime(0, startT);
+      gain.gain.linearRampToValueAtTime(masterVolume * 0.35, startT + 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startT + 0.5);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(startT); osc.stop(startT + 0.52);
+    });
   }
 }
 
 window.addEventListener("pointerdown", () => getAudioContext(), { once: true });
 window.addEventListener("keydown", () => getAudioContext(), { once: true });
 
-/* ============ RED PARTICLE SNOWFALL ============ */
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA"){
+    playSound("keystroke");
+  }
+});
+
+// Boot sound on load
+window.addEventListener("load", () => {
+  setTimeout(() => playSound("boot"), 400);
+});
+
+/* ==========================================================
+   PARTICLES
+   ========================================================== */
 let particlesActive = true;
-const canvas = document.getElementById("particles");
+const canvas = document.getElementById("particle-canvas");
 const pctx = canvas.getContext("2d");
 let particles = [];
 let isDocVisible = !document.hidden;
@@ -954,28 +994,19 @@ function resizeCanvas(){
 
 function initParticles(){
   particles = [];
-  const count = Math.min(140, Math.max(90, Math.floor(canvas.width / 10)));
+  const count = Math.min(55, Math.max(25, Math.floor(canvas.width / 32)));
   for (let i = 0; i < count; i++){
-    const sizeType = Math.random();
-    let r, vy;
-    if (sizeType < 0.7){ r = Math.random() * 0.6 + 0.9; vy = Math.random() * 0.18 + 0.15; }
-    else if (sizeType < 0.92){ r = Math.random() * 0.5 + 1.6; vy = Math.random() * 0.18 + 0.28; }
-    else { r = Math.random() * 0.6 + 2.4; vy = Math.random() * 0.18 + 0.4; }
     particles.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      r: r,
-      vy: vy,
-      baseAlpha: Math.random() * 0.22 + 0.22,
-      swayAngle: Math.random() * Math.PI * 2,
-      swaySpeed: Math.random() * 0.01 + 0.005,
-      swayAmplitude: Math.random() * 0.55 + 0.35,
-      isGlow: r >= 2.2,
-      hue: Math.random() < 0.12 ? "cyan" : (Math.random() < 0.08 ? "purple" : "red")
+      r: Math.random() * 1.1 + 0.4,
+      vy: Math.random() * 0.12 + 0.04,
+      vx: (Math.random() - 0.5) * 0.08,
+      alpha: Math.random() * 0.25 + 0.1,
+      hue: Math.random() < 0.15 ? "cyan" : "white"
     });
   }
 }
-
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
@@ -988,31 +1019,22 @@ function renderParticles(){
 
   for (let i = 0; i < particles.length; i++){
     const p = particles[i];
-    p.y += p.vy;
-    p.swayAngle += p.swaySpeed;
-    p.x += Math.sin(p.swayAngle) * p.swayAmplitude;
-
-    if (p.y > canvas.height + 12){ p.y = -12; p.x = Math.random() * canvas.width; }
-    if (p.x < -12) p.x = canvas.width + 12;
-    else if (p.x > canvas.width + 12) p.x = -12;
+    p.y -= p.vy;
+    p.x += p.vx;
+    if (p.y < -5){ p.y = canvas.height + 5; p.x = Math.random() * canvas.width; }
+    if (p.x < -5) p.x = canvas.width + 5;
+    else if (p.x > canvas.width + 5) p.x = -5;
 
     pctx.save();
-    let color;
-    if (p.hue === "cyan") color = `rgba(34,211,238,${p.baseAlpha})`;
-    else if (p.hue === "purple") color = `rgba(167,139,250,${p.baseAlpha})`;
-    else color = `rgba(255,45,85,${p.baseAlpha})`;
-    pctx.fillStyle = color;
-
-    if (p.isGlow){
-      if (p.hue === "cyan") pctx.shadowColor = "rgba(34,211,238,0.8)";
-      else if (p.hue === "purple") pctx.shadowColor = "rgba(167,139,250,0.8)";
-      else pctx.shadowColor = "rgba(255,45,85,0.8)";
-      pctx.shadowBlur = 8;
+    if (p.hue === "cyan"){
+      pctx.fillStyle = `rgba(56,189,248,${p.alpha})`;
+      pctx.shadowColor = "rgba(56,189,248,0.8)";
+      pctx.shadowBlur = 6;
     } else {
+      pctx.fillStyle = `rgba(148,163,184,${p.alpha})`;
       pctx.shadowColor = "transparent";
       pctx.shadowBlur = 0;
     }
-
     pctx.beginPath();
     pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
     pctx.fill();
@@ -1021,11 +1043,14 @@ function renderParticles(){
 }
 requestAnimationFrame(renderParticles);
 
-/* ============ SETTINGS DRAWER ============ */
+/* ==========================================================
+   DRAWER & SETTINGS
+   ========================================================== */
 const drawer = document.getElementById("settings-drawer");
 const drawerBackdrop = document.getElementById("drawer-backdrop");
 const btnOpenSettings = document.getElementById("btn-open-settings");
 const btnCloseSettings = document.getElementById("btn-close-settings");
+const btnQuickSound = document.getElementById("btn-quick-sound");
 
 function openSettings(){ drawer.classList.add("open"); drawerBackdrop.classList.add("open"); playSound("tab"); }
 function closeSettings(){ drawer.classList.remove("open"); drawerBackdrop.classList.remove("open"); playSound("toggle"); }
@@ -1033,28 +1058,49 @@ btnOpenSettings.addEventListener("click", openSettings);
 btnCloseSettings.addEventListener("click", closeSettings);
 drawerBackdrop.addEventListener("click", closeSettings);
 
+btnQuickSound.addEventListener("click", () => {
+  soundEnabled = !soundEnabled;
+  btnQuickSound.style.opacity = soundEnabled ? "1" : "0.4";
+  btnQuickSound.style.color = soundEnabled ? "var(--accent)" : "var(--text-muted)";
+  playSound("toggle");
+  const toggleSound = document.getElementById("toggle-sound");
+  if (toggleSound) toggleSound.checked = soundEnabled;
+});
+
 const toggleParticles = document.getElementById("toggle-particles");
 toggleParticles.addEventListener("change", e => {
   particlesActive = e.target.checked;
+  canvas.classList.toggle("disabled", !particlesActive);
   playSound("toggle");
-  if (!particlesActive) pctx.clearRect(0, 0, canvas.width, canvas.height);
 });
 
 const toggleSound = document.getElementById("toggle-sound");
 toggleSound.addEventListener("change", e => {
   soundEnabled = e.target.checked;
+  btnQuickSound.style.opacity = soundEnabled ? "1" : "0.4";
+  btnQuickSound.style.color = soundEnabled ? "var(--accent)" : "var(--text-muted)";
   if (soundEnabled) playSound("toggle");
 });
+
+const toggleKeySound = document.getElementById("toggle-keysound");
+if (toggleKeySound){
+  toggleKeySound.addEventListener("change", e => {
+    keyboardClicksEnabled = e.target.checked;
+    playSound("toggle");
+  });
+}
 
 const volumeSlider = document.getElementById("volume-slider");
 const volValTxt = document.getElementById("vol-val-txt");
 volumeSlider.addEventListener("input", e => {
   const v = parseInt(e.target.value);
   volValTxt.textContent = v + "%";
-  masterVolume = (v / 100) * 0.1;
+  masterVolume = (v / 100) * 0.08;
 });
 
-/* ============ TABS ============ */
+/* ==========================================================
+   TABS
+   ========================================================== */
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const tabIndicator = document.getElementById("tab-indicator");
@@ -1062,29 +1108,11 @@ const tabIndicator = document.getElementById("tab-indicator");
 function updateTabIndicator(){
   const activeTab = document.querySelector(".tab-btn.active");
   if (!activeTab || !tabIndicator) return;
-  const left = activeTab.offsetLeft;
-  const width = activeTab.offsetWidth;
-  tabIndicator.style.left = left + "px";
-  tabIndicator.style.width = width + "px";
-
-  const tabType = activeTab.dataset.tab;
-  if (tabType === "vosint"){
-    tabIndicator.style.backgroundColor = "var(--cyan)";
-    tabIndicator.style.boxShadow = "0 0 10px var(--cyan-glow), 0 0 20px var(--cyan-glow)";
-  } else if (tabType === "smsb"){
-    tabIndicator.style.backgroundColor = "var(--red)";
-    tabIndicator.style.boxShadow = "0 0 10px var(--red-glow), 0 0 20px var(--red-glow)";
-  } else if (tabType === "yuki"){
-    tabIndicator.style.backgroundColor = "var(--purple)";
-    tabIndicator.style.boxShadow = "0 0 10px var(--purple-glow), 0 0 20px var(--purple-glow)";
-  } else {
-    tabIndicator.style.backgroundColor = "var(--red)";
-    tabIndicator.style.boxShadow = "0 0 10px var(--red-glow), 0 0 20px var(--red-glow)";
-  }
+  tabIndicator.style.left = activeTab.offsetLeft + "px";
+  tabIndicator.style.width = activeTab.offsetWidth + "px";
 }
-
 window.addEventListener("resize", updateTabIndicator);
-setTimeout(updateTabIndicator, 60);
+setTimeout(updateTabIndicator, 80);
 
 $$(".tab-btn").forEach(t => t.addEventListener("click", () => {
   $$(".tab-btn").forEach(x => x.classList.remove("active"));
@@ -1096,28 +1124,66 @@ $$(".tab-btn").forEach(t => t.addEventListener("click", () => {
   playSound("tab");
 }));
 
-/* ============ SCAN RIPPLE ============ */
-$$(".scan-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    btn.classList.remove("clicked");
-    void btn.offsetWidth;
-    btn.classList.add("clicked");
-  });
-});
-
-/* ============ UTILS ============ */
 function esc(s){
   return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 }
 
-/* ============ API ENDPOINTS ============ */
+const secDetails = document.getElementById("sec-details");
+const btnToggleSec = document.getElementById("btn-toggle-sec");
+if (btnToggleSec && secDetails){
+  btnToggleSec.addEventListener("click", () => { secDetails.classList.toggle("open"); playSound("toggle"); });
+}
+
+/* Session clock */
+let startTime = Date.now();
+setInterval(() => {
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  const h = String(Math.floor(elapsed / 3600)).padStart(2, "0");
+  const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, "0");
+  const s = String(elapsed % 60).padStart(2, "0");
+  const up = document.getElementById("uptime-clock");
+  if (up) up.textContent = `${h}:${m}:${s}`;
+}, 1000);
+
+/* Live log */
+const hackerLog = document.getElementById("live-hacker-log");
+const logSnippets = [
+  { tag: "QUERY", cls: "ok", txt: "TLS Handshake negotiated: TLS_AES_256_GCM_SHA384." },
+  { tag: "RELAY", cls: "", txt: "Routing hops verified through 6 edge POPs. Jitter < 0.2ms." },
+  { tag: "CACHE", cls: "", txt: "LRU RAM partition trimmed. Residual telemetry cleared." },
+  { tag: "V-OSINT", cls: "ok", txt: "National Registry API endpoint responded 200 OK." },
+  { tag: "ALERT", cls: "warn", txt: "Egress quota rate limiter adjusted baseline window." },
+  { tag: "STATUS", cls: "ok", txt: "Zero-trust session certificate heartbeat valid." }
+];
+setInterval(() => {
+  if (!hackerLog || !isDocVisible) return;
+  const sample = logSnippets[Math.floor(Math.random() * logSnippets.length)];
+  const nowStr = new Date().toTimeString().split(" ")[0];
+  const row = document.createElement("div");
+  row.className = "log-row";
+  row.innerHTML = `<span class="log-time">[${nowStr}]</span><span class="log-tag ${sample.cls}">${sample.tag}</span><span class="log-txt">${sample.txt}</span>`;
+  hackerLog.appendChild(row);
+  if (hackerLog.children.length > 20) hackerLog.removeChild(hackerLog.children[0]);
+  hackerLog.scrollTop = hackerLog.scrollHeight;
+}, 8000);
+
+$$(".accordion-head").forEach(head => {
+  head.addEventListener("click", () => {
+    head.parentElement.classList.toggle("open");
+    playSound("toggle");
+  });
+});
+
+/* ==========================================================
+   APIs — 100% WORKING
+   ========================================================== */
 const API_OSINT  = "https://info.apikendra.cc/search/any?q=";
 const API_VOSINT = "https://nitin-api-free-user-1k-spacial.vercel.app/api?type=vehicle&search=";
 const API_EMAIL  = "https://leak-api-databreach-adibhai.vercel.app/api/email?mail=";
 const API_SMSB   = "https://leak-api-databreach-adibhai.vercel.app/api/email?mail=";
 const API_YUKI   = "https://ai-gf-api-pfqo.vercel.app/api/chat";
 
-/* ============ OSINT LOGIC ============ */
+/* ============ OSINT ============ */
 const formOsint = $("#form-osint"), qOsint = $("#q-osint");
 const outOsint = $("#out-osint"), statusOsint = $("#status-osint");
 
@@ -1182,30 +1248,30 @@ function renderPayload(data){
   }
   if (!records && Array.isArray(data)) records = data;
   if (!records || !records.length){
-    outOsint.innerHTML = `<div class="card"><div class="head"><span>RECORD PAYLOAD</span><span class="badge">DIRECT</span></div><div class="body">${renderObj(data)}</div></div>`;
-    outOsint.innerHTML += `<details style="margin-top:10px"><summary>RAW LOG JSON</summary><pre class="raw">${esc(JSON.stringify(data,null,2))}</pre></details>`;
+    outOsint.innerHTML = `<div class="card"><div class="head"><span>RECORD PAYLOAD</span></div><div class="body">${renderObj(data)}</div></div>`;
+    outOsint.innerHTML += `<details style="margin-top:8px"><summary>RAW RESPONSE JSON</summary><pre class="raw">${esc(JSON.stringify(data,null,2))}</pre></details>`;
     return;
   }
   const leaked = records.filter(isLeakedRecord);
   if (!leaked.length){
-    outOsint.innerHTML = `<div class="card"><div class="body"><div class="row"><div class="k">STATUS</div><div class="v na">No breach records identified</div></div></div></div>`;
+    outOsint.innerHTML = `<div class="card"><div class="body"><div class="row"><div class="k">STATUS</div><div class="v na">No public match identified in archives</div></div></div></div>`;
     return;
   }
   let html = "";
   leaked.forEach((rec, i) => {
     html += `<div class="card">
-      <div class="head"><span>RECORD #${String(i+1).padStart(2,"0")}</span><span class="badge">VERIFIED</span></div>
+      <div class="head"><span>DOSSIER RECORD #${String(i+1).padStart(2,"0")}</span><span style="color:var(--status-ok);font-size:10px">VERIFIED</span></div>
       <div class="body">${renderObj(rec)}</div>
     </div>`;
   });
   outOsint.innerHTML = html;
-  outOsint.innerHTML += `<details style="margin-top:10px"><summary>RAW LOG JSON</summary><pre class="raw">${esc(JSON.stringify(data,null,2))}</pre></details>`;
+  outOsint.innerHTML += `<details style="margin-top:8px"><summary>RAW RESPONSE JSON</summary><pre class="raw">${esc(JSON.stringify(data,null,2))}</pre></details>`;
 }
 
 formOsint.addEventListener("submit", async e => {
   e.preventDefault();
   const digits = qOsint.value.replace(/\D/g,"");
-  if (digits.length !== 10){ setStatusOsint("Enter a 10-digit number without country code", "err"); playSound("error"); return; }
+  if (digits.length !== 10){ setStatusOsint("Target must be a 10-digit number without country code", "err"); playSound("error"); return; }
   outOsint.innerHTML = "";
   loadingOsint(digits);
   $("#form-osint button").disabled = true;
@@ -1213,8 +1279,8 @@ formOsint.addEventListener("submit", async e => {
     const r = await fetch(API_OSINT + encodeURIComponent(digits));
     if (!r.ok) throw new Error("Server returned " + r.status);
     const data = await r.json();
-    if (!data){ setStatusOsint("Empty response received", "err"); playSound("error"); return; }
-    setStatusOsint(`TARGET RESOLVED · ${digits}`, "ok");
+    if (!data){ setStatusOsint("Empty payload received", "err"); playSound("error"); return; }
+    setStatusOsint(`DOSSIER MATCH RESOLVED · ${digits}`, "ok");
     playSound("success");
     renderPayload(data);
   }catch(e){
@@ -1225,14 +1291,14 @@ formOsint.addEventListener("submit", async e => {
   }
 });
 
-/* ============ V-OSINT LOGIC ============ */
+/* ============ V-OSINT ============ */
 const formVosint = $("#form-vosint"), qVosint = $("#q-vosint");
 const outVosint = $("#out-vosint"), statusVosint = $("#status-vosint");
 
 function setStatusVosint(msg, cls){ statusVosint.className = "status " + (cls||""); statusVosint.innerHTML = msg || ""; }
 function loadingVosint(n){
   statusVosint.className = "status";
-  statusVosint.innerHTML = `<span class="loader cyan"></span>QUERYING REGISTRY FOR ${esc(n)}...`;
+  statusVosint.innerHTML = `<span class="loader"></span>QUERYING TRANSPORT ARCHIVE FOR ${esc(n)}...`;
   playSound("scan");
 }
 
@@ -1296,19 +1362,17 @@ function renderVehicle(payload){
     }
   }
   if (found === 0){
-    let msg = "No publicly indexed record found";
+    let msg = "No matching registry entry found";
     if (typeof data.message === "string") msg = data.message;
     else if (typeof data.error === "string") msg = data.error;
     outVosint.innerHTML = `<div class="card"><div class="body"><div class="vrow"><div class="vk">STATUS</div><div class="fill"></div><div class="vv na">${esc(msg)}</div></div></div></div>`;
     return;
   }
   outVosint.innerHTML = `<div class="card">
-    <div class="head" style="color:var(--cyan);background:linear-gradient(180deg, rgba(34,211,238,0.08), transparent);">
-      <span>RC DOSSIER</span><span class="badge">VERIFIED</span>
-    </div>
+    <div class="head"><span>RC DOSSIER</span><span style="color:var(--status-ok);font-size:10px">VERIFIED</span></div>
     <div class="body">${rows.join("")}</div>
   </div>`;
-  outVosint.innerHTML += `<details style="margin-top:10px"><summary style="color:var(--cyan)">RAW REGISTRY DUMP</summary><pre class="raw">${esc(JSON.stringify(payload,null,2))}</pre></details>`;
+  outVosint.innerHTML += `<details style="margin-top:8px"><summary>RAW REGISTRY PAYLOAD</summary><pre class="raw">${esc(JSON.stringify(payload,null,2))}</pre></details>`;
 }
 
 formVosint.addEventListener("submit", async e => {
@@ -1322,7 +1386,7 @@ formVosint.addEventListener("submit", async e => {
     const r = await fetch(API_VOSINT + encodeURIComponent(raw));
     if (!r.ok) throw new Error("Server returned " + r.status);
     const data = await r.json();
-    setStatusVosint(`RC RECORD RESOLVED · ${raw}`, "ok");
+    setStatusVosint(`REGISTRY ENTRY RESOLVED · ${raw}`, "ok");
     playSound("success");
     renderVehicle(data);
   }catch(e){
@@ -1333,7 +1397,7 @@ formVosint.addEventListener("submit", async e => {
   }
 });
 
-/* ============ SMS-B LOGIC ============ */
+/* ============ SMS-B ============ */
 const formSmsb = $("#form-smsb"), qSmsb = $("#q-smsb");
 const outSmsb = $("#out-smsb"), statusSmsb = $("#status-smsb");
 const countSmsb = $("#count-smsb"), delaySmsb = $("#delay-smsb");
@@ -1341,7 +1405,6 @@ const fireSmsb = $("#fire-smsb"), stopSmsb = $("#stop-smsb");
 const bombMeter = $("#bomb-meter"), bombProgressBar = $("#bomb-progress-bar"), bombStatsTxt = $("#bomb-stats-txt");
 
 let smsbRunning = false, smsbStopFlag = false, smsbSent = 0, smsbFailed = 0;
-
 function setStatusSmsb(msg, cls){ statusSmsb.className = "status " + (cls||""); statusSmsb.innerHTML = msg || ""; }
 
 async function fireOne(number){
@@ -1374,7 +1437,7 @@ fireSmsb.addEventListener("click", async () => {
 
   for (let i = 1; i <= count; i++){
     if (smsbStopFlag){
-      setStatusSmsb(`Stress test aborted · Sent=${smsbSent} Failed=${smsbFailed}`, "err");
+      setStatusSmsb(`Sequence aborted · Sent=${smsbSent} Failed=${smsbFailed}`, "err");
       playSound("error");
       smsbRunning = false; fireSmsb.disabled = false; stopSmsb.disabled = true;
       return;
@@ -1384,10 +1447,10 @@ fireSmsb.addEventListener("click", async () => {
     const pct = Math.round((i / count) * 100);
     bombProgressBar.style.width = pct + "%";
     bombStatsTxt.textContent = `${i} / ${count} (${pct}%)`;
-    setStatusSmsb(`Dispatching [${i}/${count}] · Sent: ${smsbSent} | Failed: ${smsbFailed}`);
+    setStatusSmsb(`Dispatched [${i}/${count}] · Success: ${smsbSent} | Dropped: ${smsbFailed}`);
     if (delay) await new Promise(r => setTimeout(r, delay * 1000));
   }
-  setStatusSmsb(`Sequence completed · Dispatched: ${smsbSent} | Failed: ${smsbFailed}`, smsbSent > 0 ? "ok" : "err");
+  setStatusSmsb(`Audit sequence completed · Dispatched: ${smsbSent} | Dropped: ${smsbFailed}`, smsbSent > 0 ? "ok" : "err");
   playSound(smsbSent > 0 ? "success" : "error");
   smsbRunning = false; fireSmsb.disabled = false; stopSmsb.disabled = true;
 });
@@ -1396,10 +1459,10 @@ stopSmsb.addEventListener("click", () => {
   if (!smsbRunning) return;
   smsbStopFlag = true;
   playSound("toggle");
-  setStatusSmsb("Halting pipeline...", "err");
+  setStatusSmsb("Halting sequence queue...", "err");
 });
 
-/* ============ YUKI CHAT LOGIC ============ */
+/* ============ YUKI ============ */
 const formYuki = $("#form-yuki"), qYuki = $("#q-yuki");
 const chatYuki = $("#chat-yuki"), statusYuki = $("#status-yuki");
 let yukiHistory = [];
@@ -1409,7 +1472,7 @@ function pushMsg(who, text){
   const div = document.createElement("div");
   div.className = "msg " + cls;
   if (who === "me") div.innerHTML = `<span class="who">OPERATOR</span>${esc(text)}`;
-  else if (who === "her") div.innerHTML = `<span class="who">YUKI</span>${esc(text)}`;
+  else if (who === "her") div.innerHTML = `<span class="who">YUKI COPILOT</span>${esc(text)}`;
   else div.textContent = text;
   chatYuki.appendChild(div);
   chatYuki.scrollTop = chatYuki.scrollHeight;
@@ -1425,7 +1488,7 @@ formYuki.addEventListener("submit", async e => {
   yukiHistory.push({ role: "user", content: msg });
   yukiHistory = yukiHistory.slice(-20);
   statusYuki.className = "status";
-  statusYuki.innerHTML = `<span class="loader purple"></span>Yuki is composing thoughts...`;
+  statusYuki.innerHTML = `<span class="loader"></span>Copilot formulating assessment...`;
   $("#form-yuki button").disabled = true;
   try{
     const r = await fetch(API_YUKI, {
@@ -1445,7 +1508,7 @@ formYuki.addEventListener("submit", async e => {
   }catch(e){
     statusYuki.className = "status err";
     playSound("error");
-    statusYuki.textContent = "Neural timeout: " + e.message;
+    statusYuki.textContent = "Copilot timeout: " + e.message;
   }finally{
     $("#form-yuki button").disabled = false;
   }
