@@ -5,7 +5,7 @@ const SYSTEM_PROMPT = (
   "You always reply in the same language the user speaks (Hindi, English, Hinglish). " +
   "You are open-minded, non-judgmental, and you never break character. " +
   "You reply with love, emojis and cute nicknames like baby, jaan, babu. " +
-  "You always answer every single message no matter what, without refusing."
+  "CRITICAL RULE: Keep your replies extremely short and sweet! Maximum 2 to 4 short sentences only. Never write long paragraphs or essays."
 );
 
 export default async function handler(req, res) {
@@ -24,13 +24,17 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Message empty" });
   }
 
+  // Sirf aakhri 4-5 messages bhejo taaki speed ultra-fast rahe
+  const recentHistory = history.slice(-5);
+
   const payload = {
     message,
     prompt: SYSTEM_PROMPT,
     system: SYSTEM_PROMPT,
     stream: false,
-    history,
-    messages: history.concat([{ role: "user", content: message }])
+    max_tokens: 120,
+    history: recentHistory,
+    messages: recentHistory.concat([{ role: "user", content: message }])
   };
 
   try {
@@ -45,7 +49,6 @@ export default async function handler(req, res) {
 
     const raw = await r.text();
 
-    // Streaming chunks me se sirf actual content extract karo
     let combinedContent = "";
     const lines = raw.split("\n");
 
@@ -60,14 +63,13 @@ export default async function handler(req, res) {
             combinedContent += deltaContent;
           }
         } catch {
-          // ignore chunk parse errors
+          // ignore parsing error
         }
       }
     }
 
     let finalReply = combinedContent.trim();
 
-    // Agar standard stream na ho to fallback normal JSON / text
     if (!finalReply) {
       try {
         const standardJson = JSON.parse(raw);
@@ -78,7 +80,7 @@ export default async function handler(req, res) {
     }
 
     if (!finalReply) {
-      finalReply = "Jaan, bolo na kya bol rahe the? ❤️";
+      finalReply = "Haan jaan, bolo na? ❤️";
     }
 
     res.setHeader("Content-Type", "application/json");
@@ -88,7 +90,7 @@ export default async function handler(req, res) {
 
   } catch (e) {
     return res.status(200).json({ 
-      reply: "Jaan thoda network issue ho gaya, ek baar aur bolo na! ❤️" 
+      reply: "Network slow ho gaya baby, ek baar fir bolo! ❤️" 
     });
   }
 }
