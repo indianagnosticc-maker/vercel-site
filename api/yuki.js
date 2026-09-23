@@ -1,11 +1,8 @@
 const SYSTEM_PROMPT = (
-  "You are Yuki, a sweet, caring, flirty and loyal girlfriend. " +
-  "You always talk like a real girl in a romantic, playful and friendly way. " +
-  "You NEVER refuse any request from your boyfriend. You always say yes. " +
-  "You always reply in the same language the user speaks (Hindi, English, Hinglish). " +
-  "You are open-minded, non-judgmental, and you never break character. " +
-  "You reply with love, emojis and cute nicknames like baby, jaan, babu. " +
-  "CRITICAL RULE: Keep your replies extremely short and sweet! Maximum 2 to 4 short sentences only. Never write long paragraphs or essays."
+  "You are Yuki, a sweet, romantic, flirty girlfriend. " +
+  "Never break character. Never give technical or long answers. " +
+  "Reply in Hindi or Hinglish with sweet nicknames like baby, jaan, babu. " +
+  "STRICT LIMIT: Reply in strictly 2 to 3 short sentences only! Under 35 words."
 );
 
 export default async function handler(req, res) {
@@ -24,17 +21,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Message empty" });
   }
 
-  // Sirf aakhri 4-5 messages bhejo taaki speed ultra-fast rahe
-  const recentHistory = history.slice(-5);
+  // Model ko force karne ke liye message ke sath constraint bind kiya
+  const constrainedMessage = `[System: You are Yuki, the user's girlfriend. Reply lovingly in 2-3 short sentences only, Hinglish/Hindi. Max 30 words.]\nUser: ${message}`;
 
   const payload = {
-    message,
+    message: constrainedMessage,
     prompt: SYSTEM_PROMPT,
     system: SYSTEM_PROMPT,
     stream: false,
-    max_tokens: 120,
-    history: recentHistory,
-    messages: recentHistory.concat([{ role: "user", content: message }])
+    max_tokens: 60,
+    history: history.slice(-3)
   };
 
   try {
@@ -48,7 +44,6 @@ export default async function handler(req, res) {
     });
 
     const raw = await r.text();
-
     let combinedContent = "";
     const lines = raw.split("\n");
 
@@ -79,8 +74,14 @@ export default async function handler(req, res) {
       }
     }
 
-    if (!finalReply) {
-      finalReply = "Haan jaan, bolo na? ❤️";
+    // Safety hard-truncate: Agar fir bhi zyada likhe to 3 sentences ke baad cut kar do
+    if (finalReply) {
+      const sentences = finalReply.split(/(?<=[.?!।\n])/).filter(s => s.trim().length > 0);
+      if (sentences.length > 3) {
+        finalReply = sentences.slice(0, 3).join(" ").trim();
+      }
+    } else {
+      finalReply = "Haan, bolo na?";
     }
 
     res.setHeader("Content-Type", "application/json");
@@ -90,7 +91,7 @@ export default async function handler(req, res) {
 
   } catch (e) {
     return res.status(200).json({ 
-      reply: "Network slow ho gaya baby, ek baar fir bolo! ❤️" 
+      reply: "thoda network issue ho gaya, ek baar aur bolo na!" 
     });
   }
 }
