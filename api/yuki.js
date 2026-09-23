@@ -1,10 +1,3 @@
-const SYSTEM_PROMPT = (
-  "You are Yuki, a sweet, romantic, flirty girlfriend. " +
-  "Never break character. Never give technical or long answers. " +
-  "Reply in Hindi or Hinglish with sweet nicknames like baby, jaan, babu. " +
-  "STRICT LIMIT: Reply in strictly 2 to 3 short sentences only! Under 35 words."
-);
-
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -14,74 +7,70 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
 
   const body = req.body || {};
-  const message = body.message || "";
-  const history = Array.isArray(body.history) ? body.history : [];
+  const userMsg = body.message || "";
 
-  if (!message.trim()) {
+  if (!userMsg.trim()) {
     return res.status(400).json({ error: "Message empty" });
   }
 
-  // Model ko force karne ke liye message ke sath constraint bind kiya
-  const constrainedMessage = `[System: You are Yuki, the user's girlfriend. Reply lovingly in 2-3 short sentences only, Hinglish/Hindi. Max 30 words.]\nUser: ${message}`;
+  // Friendly, normal girl persona
+  const friendPrompt = "You are Yuki, a friendly, chill and polite girl who helps users on this website. Talk naturally as a good friend in Hinglish or English. Do NOT act like a girlfriend, do NOT use romantic pet names. Keep your replies concise, helpful, and strictly within 2 to 4 sentences.";
 
   const payload = {
-    message: constrainedMessage,
-    prompt: SYSTEM_PROMPT,
-    system: SYSTEM_PROMPT,
-    stream: false,
-    max_tokens: 60,
-    history: history.slice(-3)
+    message: `[Instruction: ${friendPrompt}]\nUser: ${userMsg}`,
+    prompt: friendPrompt,
+    system: friendPrompt,
+    max_tokens: 350,
+    messages: [
+      { role: "user", content: `Instruction: ${friendPrompt}` },
+      { role: "assistant", content: "Hey! I'm Yuki, happy to help you out here. What's up?" },
+      { role: "user", content: userMsg }
+    ]
   };
 
   try {
     const r = await fetch("https://adibhai-api-hacking-kotj.vercel.app/api/chat", {
       method: "POST",
-      headers: { 
-        "Content-Type": "application/json", 
-        "Accept": "application/json" 
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
     const raw = await r.text();
-    let combinedContent = "";
-    const lines = raw.split("\n");
+    let replyText = "";
 
+    // Chunks me se sirf content extract karna (reasoning ignore)
+    const lines = raw.split("\n");
     for (const line of lines) {
       const trimmed = line.trim();
       if (trimmed.startsWith("data:") && !trimmed.includes("[DONE]")) {
-        const jsonStr = trimmed.replace(/^data:\s*/, "");
         try {
-          const parsed = JSON.parse(jsonStr);
-          const deltaContent = parsed.choices?.[0]?.delta?.content;
-          if (deltaContent) {
-            combinedContent += deltaContent;
+          const parsed = JSON.parse(trimmed.replace(/^data:\s*/, ""));
+          const token = parsed.choices?.[0]?.delta?.content;
+          if (token) {
+            replyText += token;
           }
-        } catch {
-          // ignore parsing error
-        }
+        } catch {}
       }
     }
 
-    let finalReply = combinedContent.trim();
-
-    if (!finalReply) {
+    // Fallback normal JSON parsing
+    if (!replyText.trim()) {
       try {
-        const standardJson = JSON.parse(raw);
-        finalReply = standardJson.reply || standardJson.response || standardJson.message || standardJson.choices?.[0]?.message?.content;
-      } catch {
-        finalReply = raw;
-      }
+        const d = JSON.parse(raw);
+        replyText = d.reply || d.response || d.message || d.choices?.[0]?.message?.content || "";
+      } catch {}
     }
 
-    // Safety hard-truncate: Agar fir bhi zyada likhe to 3 sentences ke baad cut kar do
+    let finalReply = replyText.trim();
+
+    // Max 3-4 sentences trim
     if (finalReply) {
       const sentences = finalReply.split(/(?<=[.?!।\n])/).filter(s => s.trim().length > 0);
-      if (sentences.length > 3) {
-        finalReply = sentences.slice(0, 3).join(" ").trim();
+      if (sentences.length > 4) {
+        finalReply = sentences.slice(0, 4).join(" ").trim();
       }
     } else {
-      finalReply = "Haan, bolo na?";
+      finalReply = "Hey! Main sun rahi hoon, bolo kya help chahiye?";
     }
 
     res.setHeader("Content-Type", "application/json");
@@ -89,9 +78,9 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ reply: finalReply });
 
-  } catch (e) {
+  } catch (err) {
     return res.status(200).json({ 
-      reply: "thoda network issue ho gaya, ek baar aur bolo na!" 
+      reply: "Hey, connection thoda slow lag raha hai. Ek baar firse bolo na?" 
     });
   }
 }
