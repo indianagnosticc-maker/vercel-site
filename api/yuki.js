@@ -30,12 +30,10 @@ export default async function handler(req, res) {
   const p4 = "QuGSbpW8CbMLvG";
   const API_KEY = p1 + p2 + p3 + p4;
 
-  // Messages array build karna
   const messages = [
     { role: "system", content: SYSTEM_PROMPT }
   ];
 
-  // Purani history add karo (recent 10 messages)
   const recentHistory = history.slice(-10);
   recentHistory.forEach(item => {
     if (item && item.content) {
@@ -46,7 +44,6 @@ export default async function handler(req, res) {
     }
   });
 
-  // User ka current message
   const lastMsg = messages[messages.length - 1];
   if (!lastMsg || lastMsg.content !== message || lastMsg.role !== "user") {
     messages.push({
@@ -63,7 +60,7 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
+        model: "llama-3.1-8b-instant",
         messages: messages,
         temperature: 0.8,
         max_tokens: 300
