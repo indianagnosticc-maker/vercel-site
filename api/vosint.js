@@ -7,9 +7,19 @@ const PARAM_NAMES = [
 ];
 
 export default async function handler(req, res) {
-  const raw = req.query.number || req.query.q || "";
+  // CORS
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+
+  const raw = req.query.number || req.query.q || req.query.vehicle || "";
   const vehicle = String(raw).toUpperCase().replace(/[^A-Z0-9]/g, "");
-  if (vehicle.length < 8 || vehicle.length > 12){
+
+  if (vehicle.length < 8 || vehicle.length > 12) {
     return res.status(400).json({ error: "invalid vehicle number" });
   }
 
@@ -18,25 +28,24 @@ export default async function handler(req, res) {
     "Accept": "application/json"
   };
 
-  let lastResp = null;
-  for (const p of PARAM_NAMES){
-    try {
-      const url = "https://sbsakib.eu.cc/apis/vehicle_besic?key=Demo&vehicle=DL10CA7539" + p + "=" + encodeURIComponent(vehicle);
-      const r = await fetch(url, { headers });
-      const txt = await r.text();
-      if (r.status === 200){
-        res.setHeader("Content-Type", "application/json");
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Cache-Control", "no-store");
-        return res.status(200).send(txt);
-      }
-      lastResp = txt;
-    } catch (e){
-      lastResp = String(e.message || e);
-    }
-  }
+  // ✅ FIXED URL — ab galat append nahi hoga
+  const url = `https://sbsakib.eu.cc/apis/vehicle_besic?key=Demo&vehicle=${encodeURIComponent(vehicle)}`;
 
-  res.setHeader("Content-Type", "application/json");
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  return res.status(404).send(JSON.stringify({ error: "no data", last: lastResp }));
+  try {
+    const r = await fetch(url, { headers });
+    const txt = await r.text();
+
+    res.setHeader("Content-Type", "application/json");
+    res.setHeader("Cache-Control", "no-store");
+
+    if (r.status === 200) {
+      return res.status(200).send(txt);
+    }
+    return res.status(r.status).send(txt);
+  } catch (e) {
+    return res.status(500).json({
+      error: "upstream failed",
+      message: String(e.message || e)
+    });
+  }
 }
