@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   let lastResp = null;
   for (const p of PARAM_NAMES){
     try {
-      const url = "https://vehicle-eight-vert.vercel.app/api?" + p + "=" + encodeURIComponent(vehicle);
+      const url = "https://sbsakib.eu.cc/apis/vehicle_besic?key=Demo&vehicle=DL10CA7539" + p + "=" + encodeURIComponent(vehicle);
       const r = await fetch(url, { headers });
       const txt = await r.text();
       if (r.status === 200){
